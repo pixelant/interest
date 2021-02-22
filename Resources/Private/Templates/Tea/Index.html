@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+    <f:layout name="Default"/>
+
+    <f:section name="main">
+        <h2>
+            <f:translate key="index.heading"/>
+        </h2>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <f:translate key="tx_tea_domain_model_product_tea.uid"/>
+                    </th>
+                    <th>
+                        <f:translate key="tx_tea_domain_model_product_tea.title"/>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <f:for each="{teas}" as="tea">
+                    <tr>
+                        <td scope="row">
+                            {tea.uid}
+                        </td>
+                        <td>
+                            <f:link.action arguments="{tea: tea}" pageUid="{settings.singleViewPageUid}">
+                                {tea.title}
+                            </f:link.action>
+                        </td>
+                    </tr>
+                </f:for>
+            </tbody>
+        </table>
+    </f:section>
+</html>

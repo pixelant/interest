@@ -1,0 +1,114 @@
+{
+	"name": "pixelant/inteREST",
+	"type": "typo3-cms-extension",
+	"description": "REST API for read/write access to database",
+	"keywords": [
+		"typo3",
+		"TYPO3 CMS"
+	],
+	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "Pixelant",
+			"email": "info@pixelant.net",
+			"homepage": "https://www.pixelant.net",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"typo3/cms-core": " ^10.4.6",
+		"typo3/cms-extbase": "^10.4.6",
+		"typo3/cms-fluid": "^10.4.6",
+		"typo3/cms-frontend": "^10.4.6"
+	},
+	"replace": {
+		"typo3-ter/tea": "self.version"
+	},
+	"conflict": {
+		"typo3/class-alias-loader": "< 1.1.0"
+	},
+	"require-dev": {
+		"codeception/codeception": "^4.1.5",
+		"friendsofphp/php-cs-fixer": "^2.16.3",
+		"helhum/typo3-composer-setup": "^0.5.7",
+		"helmich/typo3-typoscript-lint": "^2.1.1",
+		"j13k/yaml-lint": "1.1.x-dev",
+		"nimut/testing-framework": "^5.0.3",
+		"phpdocumentor/reflection-docblock": "<= 5.1 || > 5.2",
+		"phpunit/phpunit": "^7.5.20",
+		"seld/jsonlint": "^1.8",
+		"typo3/cms-fluid-styled-content": "^10.4.6"
+	},
+	"config": {
+		"preferred-install": {
+			"*": "dist"
+		},
+		"sort-packages": true,
+		"vendor-dir": ".Build/vendor"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "0.0.x-dev"
+		},
+		"typo3/cms": {
+			"cms-package-dir": "{$vendor-dir}/typo3/cms",
+			"web-dir": ".Build/public",
+			"extension-key": "inteREST"
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"Pixelant\\Interest\\": "Classes/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Pixelant\\Interest\\Tests\\": "Tests/"
+		}
+	},
+	"prefer-stable": true,
+	"scripts": {
+		"post-autoload-dump": [
+			"@link-extension"
+		],
+		"ci": [
+			"@ci:static"
+		],
+		"ci:composer:normalize": "php ./tools/composer-normalize.phar --dry-run",
+		"ci:dynamic": [
+			"@ci:tests"
+		],
+		"ci:json:lint": "find . ! -path '*.Build/*' -name '*.json' | xargs .Build/vendor/bin/jsonlint -q",
+		"ci:php": [
+			"@ci:php:codestyle",
+			"@ci:php:sniff"
+		],
+		"ci:php:codestyle": "php-cs-fixer fix --config .php_cs.php -v --dry-run --using-cache false --diff --diff-format=udiff",
+		"ci:php:copypaste": "php ./tools/phpcpd.phar Classes Configuration Tests",
+		"ci:php:lint": "find *.php Classes Configuration Tests -name '*.php' -print0 | xargs -0 -n 1 -P 4 php -l",
+		"ci:php:sniff": "php ./tools/phpcs.phar Classes Configuration Tests",
+		"ci:static": [
+			"@ci:php:lint",
+			"@ci:php:sniff",
+			"@ci:ts:lint"
+		],
+		"ci:tests": [
+			"@ci:tests:unit",
+			"@ci:tests:functional"
+		],
+		"ci:tests:functional": "find 'Tests/Functional' -wholename '*Test.php' | parallel --gnu 'echo; echo \"Running functional test suite {}\"; .Build/vendor/bin/phpunit -c .Build/vendor/nimut/testing-framework/res/Configuration/FunctionalTests.xml {}';",
+		"ci:tests:unit": ".Build/vendor/bin/phpunit -c .Build/vendor/nimut/testing-framework/res/Configuration/UnitTests.xml Tests/Unit",
+		"ci:ts:lint": ".Build/vendor/bin/typoscript-lint -c Configuration/TsLint.yml --ansi -n --fail-on-warnings -vvv Configuration/TypoScript",
+		"ci:yaml:lint": "find . ! -path '*.Build/*' -name '*.yml' | xargs .Build/vendor/bin/yaml-lint",
+		"fix:php": [
+			"@fix:php:cs",
+			"@fix:php:sniff"
+		],
+		"fix:php:cs": "php-cs-fixer fix --config .php_cs.php",
+		"fix:php:sniff": ".Build/vendor/bin/phpcs Classes Configuration Tests",
+		"link-extension": [
+			"@php -r 'is_dir($extFolder=__DIR__.\"/.Build/public/typo3conf/ext/\") || mkdir($extFolder, 0777, true);'",
+			"@php -r 'file_exists($extFolder=__DIR__.\"/.Build/public/typo3conf/ext/tea\") || symlink(__DIR__,$extFolder);'"
+		]
+	}
+}

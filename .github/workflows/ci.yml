@@ -1,0 +1,210 @@
+---
+name: CI
+on: [pull_request]
+jobs:
+  php-lint:
+    name: "PHP linter"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: "Install PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "${{ matrix.php-version }}"
+      - name: "Run PHP lint"
+        run: "composer ci:php:lint"
+    strategy:
+      matrix:
+        php-version:
+          - 7.4
+  code-quality:
+    name: "Code quality checks"
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: "Install PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "${{ matrix.php-version }}"
+      - name: "Show Composer version"
+        run: composer --version
+      -
+        name: "Cache dependencies installed with composer"
+        uses: actions/cache@v1
+        with:
+          key: "php${{ matrix.php-version }}-
+          composer-${{ hashFiles('**/composer.json') }}"
+          path: ~/.composer/cache
+          restore-keys: "php${{ matrix.php-version }}-composer-\n"
+      -
+        name: "Install Composer dependencies"
+        run: "composer install --no-progress"
+      -
+        name: "Run command"
+        run: "composer ci:${{ matrix.command }}"
+    strategy:
+      matrix:
+        command:
+          - "ts:lint"
+          - "yaml:lint"
+          - "json:lint"
+          - "php:codestyle"
+        php-version:
+          - 7.4
+  #code-quality-frontend:
+  #  name: "Code quality frontend checks"
+  #  runs-on: ubuntu-latest
+  #  strategy:
+  #    matrix:
+  #      command:
+  #        - "style"
+  #        - "js"
+  #  steps:
+  #    -
+  #      name: Checkout
+  #      uses: actions/checkout@v2
+  #    -
+  #      name: "Install modules"
+  #      working-directory: ./Resources/Private
+  #      run: yarn
+  #    -
+  #      name: "Run command"
+  #      working-directory: ./Resources/Private
+  #      run: "yarn lint:${{ matrix.command }}"
+  xliff-lint:
+    name: "Xliff linter"
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: "Install xmllint"
+        run: "sudo apt-get install libxml2-utils wget"
+      -
+        name: "Download xliff schema"
+        run: "wget https://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd"
+      -
+        name: "Run lint"
+        run: "xmllint --schema ./xliff-core-1.2-strict.xsd
+              --noout $(find Resources -name '*.xlf')"
+  unit-tests:
+    name: "Unit tests"
+    runs-on: ubuntu-latest
+    needs: php-lint
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: "Install PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "${{ matrix.php-version }}"
+      - name: "Show Composer version"
+        run: composer --version
+      -
+        name: "Cache dependencies installed with composer"
+        uses: actions/cache@v1
+        with:
+          key: "php${{ matrix.php-version }}
+               -composer-${{ hashFiles('**/composer.json') }}"
+          path: ~/.composer/cache
+          restore-keys: "php${{ matrix.php-version }}-composer-\n"
+      -
+        env:
+          TYPO3: "${{ matrix.typo3-version }}"
+        name: "Install TYPO3 Core"
+        run: |
+          composer require typo3/minimal:"$TYPO3"
+          composer show
+      -
+        if: "matrix.composer-dependencies == 'lowest'"
+        name: "Install lowest dependencies with composer"
+        run: |
+          composer update --no-ansi --no-interaction |
+          --no-progress --prefer-lowest
+          composer show
+      -
+        if: "matrix.composer-dependencies == 'highest'"
+        name: "Install highest dependencies with composer"
+        run: |
+          composer update --no-ansi --no-interaction --no-progress
+          composer show
+      -
+        name: "Run unit tests"
+        run: "composer ci:tests:unit"
+    strategy:
+      matrix:
+        composer-dependencies:
+          - highest
+        php-version:
+          - 7.4
+        typo3-version:
+          - ^10.4
+  functional-tests:
+    name: "Functional tests"
+    runs-on: ubuntu-latest
+    needs: php-lint
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: "Install PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "${{ matrix.php-version }}"
+      - name: "Show Composer version"
+        run: composer --version
+      -
+        name: "Cache dependencies installed with composer"
+        uses: actions/cache@v1
+        with:
+          key: "php${{ matrix.php-version }}
+          -composer-${{ hashFiles('**/composer.json') }}"
+          path: ~/.composer/cache
+          restore-keys: "php${{ matrix.php-version }}-composer-\n"
+      -
+        env:
+          TYPO3: "${{ matrix.typo3-version }}"
+        name: "Install TYPO3 Core"
+        run: |
+          composer require typo3/minimal:"$TYPO3"
+          composer show
+      -
+        if: "matrix.composer-dependencies == 'lowest'"
+        name: "Install lowest dependencies with composer"
+        run: |
+          composer update --no-ansi --no-interaction |
+          --no-progress --prefer-lowest
+          composer show
+      -
+        if: "matrix.composer-dependencies == 'highest'"
+        name: "Install highest dependencies with composer"
+        run: |
+          composer update --no-ansi --no-interaction --no-progress
+          composer show
+      -
+        name: "Start MySQL"
+        run: "sudo /etc/init.d/mysql start"
+      -
+        name: "Run functional tests"
+        run: |
+          export typo3DatabaseName="typo3";
+          export typo3DatabaseHost="127.0.0.1";
+          export typo3DatabaseUsername="root";
+          export typo3DatabasePassword="root";
+          composer ci:tests:functional
+    strategy:
+      matrix:
+        composer-dependencies:
+          - highest
+        php-version:
+          - 7.4
+        typo3-version:
+          - ^10.4
