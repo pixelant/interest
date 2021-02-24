@@ -16,14 +16,34 @@ class ResourceType {
      */
     public function __construct(string $resourceType)
     {
+        $this->assertValidResourceType($resourceType);
         $this->resourceType = $resourceType;
     }
 
     /**
      * @return string
      */
-    public function getResourceType(): string
+    public function __toString(): string
     {
         return $this->resourceType;
+    }
+
+    /**
+     * @param string $resourceType
+     */
+    public static function assertValidResourceType($resourceType)
+    {
+        if (!$resourceType instanceof self && !is_string($resourceType)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Resource Type must be of type string "%s" given',
+                    is_object($resourceType) ? get_class($resourceType) : gettype($resourceType)
+                )
+            );
+        }
+
+        if (false !== strpos((string)$resourceType, '/')) {
+            throw new \InvalidArgumentException('Resource Type must not contain a slash');
+        }
     }
 }

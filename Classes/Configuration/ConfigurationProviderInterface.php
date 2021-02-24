@@ -1,0 +1,49 @@
+<?php
+declare(strict_types=1);
+
+namespace Pixelant\Interest\Configuration;
+
+use Pixelant\Interest\Domain\Model\ResourceType;
+
+interface ConfigurationProviderInterface
+{
+    /**
+     * The request want's to write data
+     */
+    const ACCESS_METHOD_WRITE = 'write';
+    /**
+     * The request want's to read data
+     */
+    const ACCESS_METHOD_READ = 'read';
+
+    /**
+     * Returns the setting with the given key
+     *
+     * @param string $keyPath
+     * @param mixed  $defaultValue
+     * @return mixed
+     */
+    public function getSetting(string $keyPath, $defaultValue = null);
+
+    /**
+     * Returns the settings read from the TypoScript
+     *
+     * @return array
+     */
+    public function getSettings(): array;
+
+    /**
+     * Returns the paths configured in the settings
+     *
+     * @return ResourceConfiguration[]
+     */
+    public function getConfiguredResources(): array;
+
+    /**
+     * Returns the configuration matching the given resource type
+     *
+     * @param ResourceType $resourceType
+     * @return ResourceConfiguration|null
+     */
+    public function getResourceConfiguration(ResourceType $resourceType): ?ResourceConfiguration;
+}

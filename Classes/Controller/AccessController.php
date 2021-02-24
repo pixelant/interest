@@ -5,7 +5,7 @@ namespace Pixelant\Interest\Controller;
 
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
-class AccessController extends ActionController
+class AccessController extends ActionController implements AccessControllerInterface
 {
 
 }

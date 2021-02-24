@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cundd\Rest\Http;
+namespace Pixelant\Interest\Http;
 
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -309,7 +309,7 @@ trait ServerRequestProxyTrait
      * @return mixed
      * @see getAttributes()
      */
-    public function getAttribute(string $name, $default = null)
+    public function getAttribute($name, $default = null)
     {
         return $this->getOriginalRequest()->getAttribute($name, $default);
     }
@@ -327,7 +327,7 @@ trait ServerRequestProxyTrait
      * @param string $version HTTP protocol version
      * @return ServerRequestInterface
      */
-    public function withProtocolVersion(string $version): ServerRequestInterface
+    public function withProtocolVersion($version): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withProtocolVersion($version));
     }
@@ -347,7 +347,7 @@ trait ServerRequestProxyTrait
      * @return ServerRequestInterface
      * @throws \InvalidArgumentException for invalid header names or values.
      */
-    public function withHeader(string $name, $value): ServerRequestInterface
+    public function withHeader($name, $value): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withHeader($name, $value));
     }
@@ -368,7 +368,7 @@ trait ServerRequestProxyTrait
      * @return ServerRequestInterface
      * @throws \InvalidArgumentException for invalid header names or values.
      */
-    public function withAddedHeader(string $name, $value): ServerRequestInterface
+    public function withAddedHeader($name, $value): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withAddedHeader($name, $value));
     }
@@ -385,7 +385,7 @@ trait ServerRequestProxyTrait
      * @param string $name Case-insensitive header field name to remove.
      * @return ServerRequestInterface
      */
-    public function withoutHeader(string $name): ServerRequestInterface
+    public function withoutHeader($name): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withoutHeader($name));
 
@@ -446,7 +446,7 @@ trait ServerRequestProxyTrait
      * @return ServerRequestInterface
      * @throws \InvalidArgumentException for invalid HTTP methods.
      */
-    public function withMethod(string $method): ServerRequestInterface
+    public function withMethod($method): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withMethod($method));
     }
@@ -618,7 +618,7 @@ trait ServerRequestProxyTrait
      * @return ServerRequestInterface
      * @see getAttributes()
      */
-    public function withoutAttribute(string $name): ServerRequestInterface
+    public function withoutAttribute($name): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withoutAttribute($name));
     }

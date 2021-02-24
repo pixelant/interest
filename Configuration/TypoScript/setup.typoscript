@@ -1,15 +1,16 @@
-plugin.tx_tea {
-  view {
-    templateRootPath = {$plugin.tx_tea.view.templateRootPath}
-    partialRootPath = {$plugin.tx_tea.view.partialRootPath}
-    layoutRootPath = {$plugin.tx_tea.view.layoutRootPath}
-  }
+plugin.tx_interest {
+    paths {
+        tx_pxaproductmanager_domain_model_product {
+             path = tx_pxaproductmanager_domain_model_product-*
 
-  persistence {
-    storagePid = {$plugin.tx_tea.persistence.storagePid}
-  }
+             read = allow
+             write = allow
 
-  settings {
-    singleViewPageUid = {$plugin.tx_tea.settings.singleViewPageUid}
-  }
+             handlerClass = \Pixelant\Interest\Handler\CrudHandler
+        }
+    }
+
+    aliases {
+        Product = tx_pxaproductmanager_domain_model_product
+    }
 }
