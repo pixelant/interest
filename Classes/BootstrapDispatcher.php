@@ -65,9 +65,8 @@ class BootstrapDispatcher
     private function bootstrap(ServerRequestInterface $request)
     {
         if (!$this->isInitialized){
+            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendUser();
             $this->initializeObjectManager();
-            $core = $this->objectManager->get(Core::class);
-            $core->initialize($request);
             $this->initializeConfiguration($this->configuration);
             $this->initializeDispatcher();
 

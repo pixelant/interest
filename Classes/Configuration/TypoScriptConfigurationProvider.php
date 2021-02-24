@@ -45,7 +45,7 @@ class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
             }
         }
 
-        var_dump($typoScript);
+        var_dump($GLOBALS['BE_USER']->getTSConfig());
         die();
         return $this->settings;
     }
