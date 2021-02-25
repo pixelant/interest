@@ -14,12 +14,4 @@ interface AccessControllerInterface
      * @return bool
      */
     public function getAccess(InterestRequestInterface $request): bool;
-
-    /**
-     * Returns if the given request needs authentication
-     *
-     * @param InterestRequestInterface $request
-     * @return bool
-     */
-    public function requestNeedsAuthentication(InterestRequestInterface $request): bool;
 }

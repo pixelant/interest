@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
+use Pixelant\Interest\Authentication\AuthenticationProviderInterface;
+use Pixelant\Interest\Authentication\UserProviderInterface;
+use Pixelant\Interest\Controller\AccessController;
 use Pixelant\Interest\Handler\HandlerInterface;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ResponseFactoryInterface;
@@ -10,8 +13,12 @@ use Pixelant\Interest\RequestFactoryInterface;
 use Pixelant\Interest\Controller\AccessControllerInterface;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
+use Pixelant\Interest\Router\RouterInterface;
+use Pixelant\Interest\Utility\Utility;
 use Psr\Container\ContainerInterface;
+use TYPO3\CMS\Core\Authentication\AuthenticationService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\Exception;
 use TYPO3\CMS\Extbase\Object\ObjectManager as TYPO3ObjectManager;
 
 class ObjectManager implements ObjectManagerInterface
@@ -42,7 +49,7 @@ class ObjectManager implements ObjectManagerInterface
      * @param string $class
      * @param mixed ...$arguments
      * @return mixed|object
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws Exception
      */
     public function get($class, ...$arguments)
     {
@@ -51,7 +58,7 @@ class ObjectManager implements ObjectManagerInterface
 
     /**
      * @return \Pixelant\Interest\ResponseFactoryInterface
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws Exception
      */
     public function getResponseFactory(): ResponseFactoryInterface
     {
@@ -60,34 +67,55 @@ class ObjectManager implements ObjectManagerInterface
 
     /**
      * @return \Pixelant\Interest\RequestFactoryInterface
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws Exception
      */
     public function getRequestFactory(): RequestFactoryInterface
     {
         return $this->get(RequestFactoryInterface::class);
     }
 
+    /**
+     * @param InterestRequestInterface|null $request
+     * @return AccessControllerInterface
+     * @throws Exception
+     */
     public function getAccessController(InterestRequestInterface $request = null): AccessControllerInterface
     {
-        $resourceType = $request->getResourceType();
-        list($vendor, $extension,) = Utility::getClassNamePartsForResourceType($resourceType);
-
-        // Check if an extension provides a Authentication Provider
-        $accessControllerClass = ($vendor ? $vendor . '\\' : '') . $extension . '\\Rest\\AccessController';
-        if (!class_exists($accessControllerClass)) {
-            /** @deprecated Class overrides without namespaces are deprecated. Will be removed in 5.0 */
-            $accessControllerClass = 'Tx_' . $extension . '_Rest_AccessController';
-        }
-
-        return $this->get($accessControllerClass);
+        $objectManager = $this->get(ObjectManagerInterface::class);
+        return $this->get(AccessControllerInterface::class, $objectManager);
     }
 
+    /**
+     * @param InterestRequestInterface|null $request
+     * @return HandlerInterface
+     * @throws Exception
+     */
     public function getHandler(InterestRequestInterface $request = null): HandlerInterface
     {
-        $resourceType = $request->getResourceType();
+        $resourceType = $request->getResourceType()->__toString();
+        $configurationProvider = $this->getConfigurationProvider();
+        $configuration = $configurationProvider->getSettings();
+        $handler = null;
 
+        foreach ($configuration['paths'] as $path => $value)
+        {
+            if ($path == $resourceType){
+                $handlerClass = trim($value['handlerClass'], '\\');
+                $handler = $this->get($handlerClass);
+            }
+        }
+
+        if ($handler !== null && $handler instanceof HandlerInterface){
+            return $handler;
+        } else {
+            throw new \UnexpectedValueException('Wrong handler class given.') ;
+        }
     }
 
+    /**
+     * @return ConfigurationProviderInterface
+     * @throws Exception
+     */
     public function getConfigurationProvider(): ConfigurationProviderInterface
     {
         if (!$this->configurationProvider) {
@@ -95,5 +123,35 @@ class ObjectManager implements ObjectManagerInterface
         }
 
         return $this->configurationProvider;
+    }
+
+    /**
+     * @return UserProviderInterface
+     * @throws Exception
+     */
+    public function getUserProvider(): UserProviderInterface
+    {
+        $objectManager = $this->get(ObjectManagerInterface::class);
+
+        return $this->get(UserProviderInterface::class, $objectManager);
+    }
+
+    /**
+     * @return AuthenticationProviderInterface
+     * @throws Exception
+     */
+    public function getAuthenticationProvider(): AuthenticationProviderInterface
+    {
+        $userProvider = $this->getUserProvider();
+        return $this->get(AuthenticationProviderInterface::class, $userProvider);
+    }
+
+    /**
+     * @return RouterInterface
+     * @throws Exception
+     */
+    public function getRouter(): RouterInterface
+    {
+        return $this->get(RouterInterface::class);
     }
 }

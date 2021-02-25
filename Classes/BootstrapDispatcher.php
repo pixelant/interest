@@ -66,6 +66,8 @@ class BootstrapDispatcher
     {
         if (!$this->isInitialized){
             \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendUser();
+            $GLOBALS['BE_USER']->backendCheckLogin();
+
             $this->initializeObjectManager();
             $this->initializeConfiguration($this->configuration);
             $this->initializeDispatcher();
@@ -97,6 +99,6 @@ class BootstrapDispatcher
         $requestFactory = $this->objectManager->getRequestFactory();
         $responseFactory = $this->objectManager->getResponseFactory();
 
-        $this->dispatcher = new Dispatcher($requestFactory, $responseFactory);
+        $this->dispatcher = new Dispatcher($requestFactory, $responseFactory, $this->objectManager);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Router;
 
 use Pixelant\Interest\Http\InterestRequestInterface;
-use TYPO3\CMS\Extbase\Mvc\ResponseInterface;
+use Psr\Http\Message\ResponseInterface;
 
 interface RouteInterface
 {
@@ -37,13 +37,4 @@ interface RouteInterface
      * @return string[]
      */
     public function getParameters(): array;
-
-    /**
-     * Returns the priority of this route
-     *
-     * Deeper nested paths have a higher priority. Fixed paths have precedence over paths with parameter expressions.
-     *
-     * @return int
-     */
-    public function getPriority(): int;
 }

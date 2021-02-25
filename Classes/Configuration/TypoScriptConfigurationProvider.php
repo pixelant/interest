@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Configuration;
 
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 
 /**
@@ -34,19 +35,13 @@ class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
         if ($this->settings === null) {
             $this->settings = [];
 
-            $typoScript = $this->configurationManager->getConfiguration(
-                ConfigurationManager::CONFIGURATION_TYPE_FRAMEWORK
-            );
-            if (isset($typoScript['plugin.'])
-                && isset($typoScript['plugin.']['tx_interest.'])
-                && isset($typoScript['plugin.']['tx_interest.']['settings.'])
-            ) {
-                $this->settings = $typoScript['plugin.']['tx_interest.']['settings.'];
+            $typoScript = $GLOBALS['BE_USER']->getTsConfig();$this->settings;
+
+            if (isset($typoScript['tx_interest.'])) {
+                $this->settings = $typoScript['tx_interest.'];
             }
         }
 
-        var_dump($GLOBALS['BE_USER']->getTSConfig());
-        die();
-        return $this->settings;
+        return GeneralUtility::removeDotsFromTS($this->settings);
     }
 }

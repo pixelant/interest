@@ -13,36 +13,36 @@ interface RouteFactoryInterface
     /**
      * Creates a new Route with the given pattern and callback for the method GET
      *
-     * @param string|ResourceType $pattern
+     * @param string $pattern
      * @param callable $callback
      * @return Route
      */
-    public static function get($pattern, callable $callback): Route;
+    public static function get(string $pattern, callable $callback): Route;
 
     /**
      * Creates a new Route with the given pattern and callback for the method POST
      *
-     * @param string|ResourceType $pattern
+     * @param string $pattern
      * @param callable $callback
      * @return Route
      */
-    public static function post($pattern, callable $callback): Route;
+    public static function post(string $pattern, callable $callback): Route;
 
     /**
      * Creates a new Route with the given pattern and callback for the method PUT
      *
-     * @param string|ResourceType $pattern
+     * @param string $pattern
      * @param callable $callback
      * @return Route
      */
-    public static function put($pattern, callable $callback): Route;
+    public static function put(string $pattern, callable $callback): Route;
 
     /**
      * Creates a new Route with the given pattern and callback for the method DELETE
      *
-     * @param string|ResourceType $pattern
+     * @param string $pattern
      * @param callable $callback
      * @return Route
      */
-    public static function delete($pattern, callable $callback): Route;
+    public static function delete(string $pattern, callable $callback): Route;
 }
