@@ -2,6 +2,11 @@
 defined('TYPO3_MODE') or die('Access denied.');
 
 (static function () {
+    if (TYPO3_MODE === 'BE') {
+        $renderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
+        $renderer->addJsFile(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('inteREST') . 'Resources/Public/JavaScript/Token.js');
+    }
+
     // Register eID
     $GLOBALS['TYPO3_CONF_VARS']['FE']['eID_include']['rest'] = \Pixelant\Interest\BootstrapDispatcher::class . '::processRequest';
 

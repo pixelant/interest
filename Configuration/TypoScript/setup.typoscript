@@ -8,6 +8,12 @@ plugin.tx_interest {
 
              handlerClass = \Pixelant\Interest\Handler\CrudHandler
         }
+
+        authentication {
+            path = authentication
+
+            handlerClass = \Pixelant\Interest\Handler\AuthenticationHandler
+        }
     }
 
     aliases {

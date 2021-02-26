@@ -37,20 +37,6 @@ interface InterestRequestInterface extends ServerRequestInterface
     public function getSendData();
 
     /**
-     * Returns if request want to write data.
-     *
-     * @return bool
-     */
-    public function isWrite(): bool;
-
-    /**
-     * Returns if request want to read data.
-     *
-     * @return bool
-     */
-    public function isRead(): bool;
-
-    /**
      * Returns instance with given resource type
      *
      * @param ResourceType $resourceType
