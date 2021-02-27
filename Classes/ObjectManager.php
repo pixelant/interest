@@ -3,20 +3,17 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use Pixelant\Interest\Authentication\AuthenticationProviderInterface;
 use Pixelant\Interest\Authentication\UserProviderInterface;
-use Pixelant\Interest\Controller\AccessController;
 use Pixelant\Interest\Handler\HandlerInterface;
 use Pixelant\Interest\Http\InterestRequestInterface;
-use Pixelant\Interest\ResponseFactoryInterface;
-use Pixelant\Interest\RequestFactoryInterface;
 use Pixelant\Interest\Controller\AccessControllerInterface;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
 use Pixelant\Interest\Router\RouterInterface;
-use Pixelant\Interest\Utility\Utility;
 use Psr\Container\ContainerInterface;
-use TYPO3\CMS\Core\Authentication\AuthenticationService;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\Exception;
 use TYPO3\CMS\Extbase\Object\ObjectManager as TYPO3ObjectManager;
@@ -131,9 +128,7 @@ class ObjectManager implements ObjectManagerInterface
      */
     public function getUserProvider(): UserProviderInterface
     {
-        $objectManager = $this->get(ObjectManagerInterface::class);
-
-        return $this->get(UserProviderInterface::class, $objectManager);
+        return $this->get(UserProviderInterface::class);
     }
 
     /**
@@ -143,7 +138,8 @@ class ObjectManager implements ObjectManagerInterface
     public function getAuthenticationProvider(): AuthenticationProviderInterface
     {
         $userProvider = $this->getUserProvider();
-        return $this->get(AuthenticationProviderInterface::class, $userProvider);
+        $objectManager = $this->get(ObjectManagerInterface::class);
+        return $this->get(AuthenticationProviderInterface::class, $userProvider, $objectManager);
     }
 
     /**
@@ -153,5 +149,15 @@ class ObjectManager implements ObjectManagerInterface
     public function getRouter(): RouterInterface
     {
         return $this->get(RouterInterface::class);
+    }
+
+    /**
+     * @param string $tableName
+     * @return QueryBuilder
+     * @throws Exception
+     */
+    public function getQueryBuilder(string $tableName): QueryBuilder
+    {
+        return $this->get(ConnectionPool::class)->getQueryBuilderForTable($tableName);
     }
 }

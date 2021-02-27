@@ -105,9 +105,6 @@ class ResponseFactory implements ResponseFactoryInterface
                 $response = $response->withHeader(Header::CONTENT_TYPE, 'application/json');
                 break;
 
-            case 'xml':
-                // TODO: support more response formats
-
             default:
                 $response->getBody()->write(
                     sprintf(

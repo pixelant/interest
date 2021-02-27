@@ -4,44 +4,76 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Authentication;
 
 use Pixelant\Interest\Http\InterestRequestInterface;
+use Pixelant\Interest\ObjectManagerInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class AuthenticationProvider extends AbstractAuthenticationProvider
 {
+    const TOKEN_TABLE = 'tx_interest_api_token';
+
     /**
      * @var UserProviderInterface
      */
     protected UserProviderInterface $userProvider;
 
     /**
+     * @var ObjectManagerInterface
+     */
+    protected ObjectManagerInterface $objectManager;
+
+    /**
      * AuthenticationProvider constructor.
      * @param UserProviderInterface $userProvider
      */
-    public function __construct(UserProviderInterface $userProvider)
+    public function __construct(UserProviderInterface $userProvider, ObjectManagerInterface $objectManager)
     {
         $this->userProvider = $userProvider;
+        $this->objectManager = $objectManager;
     }
+
     /**
      * @param InterestRequestInterface $request
      * @return bool
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     public function authenticate(InterestRequestInterface $request): bool
     {
-        $username = null;
-        $password = null;
+        $serverParameters = $request->getServerParams();
+        $token = '';
 
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])){
-            if (str_starts_with(strtolower($_SERVER['HTTP_AUTHORIZATION']), 'basic')) {
-                list($username, $password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
-            }
-        } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            if (str_starts_with(strtolower($_SERVER['REDIRECT_HTTP_AUTHORIZATION']), 'basic')) {
-                list($username, $password) = explode(
-                    ':',
-                    base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6))
-                );
-            }
+        if (isset($serverParameters["HTTP_AUTHORIZATION"])){
+            $token = explode(" ", $serverParameters["HTTP_AUTHORIZATION"])[1];
+        }else if(isset($serverParameters["REDIRECT_HTTP_AUTHORIZATION"])){
+            $token = explode(" ", $serverParameters["REDIRECT_HTTP_AUTHORIZATION"])[1];
         }
 
-        return $this->userProvider->checkCredentials($username, $password);
+        $queryBuilder = $this->objectManager->getQueryBuilder(self::TOKEN_TABLE);
+        $matchedTokens = $queryBuilder
+            ->select('token','expires_in')
+            ->from(self::TOKEN_TABLE)
+            ->where(
+                $queryBuilder->expr()->eq('token', "'".$token."'")
+            )
+            ->execute()
+            ->fetchAllAssociative();
+
+        if (empty($matchedTokens)){
+            return false;
+        }
+
+        $tokenData = reset($matchedTokens);
+
+        if (time() > $tokenData['expires_in']){
+            $queryBuilder
+                ->delete(self::TOKEN_TABLE)
+                ->where(
+                    $queryBuilder->expr()->eq('token', "'".$tokenData['token']."'")
+                )
+                ->execute();
+
+            return false;
+        }
+
+        return true;
     }
 }

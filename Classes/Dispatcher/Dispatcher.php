@@ -60,13 +60,17 @@ class Dispatcher implements DispatcherInterface
      */
     public function dispatch(InterestRequestInterface $request): ResponseInterface
     {
+        if ($request->getResourceType()->__toString() === 'authentication'){
+            return $this->callHandler($request);
+        }
+
         $access = $this->objectManager->getAccessController()->getAccess($request);
 
         switch ($access){
             case true:
                 return $this->callHandler($request);
             default:
-                return $this->responseFactory->createErrorResponse('Unauthorized', 401, $request);
+                return $this->responseFactory->createErrorResponse('Unauthorized, please check if your token is valid', 401, $request);
         }
     }
 
@@ -80,6 +84,6 @@ class Dispatcher implements DispatcherInterface
         $router = $this->objectManager->getRouter();
         $this->objectManager->getHandler($request)->configureRoutes($router, $request);
 
-        $router->dispatch($request);
+        return $router->dispatch($request);
     }
 }

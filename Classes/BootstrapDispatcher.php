@@ -54,12 +54,13 @@ class BootstrapDispatcher
 
     /**
      * @param ServerRequestInterface $request
+     * @return ResponseInterface
      */
-    public function processRequest(ServerRequestInterface $request)
+    public function processRequest(ServerRequestInterface $request): ResponseInterface
     {
         $this->bootstrap($request);
 
-        $this->dispatcher->processRequest($request);
+        return $this->dispatcher->processRequest($request);
     }
 
     private function bootstrap(ServerRequestInterface $request)

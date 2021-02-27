@@ -137,16 +137,6 @@ class Request implements ServerRequestInterface, InterestRequestInterface
         );
     }
 
-    public function isWrite(): bool
-    {
-        return !$this->isRead();
-    }
-
-    public function isRead(): bool
-    {
-        return in_array(strtoupper($this->getMethod()), ['GET', 'HEAD']);
-    }
-
     public function withResourceType(ResourceType $resourceType): InterestRequestInterface
     {
         $clone = clone $this;
