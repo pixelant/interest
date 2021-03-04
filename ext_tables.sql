@@ -10,18 +10,6 @@ CREATE TABLE tx_interest_api_token (
      PRIMARY KEY (uid)
 );
 
-CREATE TABLE tx_interest_test_table (
-     title varchar(255) DEFAULT '' NOT NULL,
-     relation_field1 varchar(255) DEFAULT '' NOT NULL,
-     relation_field2 varchar(255) DEFAULT '' NOT NULL,
-);
-
-CREATE TABLE tx_interest_test_table2 (
-     title varchar(255) DEFAULT '' NOT NULL,
-     field1 varchar(255) DEFAULT '' NOT NULL,
-     field2 varchar(255) DEFAULT '' NOT NULL,
-);
-
 CREATE TABLE tx_interest_remote_id_mapping (
     uid int(11) DEFAULT '0' NOT NULL auto_increment,
     remote_id varchar(255) DEFAULT '' NOT NULL,
