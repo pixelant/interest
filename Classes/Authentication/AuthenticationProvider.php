@@ -32,6 +32,8 @@ class AuthenticationProvider extends AbstractAuthenticationProvider
     }
 
     /**
+     * Token validation processing
+     *
      * @param InterestRequestInterface $request
      * @return bool
      * @throws \TYPO3\CMS\Extbase\Object\Exception

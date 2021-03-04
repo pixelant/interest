@@ -24,6 +24,36 @@
 			<trans-unit id="tx_tea_domain_model_product_tea.title">
 				<source>Title</source>
 			</trans-unit>
+			<trans-unit id="tx_interest_remote_id_local_id_relation.title">
+				<source>ID's relation</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_remote_id_local_id_relation.remote_id">
+				<source>Remote id</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_remote_id_local_id_relation.table">
+				<source>Table</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_remote_id_local_id_relation.uid">
+				<source>Uid</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.title">
+				<source>ID's relation</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.remote_id">
+				<source>Remote id</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.table">
+				<source>Table</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.field">
+				<source>Field</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.record_uid">
+				<source>Record uid</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_currently_non_existing_relations.timestamp">
+				<source>Timestamp</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

@@ -14,6 +14,7 @@ use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
 use Pixelant\Interest\Router\RouterInterface;
 use Psr\Container\ContainerInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\Exception;
 use TYPO3\CMS\Extbase\Object\ObjectManager as TYPO3ObjectManager;
@@ -89,6 +90,8 @@ class ObjectManager implements ObjectManagerInterface
      */
     public function getHandler(InterestRequestInterface $request = null): HandlerInterface
     {
+        $objectManager = $this->get(ObjectManagerInterface::class);
+        $dataHandler = $this->get(DataHandler::class);
         $resourceType = $request->getResourceType()->__toString();
         $configurationProvider = $this->getConfigurationProvider();
         $configuration = $configurationProvider->getSettings();
@@ -98,7 +101,7 @@ class ObjectManager implements ObjectManagerInterface
         {
             if ($path == $resourceType){
                 $handlerClass = trim($value['handlerClass'], '\\');
-                $handler = $this->get($handlerClass);
+                $handler = $this->get($handlerClass, $objectManager, $dataHandler);
             }
         }
 
