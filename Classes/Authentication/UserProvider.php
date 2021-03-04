@@ -10,6 +10,8 @@ class UserProvider implements UserProviderInterface
 {
 
     /**
+     * Compare given username and password with current BE user credentials.
+     *
      * @param string $username
      * @param string $password
      * @return bool

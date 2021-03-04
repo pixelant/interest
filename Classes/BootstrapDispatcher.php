@@ -6,6 +6,11 @@ namespace Pixelant\Interest;
 use Pixelant\Interest\Bootstrap\Core;
 use Pixelant\Interest\Dispatcher\Dispatcher;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Localization\LanguageStore;
+use TYPO3\CMS\Core\Localization\Locales;
+use TYPO3\CMS\Core\Localization\LocalizationFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -67,10 +72,12 @@ class BootstrapDispatcher
     {
         if (!$this->isInitialized){
             \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendUser();
-            $GLOBALS['BE_USER']->backendCheckLogin();
+            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendAuthentication();
+            \TYPO3\CMS\Core\Core\Bootstrap::initializeLanguageObject();
 
             $this->initializeObjectManager();
             $this->initializeConfiguration($this->configuration);
+            $this->initializePageDoktypes();
             $this->initializeDispatcher();
 
             $this->isInitialized = true;
@@ -101,5 +108,16 @@ class BootstrapDispatcher
         $responseFactory = $this->objectManager->getResponseFactory();
 
         $this->dispatcher = new Dispatcher($requestFactory, $responseFactory, $this->objectManager);
+    }
+
+    private function initializePageDoktypes()
+    {
+        $GLOBALS['PAGES_TYPES'] =
+            [
+                'default' => [
+                    'allowedTables' => '',
+                    'onlyAllowedTables' => false
+                ]
+            ];
     }
 }

@@ -127,6 +127,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
      * Returns the paths configured in the settings
      *
      * @return ResourceConfiguration[]
+     * @throws InvalidConfigurationException
      */
     public function getConfiguredResources(): array
     {
