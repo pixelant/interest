@@ -73,42 +73,49 @@ class CrudHandler implements HandlerInterface
         $importDataArray['data']['pid'] = $configuration['persistence']['storagePid'];
         $data[$tableName]['NEW'.$randomString] = $importDataArray['data'];
 
-        $this->dataHandling($data);
+        if ($this->dataHandling($data)) {
 
-        $this->createRemoteIdLocalIdRelation(
-            $importDataArray['remoteId'],
-            $tableName,
-            $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
-        );
+            $this->createRemoteIdLocalIdRelation(
+                $importDataArray['remoteId'],
+                $tableName,
+                $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
+            );
 
-        if (!empty($pendingRelations)){
-            foreach ($pendingRelations as $fieldName => $values){
-                foreach ($values as $key => $value){
-                    $this->createNonExistingRelationRecord(
-                        $value,
-                        $tableName,
-                        $fieldName,
-                        $this->dataHandler->substNEWwithIDs['NEW'.$randomString],
-                        CsvUtility::csvValues($values,',','')
-                    );
+            if (!empty($pendingRelations)){
+                foreach ($pendingRelations as $fieldName => $values){
+                    foreach ($values as $key => $value){
+                        $this->createNonExistingRelationRecord(
+                            $value,
+                            $tableName,
+                            $fieldName,
+                            $this->dataHandler->substNEWwithIDs['NEW'.$randomString],
+                            CsvUtility::csvValues($values,',','')
+                        );
+                    }
                 }
             }
+
+
+            $this->checkForNonExistingRelationRecords(
+                $importDataArray['remoteId'],
+                $this->dataHandler->substNEWwithIDs['NEW'.$randomString]);
+
+            return $responseFactory->createSuccessResponse(
+                [
+                    'status' => 'success',
+                    'data' => [
+                        'uid' => $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
+                    ]
+                ],
+                200,
+                $request);
+        } else {
+            return $responseFactory->createErrorResponse(
+                ['Error occured during data handling process, please check if data is valid'],
+                403,
+                $request);
         }
 
-
-        $this->checkForNonExistingRelationRecords(
-            $importDataArray['remoteId'],
-            $this->dataHandler->substNEWwithIDs['NEW'.$randomString]);
-
-        return $responseFactory->createSuccessResponse(
-            [
-                'status' => 'success',
-                'data' => [
-                    'uid' => $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
-                ]
-            ],
-            200,
-            $request);
     }
 
     /**
@@ -348,6 +355,7 @@ class CrudHandler implements HandlerInterface
      * @param array $recordData
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws Exception
      */
     public function updateRecord(InterestRequestInterface $request, array $recordData = []): ResponseInterface
     {
@@ -390,7 +398,15 @@ class CrudHandler implements HandlerInterface
             }
 
             $data[$remoteIdLocalIdRelationData[0]['table']][$remoteIdLocalIdRelationData[0]['uid_local']] = $relationProcessedArray;
-            $this->dataHandling($data);
+            if ($this->dataHandling($data)){
+                return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
+            } else {
+                return $responseFactory->createErrorResponse(
+                    ['Error occured during data handling process, please check if data is valid'],
+                    403,
+                    $request);
+            }
+
         }
 
         return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
@@ -451,7 +467,7 @@ class CrudHandler implements HandlerInterface
         } else {
             return $responseFactory->createErrorResponse(
                 ['Error occured during data handling process, please check if data is valid'],
-                200,
+                403,
                 $request);
         }
     }
