@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function(){
   matchedElements.forEach(function (elem) {
       if (elem.dataset.eventName === 'setup:token:clicked'){
           elem.addEventListener('click', function () {
-            req.open("POST", 'http://golfstore.t3.localhost/rest/authentication');
+            req.open("POST", window.location.host+'/rest/authentication');
             req.setRequestHeader("Authorization", "Basic dmxhZHlzbGF2LnZpbGRhbm92OlZ2VjEyMzQ1");
             req.send();
           })
