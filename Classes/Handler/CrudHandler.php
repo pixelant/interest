@@ -74,7 +74,6 @@ class CrudHandler implements HandlerInterface
         $data[$tableName]['NEW'.$randomString] = $importDataArray['data'];
 
         if ($this->dataHandling($data)) {
-
             $this->createRemoteIdLocalIdRelation(
                 $importDataArray['remoteId'],
                 $tableName,

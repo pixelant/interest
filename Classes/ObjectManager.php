@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
+use TYPO3\CMS\Core\Authentication\AuthenticationService;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use Pixelant\Interest\Authentication\AuthenticationProviderInterface;
 use Pixelant\Interest\Authentication\UserProviderInterface;
@@ -131,7 +132,7 @@ class ObjectManager implements ObjectManagerInterface
      */
     public function getUserProvider(): UserProviderInterface
     {
-        return $this->get(UserProviderInterface::class);
+        return $this->get(UserProviderInterface::class, $this);
     }
 
     /**

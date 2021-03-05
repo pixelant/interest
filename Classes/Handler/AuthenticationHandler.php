@@ -67,7 +67,7 @@ class AuthenticationHandler implements HandlerInterface
     public function getTokenOrCreateNew(ObjectManagerInterface $objectManager, string $token = ''): array
     {
         $queryBuilder = $objectManager->getQueryBuilder(self::TOKEN_TABLE);
-
+        $configuration = $objectManager->getConfigurationProvider()->getSettings();
         if ($token === ''){
             $token = $objectManager->get(Random::class)->generateRandomHexString(20);
         }
@@ -82,7 +82,10 @@ class AuthenticationHandler implements HandlerInterface
             ->fetchAllAssociative();
 
         if (empty($existingToken)){
-            $expiresIn = time()+3600;
+            $expiresIn = ($configuration['token']['expires_in'] || $configuration['token']['expires_in'] === '0')
+                ? (int)$configuration['token']['expires_in']
+                : time()+3600;
+
             $queryBuilder
                 ->insert(self::TOKEN_TABLE)
                 ->values([
