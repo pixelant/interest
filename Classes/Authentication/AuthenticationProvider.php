@@ -65,7 +65,7 @@ class AuthenticationProvider extends AbstractAuthenticationProvider
 
         $tokenData = reset($matchedTokens);
 
-        if (time() > $tokenData['expires_in']){
+        if (time() > $tokenData['expires_in'] && $tokenData['expires_in'] !== 0){
             $queryBuilder
                 ->delete(self::TOKEN_TABLE)
                 ->where(
