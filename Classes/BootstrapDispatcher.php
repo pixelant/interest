@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use Pixelant\Interest\Bootstrap\Core;
+use cogpowered\FineDiff\Granularity\Character;
 use Pixelant\Interest\Dispatcher\Dispatcher;
+use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Core\Cache\CacheManager;
-use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Localization\LanguageStore;
-use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Localization\LocalizationFactory;
+use TYPO3\CMS\Core\Authentication\AuthenticationService;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -49,7 +47,7 @@ class BootstrapDispatcher
     /**
      * BootstrapDispatcher constructor.
      * @param ObjectManagerInterface|null $objectManager
-     * @param array                  $configuration
+     * @param array $configuration
      */
     public function __construct(ObjectManagerInterface $objectManager = null, array $configuration = [])
     {
@@ -71,11 +69,10 @@ class BootstrapDispatcher
     private function bootstrap(ServerRequestInterface $request)
     {
         if (!$this->isInitialized){
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendUser();
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendAuthentication();
             \TYPO3\CMS\Core\Core\Bootstrap::initializeLanguageObject();
 
             $this->initializeObjectManager();
+            $this->initializeBackendAuthenticationService($request);
             $this->initializeConfiguration($this->configuration);
             $this->initializePageDoktypes();
             $this->initializeDispatcher();
@@ -119,5 +116,30 @@ class BootstrapDispatcher
                     'onlyAllowedTables' => false
                 ]
             ];
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    private function initializeBackendAuthenticationService(ServerRequestInterface $request)
+    {
+        $backendUserAuthentication = $this->objectManager->get(BackendUserAuthentication::class);
+        $serverParams = $request->getServerParams();
+        $username = null;
+        $password = null;
+
+        if ($serverParams["HTTP_AUTHORIZATION"]){
+            list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
+        }
+
+        $_POST['login_status'] = 'login';
+        $_POST['username'] = $username;
+        $_POST['userident'] = password_hash($password, PASSWORD_ARGON2I);
+
+        $GLOBALS['BE_USER'] = $backendUserAuthentication;
+        $backendUserAuthentication->start();
+
+        var_dump($GLOBALS['BE_USER']);
+        die();
     }
 }
