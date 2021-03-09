@@ -18,7 +18,7 @@ class RequestMiddleware implements MiddlewareInterface
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         $bootstrapDispatcher = $objectManager->get(BootstrapDispatcher::class);
 
-        if (preg_match('/rest/', $request->getRequestTarget())){
+        if (preg_match('/rest/', explode('/',$request->getRequestTarget())[1])){
             return $bootstrapDispatcher->processRequest($request);
         }
 

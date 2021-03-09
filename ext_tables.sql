@@ -5,6 +5,8 @@
 CREATE TABLE tx_interest_api_token (
      uid int(11) DEFAULT '0' NOT NULL auto_increment,
      token varchar(255) DEFAULT '' NOT NULL,
+     be_user varchar(255) DEFAULT '' NOT NULL,
+     password varchar(255) DEFAULT '' NOT NULL,
      expires_in bigint(20) DEFAULT '0' NOT NULL,
 
      PRIMARY KEY (uid)
@@ -31,20 +33,4 @@ CREATE TABLE tx_interest_pending_relations (
     PRIMARY KEY (uid)
 );
 
-CREATE TABLE cache_userTS (
-    id int(11) DEFAULT '0' NOT NULL auto_increment,
-    identifier varchar(255) DEFAULT '' NOT NULL,
-    expires int(11) DEFAULT '0' NOT NULL,
-    content longblob,
-
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE cache_userTS_tags (
-    id int(11) DEFAULT '0' NOT NULL auto_increment,
-    identifier varchar(255) DEFAULT '' NOT NULL,
-    tag varchar(255) DEFAULT '' NOT NULL,
-
-    PRIMARY KEY (id)
-);
 

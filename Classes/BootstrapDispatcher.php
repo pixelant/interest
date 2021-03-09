@@ -126,27 +126,45 @@ class BootstrapDispatcher
 
     /**
      * @param ServerRequestInterface $request
-     * @return bool
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     private function authenticateBackendUser(ServerRequestInterface $request)
     {
-        $cacheManager = $this->objectManager->get(CacheManager::class);
-
-        if (!preg_match('/authentication/', $request->getRequestTarget())){
-            $GLOBALS['BE_USER']->user = $cacheManager->getCache('userTS')->get('user');
-            Bootstrap::initializeBackendAuthentication();
-        }
-
-        $queryBuilder = $this->objectManager->getQueryBuilder('be_users');
         $serverParams = $request->getServerParams();
         $username = null;
         $password = null;
 
         if ($serverParams["HTTP_AUTHORIZATION"]){
-            list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
+            $queryBuilder = $this->objectManager->getQueryBuilder('tx_interest_api_token');
+
+            $tokenCount = $queryBuilder
+                ->count('uid')
+                ->from('tx_interest_api_token')
+                ->where(
+                    $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                )
+                ->execute()
+                ->fetchOne();
+
+            if ($tokenCount > 0){
+                $userCredentials = $queryBuilder
+                    ->select('be_user', 'password')
+                    ->from('tx_interest_api_token')
+                    ->where(
+                        $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                    )
+                    ->execute()
+                    ->fetchAllAssociative();
+
+                $username= $userCredentials[0]['be_user'];
+                $password = $userCredentials[0]['password'];
+
+            } else {
+                list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
+            }
         }
 
+        $queryBuilder = $this->objectManager->getQueryBuilder('be_users');
         $user = $queryBuilder
             ->select('*')
             ->from('be_users')
@@ -167,17 +185,6 @@ class BootstrapDispatcher
         if ($isMatch){
             $GLOBALS['BE_USER']->user = $user[0];
             Bootstrap::initializeBackendAuthentication();
-
-            $backendInterface = $this->objectManager->get(Typo3DatabaseBackend::class, 'BE');
-            $frontendInterface = $this->objectManager->get(VariableFrontend::class, 'userTS', $backendInterface);
-
-            $frontendInterface->set('user', $GLOBALS['BE_USER']->user);
-
-            $cacheManager->registerCache($frontendInterface);
-
-            return true;
-        } else {
-            return false;
         }
     }
 }
