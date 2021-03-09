@@ -470,6 +470,30 @@ class CrudHandler implements HandlerInterface
                 $request);
         }
     }
+
+    /**
+     * @param InterestRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function readRecords(InterestRequestInterface $request): ResponseInterface
+    {
+        $tableName = $request->getResourceType()->__toString();
+        ExtensionManagementUtility::allowTableOnStandardPages($tableName);
+        $queryBuilder = $this->objectManager->getQueryBuilder($tableName);
+        $responseFactory = $this->objectManager->getResponseFactory();
+
+        $data = $queryBuilder
+            ->select('*')
+            ->from($tableName)
+            ->execute()
+            ->fetchAllAssociative();
+
+        if ($data){
+            return $responseFactory->createSuccessResponse($data, 200, $request);
+        } else {
+            return $responseFactory->createErrorResponse(['No records found'], 404, $request);
+        }
+    }
     /**
      * @param RouterInterface $router
      * @param InterestRequestInterface $request
@@ -481,5 +505,6 @@ class CrudHandler implements HandlerInterface
         $router->add(Route::post($resourceType . '/update', [$this, 'updateRecord']));
         $router->add(Route::put($resourceType, [$this, 'createOrUpdateRecord']));
         $router->add(Route::delete($resourceType, [$this, 'deleteRecord']));
+        $router->add(Route::get($resourceType, [$this, 'readRecords']));
     }
 }
