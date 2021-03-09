@@ -9,6 +9,11 @@ use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Authentication\AuthenticationService;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
+use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
+use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -69,10 +74,11 @@ class BootstrapDispatcher
     private function bootstrap(ServerRequestInterface $request)
     {
         if (!$this->isInitialized){
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeLanguageObject();
-
+            Bootstrap::initializeBackendUser();
+            Bootstrap::initializeLanguageObject();
             $this->initializeObjectManager();
-            $this->initializeBackendAuthenticationService($request);
+
+            $this->authenticateBackendUser($request);
             $this->initializeConfiguration($this->configuration);
             $this->initializePageDoktypes();
             $this->initializeDispatcher();
@@ -120,10 +126,19 @@ class BootstrapDispatcher
 
     /**
      * @param ServerRequestInterface $request
+     * @return bool
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    private function initializeBackendAuthenticationService(ServerRequestInterface $request)
+    private function authenticateBackendUser(ServerRequestInterface $request)
     {
-        $backendUserAuthentication = $this->objectManager->get(BackendUserAuthentication::class);
+        $cacheManager = $this->objectManager->get(CacheManager::class);
+
+        if (!preg_match('/authentication/', $request->getRequestTarget())){
+            $GLOBALS['BE_USER']->user = $cacheManager->getCache('userTS')->get('user');
+            Bootstrap::initializeBackendAuthentication();
+        }
+
+        $queryBuilder = $this->objectManager->getQueryBuilder('be_users');
         $serverParams = $request->getServerParams();
         $username = null;
         $password = null;
@@ -132,14 +147,37 @@ class BootstrapDispatcher
             list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
         }
 
-        $_POST['login_status'] = 'login';
-        $_POST['username'] = $username;
-        $_POST['userident'] = password_hash($password, PASSWORD_ARGON2I);
+        $user = $queryBuilder
+            ->select('*')
+            ->from('be_users')
+            ->where(
+                $queryBuilder->expr()->eq('username', "'".$username."'")
+            )
+            ->execute()
+            ->fetchAllAssociative();
 
-        $GLOBALS['BE_USER'] = $backendUserAuthentication;
-        $backendUserAuthentication->start();
 
-        var_dump($GLOBALS['BE_USER']);
-        die();
+        $passwordHashFactory = $this->objectManager->get(PasswordHashFactory::class);
+        $hashClassForGivenPassword = $passwordHashFactory->get(
+            $user[0]['password'],
+            $GLOBALS['BE_USER']->loginType);
+
+        $isMatch = $hashClassForGivenPassword->checkPassword($password, $user[0]['password']);
+
+        if ($isMatch){
+            $GLOBALS['BE_USER']->user = $user[0];
+            Bootstrap::initializeBackendAuthentication();
+
+            $backendInterface = $this->objectManager->get(Typo3DatabaseBackend::class, 'BE');
+            $frontendInterface = $this->objectManager->get(VariableFrontend::class, 'userTS', $backendInterface);
+
+            $frontendInterface->set('user', $GLOBALS['BE_USER']->user);
+
+            $cacheManager->registerCache($frontendInterface);
+
+            return true;
+        } else {
+            return false;
+        }
     }
 }
