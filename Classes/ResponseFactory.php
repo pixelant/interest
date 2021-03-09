@@ -22,6 +22,7 @@ class ResponseFactory implements ResponseFactoryInterface
         $response = new $responseClass();
         $response = $response->withStatus($status);
         $response->getBody()->write($data);
+        $response->withAddedHeader('Access-Control-Allow-Origin', '*');
 
         return $response;
     }
