@@ -3,15 +3,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use cogpowered\FineDiff\Granularity\Character;
 use Pixelant\Interest\Dispatcher\Dispatcher;
-use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Core\Authentication\AuthenticationService;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
-use TYPO3\CMS\Core\Cache\CacheManager;
-use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
