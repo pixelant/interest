@@ -35,7 +35,7 @@ class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
         if ($this->settings === null) {
             $this->settings = [];
 
-            $typoScript = $GLOBALS['BE_USER']->getTsConfig();$this->settings;
+            $typoScript = $GLOBALS['BE_USER']->getTsConfig();
 
             if (isset($typoScript['tx_interest.'])) {
                 $this->settings = $typoScript['tx_interest.'];

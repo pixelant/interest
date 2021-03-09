@@ -3,14 +3,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use Pixelant\Interest\Bootstrap\Core;
 use Pixelant\Interest\Dispatcher\Dispatcher;
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Core\Cache\CacheManager;
-use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Localization\LanguageStore;
-use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Localization\LocalizationFactory;
+use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -49,7 +45,7 @@ class BootstrapDispatcher
     /**
      * BootstrapDispatcher constructor.
      * @param ObjectManagerInterface|null $objectManager
-     * @param array                  $configuration
+     * @param array $configuration
      */
     public function __construct(ObjectManagerInterface $objectManager = null, array $configuration = [])
     {
@@ -71,11 +67,11 @@ class BootstrapDispatcher
     private function bootstrap(ServerRequestInterface $request)
     {
         if (!$this->isInitialized){
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendUser();
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeBackendAuthentication();
-            \TYPO3\CMS\Core\Core\Bootstrap::initializeLanguageObject();
-
+            Bootstrap::initializeBackendUser();
+            Bootstrap::initializeLanguageObject();
             $this->initializeObjectManager();
+
+            $this->authenticateBackendUser($request);
             $this->initializeConfiguration($this->configuration);
             $this->initializePageDoktypes();
             $this->initializeDispatcher();
@@ -119,5 +115,69 @@ class BootstrapDispatcher
                     'onlyAllowedTables' => false
                 ]
             ];
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     */
+    private function authenticateBackendUser(ServerRequestInterface $request)
+    {
+        $serverParams = $request->getServerParams();
+        $username = null;
+        $password = null;
+
+        if ($serverParams["HTTP_AUTHORIZATION"]){
+            $queryBuilder = $this->objectManager->getQueryBuilder('tx_interest_api_token');
+
+            $tokenCount = $queryBuilder
+                ->count('uid')
+                ->from('tx_interest_api_token')
+                ->where(
+                    $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                )
+                ->execute()
+                ->fetchOne();
+
+            if ($tokenCount > 0){
+                $userCredentials = $queryBuilder
+                    ->select('be_user', 'password')
+                    ->from('tx_interest_api_token')
+                    ->where(
+                        $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                    )
+                    ->execute()
+                    ->fetchAllAssociative();
+
+                $username= $userCredentials[0]['be_user'];
+                $password = $userCredentials[0]['password'];
+
+            } else {
+                list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
+            }
+        }
+
+        $queryBuilder = $this->objectManager->getQueryBuilder('be_users');
+        $user = $queryBuilder
+            ->select('*')
+            ->from('be_users')
+            ->where(
+                $queryBuilder->expr()->eq('username', "'".$username."'")
+            )
+            ->execute()
+            ->fetchAllAssociative();
+
+
+        $passwordHashFactory = $this->objectManager->get(PasswordHashFactory::class);
+        $hashClassForGivenPassword = $passwordHashFactory->get(
+            $user[0]['password'],
+            $GLOBALS['BE_USER']->loginType);
+
+        $isMatch = $hashClassForGivenPassword->checkPassword($password, $user[0]['password']);
+
+        if ($isMatch){
+            $GLOBALS['BE_USER']->user = $user[0];
+            Bootstrap::initializeBackendAuthentication();
+        }
     }
 }

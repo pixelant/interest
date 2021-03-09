@@ -43,7 +43,12 @@ class AuthenticationHandler implements HandlerInterface
         }
 
         if ($userProvider->checkCredentials($username, $password)) {
-              $data = $this->getTokenOrCreateNew($objectManager);
+            $userCredentials = [
+                'username' =>$username,
+                'password' =>$password
+            ];
+
+              $data = $this->getTokenOrCreateNew($objectManager, $userCredentials, '');
               return $responseFactory->createSuccessResponse($data, 200, $request);
         } else {
             return $responseFactory->createErrorResponse([], 401, $request);
@@ -61,10 +66,10 @@ class AuthenticationHandler implements HandlerInterface
     /**
      * @param ObjectManagerInterface $objectManager
      * @param string $token
-     * @return array
+     * @return array $userCredentials
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    public function getTokenOrCreateNew(ObjectManagerInterface $objectManager, string $token = ''): array
+    public function getTokenOrCreateNew(ObjectManagerInterface $objectManager, array $userCredentials, string $token = ''): array
     {
         $queryBuilder = $objectManager->getQueryBuilder(self::TOKEN_TABLE);
         $configuration = $objectManager->getConfigurationProvider()->getSettings();
@@ -90,11 +95,13 @@ class AuthenticationHandler implements HandlerInterface
                 ->insert(self::TOKEN_TABLE)
                 ->values([
                     'token' => $token,
-                    'expires_in' => $expiresIn
+                    'expires_in' => $expiresIn,
+                    'be_user' => $userCredentials['username'],
+                    'password' => $userCredentials['password']
                 ])
                 ->execute();
 
-            return $this->getTokenOrCreateNew($objectManager, $token);
+            return $this->getTokenOrCreateNew($objectManager, $userCredentials, $token);
         }
 
         return $existingToken;

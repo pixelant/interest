@@ -44,9 +44,9 @@ class AuthenticationProvider extends AbstractAuthenticationProvider
         $token = '';
 
         if (isset($serverParameters["HTTP_AUTHORIZATION"])){
-            $token = explode(" ", $serverParameters["HTTP_AUTHORIZATION"])[1];
+            $token = $serverParameters["HTTP_AUTHORIZATION"];
         }else if(isset($serverParameters["REDIRECT_HTTP_AUTHORIZATION"])){
-            $token = explode(" ", $serverParameters["REDIRECT_HTTP_AUTHORIZATION"])[1];
+            $token = $serverParameters["REDIRECT_HTTP_AUTHORIZATION"];
         }
 
         $queryBuilder = $this->objectManager->getQueryBuilder(self::TOKEN_TABLE);
