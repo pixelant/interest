@@ -383,8 +383,7 @@ class CrudHandler implements HandlerInterface
                                 $remoteIdLocalIdRelationData[0]['table'],
                                 $fieldName,
                                 $remoteIdLocalIdRelationData[0]['uid_local'],
-                                CsvUtility::csvValues($values,',',''),
-                                $updateRecordData['remoteId']
+                                CsvUtility::csvValues($values,',','')
                             );
                         }
                     }
