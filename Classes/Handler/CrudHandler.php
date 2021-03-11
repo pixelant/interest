@@ -88,7 +88,8 @@ class CrudHandler implements HandlerInterface
                             $tableName,
                             $fieldName,
                             $this->dataHandler->substNEWwithIDs['NEW'.$randomString],
-                            CsvUtility::csvValues($values,',','')
+                            CsvUtility::csvValues($values,',',''),
+                            $importDataArray['remoteId']
                         );
                     }
                 }
@@ -205,6 +206,7 @@ class CrudHandler implements HandlerInterface
      * @param string $field
      * @param int $record_uid
      * @param string $allFieldRelations
+     * @param string $parentRemoteId
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     private function createNonExistingRelationRecord(
@@ -228,6 +230,8 @@ class CrudHandler implements HandlerInterface
                 'timestamp' => time()
             ])
             ->execute();
+
+        $this->checkForNonExistingRelationRecords($remoteId, $record_uid);
     }
 
     /**
@@ -379,7 +383,8 @@ class CrudHandler implements HandlerInterface
                                 $remoteIdLocalIdRelationData[0]['table'],
                                 $fieldName,
                                 $remoteIdLocalIdRelationData[0]['uid_local'],
-                                CsvUtility::csvValues($values,',','')
+                                CsvUtility::csvValues($values,',',''),
+                                $updateRecordData['remoteId']
                             );
                         }
                     }
