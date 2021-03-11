@@ -88,8 +88,7 @@ class CrudHandler implements HandlerInterface
                             $tableName,
                             $fieldName,
                             $this->dataHandler->substNEWwithIDs['NEW'.$randomString],
-                            CsvUtility::csvValues($values,',',''),
-                            $importDataArray['remoteId']
+                            CsvUtility::csvValues($values,',','')
                         );
                     }
                 }
@@ -371,7 +370,7 @@ class CrudHandler implements HandlerInterface
         }
 
         $remoteIdLocalIdRelationData = $this->getRemoteIdLocalIdRelation($updateRecordData['remoteId']);
-        $relationProcessedArray = [];
+        $filteredData = [];
 
         if (!empty($updateRecordData['data'])){
             foreach ($updateRecordData['data'] as $fieldName => $values){
@@ -385,22 +384,31 @@ class CrudHandler implements HandlerInterface
                                 $remoteIdLocalIdRelationData[0]['uid_local'],
                                 CsvUtility::csvValues($values,',','')
                             );
+                        } else {
+                            $filteredData[$fieldName] = $values;
                         }
                     }
                 } else {
-                    $relationProcessedArray[$fieldName] = $values;
+                    $filteredData[$fieldName] = $values;
                 }
             }
         }
 
-        if (!empty($relationProcessedArray)){
-            foreach ($relationProcessedArray as $key => $value) {
-                if (is_array($value)){
-                    $relationProcessedArray[$key] = CsvUtility::csvValues($value,',','');
+
+        if (!empty($filteredData)){
+            $dataHandlerData = [];
+
+            foreach ($filteredData as $fieldName => $values){
+                if (is_array($values)){
+                    foreach ($values as $relation){
+                        $dataHandlerData[$fieldName][] = $this->getRemoteIdLocalIdRelation($relation)[0]['uid_local'];
+                    }
+                } else {
+                    $dataHandlerData[$fieldName] = $values;
                 }
             }
 
-            $data[$remoteIdLocalIdRelationData[0]['table']][$remoteIdLocalIdRelationData[0]['uid_local']] = $relationProcessedArray;
+            $data[$remoteIdLocalIdRelationData[0]['table']][$remoteIdLocalIdRelationData[0]['uid_local']] = $dataHandlerData;
             if ($this->dataHandling($data)){
                 return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
             } else {
