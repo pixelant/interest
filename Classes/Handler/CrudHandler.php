@@ -279,7 +279,7 @@ class CrudHandler implements HandlerInterface
 
         foreach ($relationsData as $relation){
             $fieldRelations = CsvUtility::csvToArray($relation['all_field_relations']);
-            $tcaFieldConfiguration = ExtensionManagementUtility::getFileFieldTCAConfig($relation['field']);
+            $tcaConfiguration = $GLOBALS['TCA'][$relation['table']]['columns'][$relation['field']]['config'];
 
             $relationValues = [];
 
@@ -300,7 +300,7 @@ class CrudHandler implements HandlerInterface
             if (!empty($relationValues)){
 
                 $data[$relation['table']][$relation['record_uid']] = [
-                    $relation['field'] => ($tcaFieldConfiguration['type'] === 'inline') ? CsvUtility::csvValues($relationValues,',','') : $relationValues
+                    $relation['field'] => ($tcaConfiguration['type'] === 'inline') ? CsvUtility::csvValues($relationValues,',','') : $relationValues
                 ];
 
                 $this->dataHandling($data);
@@ -405,6 +405,14 @@ class CrudHandler implements HandlerInterface
                     }
                 } else {
                     $dataHandlerData[$fieldName] = $values;
+                }
+            }
+
+            foreach ($dataHandlerData as $fieldname => $value){
+                $tcaConfiguration = $GLOBALS['TCA'][$tableName]['columns'][$fieldname]['config'];
+
+                if ($tcaConfiguration['type'] === 'inline'){
+                    $dataHandlerData[$fieldname] = CsvUtility::csvValues($value,',','');
                 }
             }
 
