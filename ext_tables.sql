@@ -13,12 +13,12 @@ CREATE TABLE tx_interest_api_token (
 );
 
 CREATE TABLE tx_interest_remote_id_mapping (
-    uid int(11) DEFAULT '0' NOT NULL auto_increment,
     remote_id varchar(255) DEFAULT '' NOT NULL,
     table varchar(255) DEFAULT '0' NOT NULL,
     uid_local int(11) DEFAULT '0' NOT NULL,
 
-    PRIMARY KEY (uid)
+    PRIMARY KEY (remote_id),
+    KEY local_side (table, uid_local)
 );
 
 CREATE TABLE tx_interest_pending_relations (
