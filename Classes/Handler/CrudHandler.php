@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
 
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use Pixelant\Interest\Http\InterestRequestInterface;
@@ -32,14 +33,25 @@ class CrudHandler implements HandlerInterface
     protected DataHandler $dataHandler;
 
     /**
+     * @var RemoteIdMappingRepository
+     */
+    protected RemoteIdMappingRepository $mappingRepository;
+
+    /**
      * CrudHandler constructor.
      * @param ObjectManagerInterface $objectManager
      * @param DataHandler $dataHandler
+     * @param RemoteIdMappingRepository $mappingRepository
      */
-    public function __construct(ObjectManagerInterface $objectManager, DataHandler $dataHandler)
+    public function __construct(
+        ObjectManagerInterface $objectManager,
+        DataHandler $dataHandler,
+        RemoteIdMappingRepository $mappingRepository
+    )
     {
         $this->objectManager = $objectManager;
         $this->dataHandler = $dataHandler;
+        $this->mappingRepository = $mappingRepository;
     }
 
     /**
@@ -58,12 +70,27 @@ class CrudHandler implements HandlerInterface
             ? $recordData
             : $this->createArrayFromJson($request->getBody()->getContents());
 
-        // Check if Id exists
+        $responseFactory = $this->objectManager->getResponseFactory();
+
+        if ($remoteId === null) {
+            return $responseFactory->createErrorResponse(
+                ['No remote ID given.'],
+                404,
+                $request
+            );
+        }
+
+        if ($this->mappingRepository->exists($remoteId)) {
+            return $responseFactory->createErrorResponse(
+                ['Remote ID "' . $remoteId . '" already exists.'],
+                409,
+                $request
+            );
+        }
 
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $placeholderId = StringUtility::getUniqueId('NEW');
         $tableName = $request->getResourceType()->__toString();
-        $responseFactory = $this->objectManager->getResponseFactory();
         $pendingRelations = [];
 
         // Add current table to allowed.
@@ -182,28 +209,6 @@ class CrudHandler implements HandlerInterface
                 'uid_local' => $uid_local
             ])
             ->execute();
-    }
-
-    /**
-     * Checks if exists relation in relation mapping table for given remoteId
-     *
-     * @param string $remoteId
-     * @return bool
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
-     */
-    private function checkIfRelationExists(string $remoteId): bool
-    {
-        $queryBuilder = $this->objectManager->getQueryBuilder(self::REMOTE_ID_MAPPING_TABLE);
-        $data = $queryBuilder
-            ->count('uid')
-            ->from(self::REMOTE_ID_MAPPING_TABLE)
-            ->where(
-                $queryBuilder->expr()->eq('remote_id', "'".$remoteId."'")
-            )
-            ->execute()
-            ->fetchOne();
-
-        return $data > 0;
     }
 
     /**
@@ -374,7 +379,7 @@ class CrudHandler implements HandlerInterface
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
         $responseFactory = $this->objectManager->getResponseFactory();
         $updateRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
-        if (!$this->checkIfRelationExists($updateRecordData['remoteId'])){
+        if (!$this->mappingRepository->exists($updateRecordData['remoteId'])){
             return $responseFactory->createErrorResponse(['RemoteID not found in DB'], 404, $request);
         }
 
@@ -385,7 +390,7 @@ class CrudHandler implements HandlerInterface
             foreach ($updateRecordData['data'] as $fieldName => $values){
                 if (is_array($values)){
                     foreach ($values as $key => $value){
-                        if (!$this->checkIfRelationExists($value)){
+                        if (!$this->mappingRepository->exists($value)){
                             $this->createNonExistingRelationRecord(
                                 $value,
                                 $remoteIdLocalIdRelationData[0]['table'],
@@ -451,7 +456,7 @@ class CrudHandler implements HandlerInterface
 
         // Passing record data as second argument because can't get request body from createRecord and updateRecord
         // TODO: What the reason?
-        if (!$this->checkIfRelationExists($recordData['remoteId'])){
+        if (!$this->mappingRepository->exists($recordData['remoteId'])){
             return $this->createRecord($request, $recordData);
         } else {
             return $this->updateRecord($request, $recordData);
@@ -470,7 +475,7 @@ class CrudHandler implements HandlerInterface
         $deleteRecordData = $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
-        if (!$this->checkIfRelationExists($deleteRecordData['remoteId'])){
+        if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])){
             return $responseFactory->createErrorResponse(["Requested remoteId doesn't exists"], 404, $request);
         }
 
