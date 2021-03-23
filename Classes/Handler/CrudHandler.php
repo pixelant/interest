@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Crypto\Random;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\CsvUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\StringUtility;
 
 class CrudHandler implements HandlerInterface
 {
@@ -50,9 +51,17 @@ class CrudHandler implements HandlerInterface
      */
     public function createRecord(InterestRequestInterface $request, array $recordData = [])
     {
-        $importDataArray = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
+        list(
+            'remoteId' => $remoteId,
+            'data' => $importData
+        ) = !empty($recordData)
+            ? $recordData
+            : $this->createArrayFromJson($request->getBody()->getContents());
+
+        // Check if Id exists
+
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
-        $randomString = $this->generateRandomString();
+        $placeholderId = StringUtility::getUniqueId('NEW');
         $tableName = $request->getResourceType()->__toString();
         $responseFactory = $this->objectManager->getResponseFactory();
         $pendingRelations = [];
@@ -60,61 +69,61 @@ class CrudHandler implements HandlerInterface
         // Add current table to allowed.
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
-        if (!empty($importDataArray['data'])){
-            foreach ($importDataArray['data'] as $fieldName => $values){
+        if (!empty($importData)) {
+            foreach ($importData as $fieldName => $values) {
                 if (is_array($values)){
                     $pendingRelations[$fieldName] = $values;
-                    unset($importDataArray['data'][$fieldName]);
+                    unset($importData[$fieldName]);
                 }
             }
         }
 
+        $importData['pid'] = $configuration['persistence']['storagePid'];
+        $data[$tableName][$placeholderId] = $importData;
 
-        $importDataArray['data']['pid'] = $configuration['persistence']['storagePid'];
-        $data[$tableName]['NEW'.$randomString] = $importDataArray['data'];
-
-        if ($this->dataHandling($data)) {
-            $this->createRemoteIdLocalIdRelation(
-                $importDataArray['remoteId'],
-                $tableName,
-                $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
-            );
-
-            if (!empty($pendingRelations)){
-                foreach ($pendingRelations as $fieldName => $values){
-                    foreach ($values as $key => $value){
-                        $this->createNonExistingRelationRecord(
-                            $value,
-                            $tableName,
-                            $fieldName,
-                            $this->dataHandler->substNEWwithIDs['NEW'.$randomString],
-                            CsvUtility::csvValues($values,',','')
-                        );
-                    }
-                }
-            }
-
-
-            $this->checkForNonExistingRelationRecords(
-                $importDataArray['remoteId'],
-                $this->dataHandler->substNEWwithIDs['NEW'.$randomString]);
-
-            return $responseFactory->createSuccessResponse(
-                [
-                    'status' => 'success',
-                    'data' => [
-                        'uid' => $this->dataHandler->substNEWwithIDs['NEW'.$randomString]
-                    ]
-                ],
-                200,
-                $request);
-        } else {
+        if (!$this->dataHandling($data)) {
             return $responseFactory->createErrorResponse(
                 ['Error occured during data handling process, please check if data is valid'],
                 403,
-                $request);
+                $request
+            );
         }
 
+        $this->createRemoteIdLocalIdRelation(
+            $remoteId,
+            $tableName,
+            $this->dataHandler->substNEWwithIDs[$placeholderId]
+        );
+
+        if (!empty($pendingRelations)) {
+            foreach ($pendingRelations as $fieldName => $values) {
+                foreach ($values as $key => $value) {
+                    $this->createNonExistingRelationRecord(
+                        $value,
+                        $tableName,
+                        $fieldName,
+                        $this->dataHandler->substNEWwithIDs[$placeholderId],
+                        CsvUtility::csvValues($values,',','')
+                    );
+                }
+            }
+        }
+
+        $this->checkForNonExistingRelationRecords(
+            $remoteId,
+            $this->dataHandler->substNEWwithIDs[$placeholderId]
+        );
+
+        return $responseFactory->createSuccessResponse(
+            [
+                'status' => 'success',
+                'data' => [
+                    'uid' => $this->dataHandler->substNEWwithIDs[$placeholderId]
+                ]
+            ],
+            200,
+            $request
+        );
     }
 
     /**
