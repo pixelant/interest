@@ -22,15 +22,13 @@ CREATE TABLE tx_interest_remote_id_mapping (
 );
 
 CREATE TABLE tx_interest_pending_relations (
-    uid int(11) DEFAULT '0' NOT NULL auto_increment,
     remote_id varchar(255) DEFAULT '' NOT NULL,
     table varchar(255) DEFAULT '0' NOT NULL,
     field varchar(255) DEFAULT '0' NOT NULL,
     record_uid int(11) DEFAULT '0' NOT NULL,
-    all_field_relations varchar(255) DEFAULT '' NOT NULL,
-    timestamp bigint(20) DEFAULT current_timestamp NOT NULL,
 
-    PRIMARY KEY (uid)
+    KEY local_record (table, field, record_uid),
+    KEY remote_id (remote_id)
 );
 
 
