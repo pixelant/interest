@@ -86,11 +86,12 @@ class CrudHandler implements HandlerInterface
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
+     * @param string|null $tableName
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      * @throws Exception
      */
-    public function createRecord(InterestRequestInterface $request, array $recordData = [])
+    public function createRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null)
     {
         list(
             'remoteId' => $remoteId,
@@ -100,11 +101,11 @@ class CrudHandler implements HandlerInterface
             : $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = $tableName ?? $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
             return $responseFactory->createErrorResponse(
-                ['No remote ID given.'],
+                ['status' => 'failure', 'message' => 'No remote ID given.'],
                 404,
                 $request
             );
@@ -112,7 +113,7 @@ class CrudHandler implements HandlerInterface
 
         if ($this->mappingRepository->exists($remoteId)) {
             return $responseFactory->createErrorResponse(
-                ['Remote ID "' . $remoteId . '" already exists.'],
+                ['status' => 'failure', 'message' => 'Remote ID "' . $remoteId . '" already exists.'],
                 409,
                 $request
             );
@@ -121,7 +122,7 @@ class CrudHandler implements HandlerInterface
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
             return $responseFactory->createErrorResponse(
-                ['Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
+                ['status' => 'failure', 'message' => 'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
                 409,
                 $request
             );
@@ -517,11 +518,12 @@ class CrudHandler implements HandlerInterface
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
+     * @param string|null $tableName
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      * @throws Exception
      */
-    public function updateRecord(InterestRequestInterface $request, array $recordData = []): ResponseInterface
+    public function updateRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null): ResponseInterface
     {
         list(
             'remoteId' => $remoteId,
@@ -531,11 +533,11 @@ class CrudHandler implements HandlerInterface
             : $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = $tableName ?? $request->getResourceType()->__toString();
 
         if (!$this->mappingRepository->exists($remoteId)){
             return $responseFactory->createErrorResponse(
-                ['Remote ID "' . $remoteId . '" does not exists.'],
+                ['status' => 'failure', 'message' => 'Remote ID "' . $remoteId . '" does not exist.'],
                 404,
                 $request
             );
@@ -544,7 +546,12 @@ class CrudHandler implements HandlerInterface
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
             return $responseFactory->createErrorResponse(
-                ['Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
+                [
+                    'status' => 'failure',
+                    'message' =>
+                        'Unknown field(s) in field list: '
+                        . implode(', ', array_keys($fieldsNotInTca))
+                ],
                 409,
                 $request
             );
@@ -589,18 +596,28 @@ class CrudHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
+     * @param array $recordData
+     * @param string $tableName
      * @return ResponseInterface
      * @throws Exception
      */
-    public function deleteRecord(InterestRequestInterface $request): ResponseInterface
+    public function deleteRecord(
+        InterestRequestInterface $request,
+        array $recordData = [],
+        ?string $tableName = null
+    ): ResponseInterface
     {
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = $tableName ?? $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
         $deleteRecordData = $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
         if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])){
-            return $responseFactory->createErrorResponse(["Requested remoteId doesn't exists"], 404, $request);
+            return $responseFactory->createErrorResponse([
+                'status' => 'failure',
+                'message' => 'The remoteId "' . $deleteRecordData['remoteId'] . '" doesn\'t exist'],
+                404, $request
+            );
         }
 
         $remoteIdLocalIdRelation = $this->getRemoteIdLocalIdRelation($deleteRecordData['remoteId']);
@@ -609,24 +626,22 @@ class CrudHandler implements HandlerInterface
             $remoteIdLocalIdRelation[0]['table']][$remoteIdLocalIdRelation[0]['uid_local']
         ]['delete'] = 1;
 
-        if ($this->dataHandling([], $cmd)){
-            $queryBuilder = $this->objectManager->getQueryBuilder(self::REMOTE_ID_MAPPING_TABLE);
-
-            $queryBuilder
-                ->delete(self::REMOTE_ID_MAPPING_TABLE)
-                ->where(
-                    $queryBuilder->expr()->eq('remote_id', "'".$deleteRecordData['remoteId']."'")
-                )
-                ->execute();
-
-            return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
-
-        } else {
+        if (!$this->dataHandling([], $cmd)) {
             return $responseFactory->createErrorResponse(
-                ['Error occured during data handling process, please check if data is valid'],
+                [
+                    'status' => 'failure',
+                    'message' =>
+                        'Error occured during data handling process. ' .
+                        '(' . implode(', ', $this->dataHandler->errorLog) . ')'
+                ],
                 403,
                 $request);
         }
+
+        $this->mappingRepository->remove($deleteRecordData['remoteId']);
+        $this->pendingRelationsRepository->removeRemote($deleteRecordData['remoteId']);
+
+        return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
     }
 
     /**
@@ -640,6 +655,7 @@ class CrudHandler implements HandlerInterface
         $queryBuilder = $this->objectManager->getQueryBuilder($tableName);
         $responseFactory = $this->objectManager->getResponseFactory();
 
+        // TODO: Add permission check.
         $data = $queryBuilder
             ->select('*')
             ->from($tableName)
@@ -649,7 +665,11 @@ class CrudHandler implements HandlerInterface
         if ($data){
             return $responseFactory->createSuccessResponse($data, 200, $request);
         } else {
-            return $responseFactory->createErrorResponse(['No records found'], 404, $request);
+            return $responseFactory->createErrorResponse(
+                ['status' => 'failure', 'message' => 'No records found'],
+                404,
+                $request
+            );
         }
     }
     /**
@@ -660,7 +680,7 @@ class CrudHandler implements HandlerInterface
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'createRecord']));
-        $router->add(Route::post($resourceType . '/update', [$this, 'updateRecord']));
+        $router->add(Route::patch($resourceType, [$this, 'updateRecord']));
         $router->add(Route::put($resourceType, [$this, 'createOrUpdateRecord']));
         $router->add(Route::delete($resourceType, [$this, 'deleteRecord']));
         $router->add(Route::get($resourceType, [$this, 'readRecords']));
