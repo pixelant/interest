@@ -5,6 +5,7 @@ namespace Pixelant\Interest\Handler;
 
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
@@ -12,8 +13,10 @@ use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
 use TYPO3\CMS\Core\Crypto\Random;
 use TYPO3\CMS\Core\Exception;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\CsvUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
 class CrudHandler implements HandlerInterface
@@ -36,6 +39,22 @@ class CrudHandler implements HandlerInterface
      * @var RemoteIdMappingRepository
      */
     protected RemoteIdMappingRepository $mappingRepository;
+
+    /**
+     * Used by prepareRelations() and persistPendingRelations().
+     *
+     * $pendingRelations[<remoteId>][<fieldName>] = [<remoteId1>, <remoteId2>, ...]
+     *
+     * @var array
+     */
+    protected array $pendingRelations = [];
+
+    /**
+     * Cache for results from $this->getTypeValue(). Key is `<table>_<foreignId>`.
+     *
+     * @var array
+     */
+    private array $getTypeValueCache = [];
 
     /**
      * CrudHandler constructor.
@@ -71,6 +90,7 @@ class CrudHandler implements HandlerInterface
             : $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
+        $tableName = $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
             return $responseFactory->createErrorResponse(
@@ -99,22 +119,17 @@ class CrudHandler implements HandlerInterface
 
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $placeholderId = StringUtility::getUniqueId('NEW');
-        $tableName = $request->getResourceType()->__toString();
         $pendingRelations = [];
 
         // Add current table to allowed.
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
-        if (!empty($importData)) {
-            foreach ($importData as $fieldName => $values) {
-                if (is_array($values)){
-                    $pendingRelations[$fieldName] = $values;
-                    unset($importData[$fieldName]);
-                }
-            }
+        $importData = $this->prepareRelations($tableName, $remoteId, $importData);
+
+        if (!$importData['pid']) {
+            $importData['pid'] = $configuration['persistence']['storagePid'];
         }
 
-        $importData['pid'] = $configuration['persistence']['storagePid'];
         $data[$tableName][$placeholderId] = $importData;
 
         if (!$this->dataHandling($data)) {
@@ -132,14 +147,14 @@ class CrudHandler implements HandlerInterface
         );
 
         if (!empty($pendingRelations)) {
-            foreach ($pendingRelations as $fieldName => $values) {
-                foreach ($values as $key => $value) {
+            foreach ($pendingRelations as $fieldName => $value) {
+                foreach ($value as $key => $value) {
                     $this->createNonExistingRelationRecord(
                         $value,
                         $tableName,
                         $fieldName,
                         $this->dataHandler->substNEWwithIDs[$placeholderId],
-                        CsvUtility::csvValues($values,',','')
+                        CsvUtility::csvValues($value,',','')
                     );
                 }
             }
@@ -160,6 +175,50 @@ class CrudHandler implements HandlerInterface
             200,
             $request
         );
+    }
+
+    /**
+     * Prepare relations and return a modified version of $importData.
+     *
+     * You must call persistPendingRelations() after processing $importData with DataHandler. All relations to records
+     * are either changed from the remote ID to the correct localID or marked as a pending relation. Pending relation
+     * information is temporarily added to $this->pendingRelations and persisted using persistPendingRelations().
+     *
+     * @see persistPendingRelations()
+     * @param string $tableName
+     * @param string $remoteId
+     * @param array $importData Referenced array of import data (record fieldName => value pairs).
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     */
+    protected function prepareRelations(string $tableName, string $remoteId, array $importData): array
+    {
+        foreach ($importData as $fieldName => $fieldValue) {
+            if ($this->isRelationField($tableName, $fieldName, $remoteId, $importData)) {
+                if (!is_array($fieldValue)) {
+                    $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
+                }
+
+                $importData[$fieldName] = [];
+                foreach ($fieldValue as $remoteIdRelation) {
+                    if ($this->mappingRepository->exists($remoteIdRelation)) {
+                        $importData[$fieldName][] = $this->mappingRepository->get($remoteIdRelation);
+                        continue;
+                    }
+
+                    $this->pendingRelations[$remoteId][$fieldName][] = $remoteIdRelation;
+                }
+            }
+        }
+
+        return $importData;
+    }
+
+    /**
+     *
+     */
+    protected function persistPendingRelations()
+    {
+
     }
 
     /**
@@ -549,5 +608,76 @@ class CrudHandler implements HandlerInterface
         $router->add(Route::put($resourceType, [$this, 'createOrUpdateRecord']));
         $router->add(Route::delete($resourceType, [$this, 'deleteRecord']));
         $router->add(Route::get($resourceType, [$this, 'readRecords']));
+    }
+
+    /**
+     * Returns true if the field is a relation
+     *
+     * @param string $table
+     * @param string $field
+     * @param string $remoteId
+     * @param array $data
+     * @return bool
+     */
+    protected function isRelationField(string $table, string $field, string $remoteId, array $data): bool
+    {
+        $typeField = (string)$GLOBALS['TCA'][$table]['ctrl']['type'];
+
+        $fieldTcaConfiguration = BackendUtility::getTcaFieldConfiguration($table, $field);
+
+        // Has type field
+        if ($typeField !== '') {
+            if (key_exists($typeField, $data)) {
+                $typeValue = (string)$data[$typeField];
+            } else {
+                $typeValue = $this->getTypeValue($table, $remoteId);
+            }
+
+            $tcaTypes = $GLOBALS['TCA'][$table]['types'];
+
+            if (isset($tcaTypes[$typeValue]['columnsOverrides'][$field]['config'])) {
+                ArrayUtility::mergeRecursiveWithOverrule(
+                    $fieldTcaConfiguration,
+                    $tcaTypes[$typeValue]['columnsOverrides'][$field]['config']
+                );
+            }
+        }
+
+        return (
+                $fieldTcaConfiguration['type'] === 'group'
+                && $fieldTcaConfiguration['internal_type'] === 'db'
+            )
+            || (
+                in_array($fieldTcaConfiguration['type'], ['inline', 'select'])
+                && isset($fieldTcaConfiguration['foreign_table'])
+            );
+    }
+
+    /**
+     * Returns the type value of the local record representing $remoteId.
+     *
+     * @param string $table
+     * @param string $remoteId
+     * @return string The type value or '0' if not set or found.
+     */
+    protected function getTypeValue(string $table, string $remoteId): string
+    {
+        if (isset($this->getTypeValueCache[$table . '_' . $remoteId])) {
+            return $this->getTypeValueCache[$table . '_' . $remoteId];
+        }
+
+        if (!$this->mappingRepository->exists($remoteId)) {
+            $this->getTypeValueCache[$table . '_' . $remoteId] = '0';
+
+            return '0';
+        }
+
+        $this->getTypeValueCache[$table . '_' . $remoteId] = (string)BackendUtility::getRecord(
+            $table,
+            $this->mappingRepository->get($remoteId),
+            $GLOBALS['TCA'][$table]['ctrl']['type']
+        ) ?? '0';
+
+        return $this->getTypeValueCache[$table . '_' . $remoteId];
     }
 }
