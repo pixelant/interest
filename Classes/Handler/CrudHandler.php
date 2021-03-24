@@ -140,7 +140,7 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $this->createRemoteIdLocalIdRelation(
+        $this->mappingRepository->add(
             $remoteId,
             $tableName,
             $this->dataHandler->substNEWwithIDs[$placeholderId]

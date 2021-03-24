@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -55,6 +56,33 @@ class RemoteIdMappingRepository extends AbstractRepository
         }
 
         return $remoteToLocalIdCache[$remoteId];
+    }
+
+    /**
+     * @param string $remoteId
+     * @param string $tableName
+     * @param int $uid
+     * @throws UniqueConstraintViolationException
+     */
+    public function add(string $remoteId, string $tableName, int $uid)
+    {
+        if ($this->exists($remoteId)) {
+            throw new UniqueConstraintViolationException(
+                'The remote ID "' . $remoteId . '" is already mapped.',
+                1616582391
+            );
+        }
+
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->insert(self::TABLE_NAME)
+            ->values([
+                'remote_id' => $remoteId,
+                'table' => $tableName,
+                'uid_local' => $uid
+            ])
+            ->execute();
     }
 
     /**
