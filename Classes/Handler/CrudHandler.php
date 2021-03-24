@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
 
+use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -41,6 +42,11 @@ class CrudHandler implements HandlerInterface
     protected RemoteIdMappingRepository $mappingRepository;
 
     /**
+     * @var PendingRelationsRepository
+     */
+    protected PendingRelationsRepository $pendingRelationsRepository;
+
+    /**
      * Used by prepareRelations() and persistPendingRelations().
      *
      * $pendingRelations[<remoteId>][<fieldName>] = [<remoteId1>, <remoteId2>, ...]
@@ -61,16 +67,19 @@ class CrudHandler implements HandlerInterface
      * @param ObjectManagerInterface $objectManager
      * @param DataHandler $dataHandler
      * @param RemoteIdMappingRepository $mappingRepository
+     *
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
         DataHandler $dataHandler,
-        RemoteIdMappingRepository $mappingRepository
+        RemoteIdMappingRepository $mappingRepository,
+        PendingRelationsRepository $pendingRelationsRepository
     )
     {
         $this->objectManager = $objectManager;
         $this->dataHandler = $dataHandler;
         $this->mappingRepository = $mappingRepository;
+        $this->pendingRelationsRepository = $pendingRelationsRepository;
     }
 
     /**
@@ -146,24 +155,7 @@ class CrudHandler implements HandlerInterface
             $this->dataHandler->substNEWwithIDs[$placeholderId]
         );
 
-        if (!empty($pendingRelations)) {
-            foreach ($pendingRelations as $fieldName => $value) {
-                foreach ($value as $key => $value) {
-                    $this->createNonExistingRelationRecord(
-                        $value,
-                        $tableName,
-                        $fieldName,
-                        $this->dataHandler->substNEWwithIDs[$placeholderId],
-                        CsvUtility::csvValues($value,',','')
-                    );
-                }
-            }
-        }
-
-        $this->checkForNonExistingRelationRecords(
-            $remoteId,
-            $this->dataHandler->substNEWwithIDs[$placeholderId]
-        );
+        $this->persistPendingRelations();
 
         return $responseFactory->createSuccessResponse(
             [
@@ -214,11 +206,20 @@ class CrudHandler implements HandlerInterface
     }
 
     /**
-     *
+     * Persists information about pending relations to the database.
      */
     protected function persistPendingRelations()
     {
-
+        foreach ($this->pendingRelations as $remoteId => $data) {
+            foreach ($data as $fieldName => $relations) {
+                $this->pendingRelationsRepository->set(
+                    $this->mappingRepository->table($remoteId),
+                    $fieldName,
+                    $this->mappingRepository->get($remoteId),
+                    $relations
+                );
+            }
+        }
     }
 
     /**
@@ -228,8 +229,7 @@ class CrudHandler implements HandlerInterface
      */
     private function generateRandomString(): string
     {
-        $randomizer = $this->objectManager->get(Random::class);
-        return $randomizer->generateRandomHexString(8);
+        return StringUtility::getUniqueId('NEW');
     }
 
     /**

@@ -24,6 +24,11 @@ class RemoteIdMappingRepository extends AbstractRepository
     protected static array $remoteToLocalIdCache = [];
 
     /**
+     * @var array Cache of remoteId (key) to table (value) mapping
+     */
+    protected static array $remoteIdToTableCache = [];
+
+    /**
      * Get the local ID equivalent for $remoteId.
      *
      * @param string $remoteId
@@ -31,8 +36,8 @@ class RemoteIdMappingRepository extends AbstractRepository
      */
     public function get(string $remoteId): int
     {
-        if (isset($remoteToLocalIdCache[$remoteId])) {
-            return $remoteToLocalIdCache[$remoteId];
+        if (isset(self::$remoteToLocalIdCache[$remoteId])) {
+            return self::$remoteToLocalIdCache[$remoteId];
         }
 
         $queryBuilder = $this->getQueryBuilder();
@@ -49,13 +54,31 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->execute()
             ->fetchAssociative();
 
-        $remoteToLocalIdCache[$remoteId] = (int)$row['uid_local'];
+        self::$remoteToLocalIdCache[$remoteId] = (int)$row['uid_local'];
+        self::$remoteIdToTableCache[$remoteId] = $row['table'];
 
         if (BackendUtility::getRecord($row['table'], $row['uid_local']) === null) {
             $this->remove($remoteId);
         }
 
-        return $remoteToLocalIdCache[$remoteId];
+        return self::$remoteToLocalIdCache[$remoteId];
+    }
+
+    /**
+     * Returns the table the remote ID is related to, or null if there is no such relation.
+     *
+     * @param string $remoteId
+     * @return string|null
+     */
+    public function table(string $remoteId): ?string
+    {
+        if (isset(self::$remoteIdToTableCache[$remoteId])) {
+            return self::$remoteIdToTableCache[$remoteId];
+        }
+
+        $this->get($remoteId);
+
+        return self::$remoteIdToTableCache[$remoteId] !== '' ? self::$remoteIdToTableCache[$remoteId] : null;
     }
 
     /**
@@ -104,7 +127,8 @@ class RemoteIdMappingRepository extends AbstractRepository
      */
     public function remove(string $remoteId)
     {
-        $remoteToLocalIdCache[$remoteId] = 0;
+        self::$remoteToLocalIdCache[$remoteId] = 0;
+        self::$remoteIdToTableCache[$remoteId] = '';
 
         $queryBuilder = $this->getQueryBuilder();
 
