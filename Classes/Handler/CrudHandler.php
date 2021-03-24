@@ -523,74 +523,50 @@ class CrudHandler implements HandlerInterface
      */
     public function updateRecord(InterestRequestInterface $request, array $recordData = []): ResponseInterface
     {
-        $tableName = $request->getResourceType()->__toString();
-        ExtensionManagementUtility::allowTableOnStandardPages($tableName);
+        list(
+            'remoteId' => $remoteId,
+            'data' => $importData
+        ) = !empty($recordData)
+            ? $recordData
+            : $this->createArrayFromJson($request->getBody()->getContents());
+
         $responseFactory = $this->objectManager->getResponseFactory();
-        $updateRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
-        if (!$this->mappingRepository->exists($updateRecordData['remoteId'])){
-            return $responseFactory->createErrorResponse(['RemoteID not found in DB'], 404, $request);
+        $tableName = $request->getResourceType()->__toString();
+
+        if (!$this->mappingRepository->exists($remoteId)){
+            return $responseFactory->createErrorResponse(
+                ['Remote ID "' . $remoteId . '" does not exists.'],
+                404,
+                $request
+            );
         }
 
-        $remoteIdLocalIdRelationData = $this->getRemoteIdLocalIdRelation($updateRecordData['remoteId']);
-        $filteredData = [];
-
-        if (!empty($updateRecordData['data'])){
-            foreach ($updateRecordData['data'] as $fieldName => $values){
-                if (is_array($values)){
-                    foreach ($values as $key => $value){
-                        if (!$this->mappingRepository->exists($value)){
-                            $this->createNonExistingRelationRecord(
-                                $value,
-                                $remoteIdLocalIdRelationData[0]['table'],
-                                $fieldName,
-                                $remoteIdLocalIdRelationData[0]['uid_local'],
-                                CsvUtility::csvValues($values,',','')
-                            );
-                        } else {
-                            $filteredData[$fieldName] = $values;
-                        }
-                    }
-                } else {
-                    $filteredData[$fieldName] = $values;
-                }
-            }
+        $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
+        if (count($fieldsNotInTca) > 0) {
+            return $responseFactory->createErrorResponse(
+                ['Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
+                409,
+                $request
+            );
         }
 
+        $this->executeDataInsertOrUpdate(
+            $tableName,
+            (string)$this->mappingRepository->get($remoteId),
+            $remoteId,
+            $importData
+        );
 
-        if (!empty($filteredData)){
-            $dataHandlerData = [];
-
-            foreach ($filteredData as $fieldName => $values){
-                if (is_array($values)){
-                    foreach ($values as $relation){
-                        $dataHandlerData[$fieldName][] = $this->getRemoteIdLocalIdRelation($relation)[0]['uid_local'];
-                    }
-                } else {
-                    $dataHandlerData[$fieldName] = $values;
-                }
-            }
-
-            foreach ($dataHandlerData as $fieldname => $value){
-                $tcaConfiguration = $GLOBALS['TCA'][$tableName]['columns'][$fieldname]['config'];
-
-                if ($tcaConfiguration['type'] === 'inline'){
-                    $dataHandlerData[$fieldname] = CsvUtility::csvValues($value,',','');
-                }
-            }
-
-            $data[$remoteIdLocalIdRelationData[0]['table']][$remoteIdLocalIdRelationData[0]['uid_local']] = $dataHandlerData;
-            if ($this->dataHandling($data)){
-                return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
-            } else {
-                return $responseFactory->createErrorResponse(
-                    ['Error occured during data handling process, please check if data is valid'],
-                    403,
-                    $request);
-            }
-
-        }
-
-        return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
+        return $responseFactory->createSuccessResponse(
+            [
+                'status' => 'success',
+                'data' => [
+                    'uid' => $this->mappingRepository->get($remoteId)
+                ]
+            ],
+            200,
+            $request
+        );
     }
 
     /**
