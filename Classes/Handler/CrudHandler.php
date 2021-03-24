@@ -7,6 +7,7 @@ use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
@@ -126,20 +127,58 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $placeholderId = StringUtility::getUniqueId('NEW');
-        $pendingRelations = [];
 
-        // Add current table to allowed.
+        $localId = $this->executeDataInsertOrUpdate($tableName, $placeholderId, $remoteId, $importData);
+
+        return $responseFactory->createSuccessResponse(
+            [
+                'status' => 'success',
+                'data' => [
+                    'uid' => $localId
+                ]
+            ],
+            200,
+            $request
+        );
+    }
+
+    /**
+     * Execute a data update/insert operation.
+     *
+     * @param string $tableName
+     * @param string $localId
+     * @param string $remoteId
+     * @param array $recordData
+     * @return int The inserted UID
+     */
+    protected function executeDataInsertOrUpdate(
+        string $tableName,
+        string $localId,
+        string $remoteId,
+        array $recordData
+    ): int
+    {
+        $data = [];
+
+        $isNewRecord = strpos($localId, 'NEW') === 0;
+
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
-        $importData = $this->prepareRelations($tableName, $remoteId, $importData);
+        $recordData = $this->prepareRelations($tableName, $remoteId, $recordData);
 
-        if (!$importData['pid']) {
-            $importData['pid'] = $configuration['persistence']['storagePid'];
+        if (!$recordData['pid']) {
+            // TODO: Use UserTS for this.
+
+            $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+            $recordData['pid'] = $configuration['persistence']['storagePid'];
         }
 
-        $data[$tableName][$placeholderId] = $importData;
+        $data[$tableName][$localId] = $recordData;
+
+        if ($isNewRecord) {
+            $this->resolvePendingRelations($tableName, $remoteId, $localId, $data);
+        }
 
         if (!$this->dataHandling($data)) {
             return $responseFactory->createErrorResponse(
@@ -149,24 +188,63 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $this->mappingRepository->add(
-            $remoteId,
-            $tableName,
-            $this->dataHandler->substNEWwithIDs[$placeholderId]
-        );
+        if ($isNewRecord) {
+            $this->mappingRepository->add(
+                $remoteId,
+                $tableName,
+                $this->dataHandler->substNEWwithIDs[$localId]
+            );
+
+            $this->pendingRelationsRepository->removeRemote($remoteId);
+        }
 
         $this->persistPendingRelations();
 
-        return $responseFactory->createSuccessResponse(
-            [
-                'status' => 'success',
-                'data' => [
-                    'uid' => $this->dataHandler->substNEWwithIDs[$placeholderId]
-                ]
-            ],
-            200,
-            $request
-        );
+        if ($isNewRecord) {
+            return (int)$this->dataHandler->substNEWwithIDs[$localId];
+        }
+
+        return (int)$localId;
+    }
+
+    /**
+     * Finds pending relations for a $remoteId record that is being inserted into the database and adds DataHandler
+     * datamap array inserting any pending relations into the database as well.
+     *
+     * @param string $table The table $remoteId is being inserted into.
+     * @param string $remoteId The remote ID
+     * @param array $data DataHandler datamap array to insert data into. Passed by reference.
+     */
+    protected function resolvePendingRelations(string $table, string $remoteId, string $placeholderId, &$data)
+    {
+        foreach ($this->pendingRelationsRepository->get($remoteId) as $pendingRelation) {
+            /** @var RelationHandler $relationHandler */
+            $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
+
+            $relationHandler->start(
+                '',
+                $tableName,
+                '',
+                $pendingRelation['record_uid'],
+                $pendingRelation['table'],
+                $this->getTcaFieldConfigurationAndRespectColumnsOverrides(
+                    $pendingRelation['table'],
+                    $pendingRelation['field'],
+                    BackendUtility::getRecord(
+                        $pendingRelation['table'],
+                        $pendingRelation['record_uid']
+                    )
+                )
+            );
+
+            $existingRelations = array_column(
+                $relationHandler->getFromDB()[$foreignTable] ?? [],
+                'uid'
+            );
+
+            $data[$pendingRelation['table']][$pendingRelation['record_uid']][$pendingRelation['field']] =
+                implode(',', array_merge($existingRelations, [$placeholderId]));
+        }
     }
 
     /**
@@ -207,6 +285,8 @@ class CrudHandler implements HandlerInterface
 
     /**
      * Persists information about pending relations to the database.
+     *
+     * @see prepareRelations()
      */
     protected function persistPendingRelations()
     {
@@ -679,5 +759,31 @@ class CrudHandler implements HandlerInterface
         ) ?? '0';
 
         return $this->getTypeValueCache[$table . '_' . $remoteId];
+    }
+
+    /**
+     * Returns TCA configuration for a field with type-related overrides.
+     *
+     * @param string $table
+     * @param string $field
+     * @param array $row
+     * @return array
+     */
+    protected function getTcaFieldConfigurationAndRespectColumnsOverrides(
+        string $table,
+        string $field,
+        array $row
+    ): array
+    {
+        $tcaFieldConf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
+        $recordType = BackendUtility::getTCAtypeValue($table, $row);
+        $columnsOverridesConfigOfField
+            = $GLOBALS['TCA'][$table]['types'][$recordType]['columnsOverrides'][$field]['config'] ?? null;
+
+        if ($columnsOverridesConfigOfField) {
+            ArrayUtility::mergeRecursiveWithOverrule($tcaFieldConf, $columnsOverridesConfigOfField);
+        }
+
+        return $tcaFieldConf;
     }
 }

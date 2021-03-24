@@ -13,6 +13,27 @@ class PendingRelationsRepository extends AbstractRepository
     public const TABLE_NAME = 'tx_interest_pending_relations';
 
     /**
+     * Get all pending
+     *
+     * @param string $remoteId
+     * @return array
+     */
+    public function get(string $remoteId): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        return $queryBuilder
+            ->select('*')
+            ->from(self::TABLE_NAME)
+            ->where($queryBuilder->expr()->eq(
+                'remote_id',
+                $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+            ))
+            ->execute()
+            ->fetchAllAssociative() ?? [];
+    }
+
+    /**
      * Sets the relations for $field in record $uid in $table. Removes any existing records.
      *
      * @param string $table
@@ -22,7 +43,7 @@ class PendingRelationsRepository extends AbstractRepository
      */
     public function set(string $table, string $field, int $uid, array $remoteIds)
     {
-        $this->remove($table, $field, $uid);
+        $this->removeLocal($table, $field, $uid);
 
         foreach ($remoteIds as $remoteId) {
             $queryBuilder = $this->getQueryBuilder();
@@ -46,7 +67,7 @@ class PendingRelationsRepository extends AbstractRepository
      * @param string $field
      * @param int $uid
      */
-    public function remove(string $table, string $field, int $uid)
+    public function removeLocal(string $table, string $field, int $uid)
     {
         $queryBuilder = $this->getQueryBuilder();
 
@@ -65,6 +86,26 @@ class PendingRelationsRepository extends AbstractRepository
                     'record_uid',
                     $queryBuilder->createNamedParameter($uid), \PDO::PARAM_INT
                 ),
+            )
+            ->execute();
+    }
+
+    /**
+     * Removes all existing pending relations for $remoteId.
+     *
+     * @param string $remoteId
+     */
+    public function removeRemote(string $remoteId)
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->delete(self::TABLE_NAME)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId), \PDO::PARAM_STR
+                )
             )
             ->execute();
     }

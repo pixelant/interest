@@ -37,7 +37,7 @@ class RemoteIdMappingRepository extends AbstractRepository
     public function get(string $remoteId): int
     {
         if (isset(self::$remoteToLocalIdCache[$remoteId])) {
-            return self::$remoteToLocalIdCache[$remoteId];
+            return (int)self::$remoteToLocalIdCache[$remoteId];
         }
 
         $queryBuilder = $this->getQueryBuilder();
@@ -61,7 +61,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             $this->remove($remoteId);
         }
 
-        return self::$remoteToLocalIdCache[$remoteId];
+        return (int)self::$remoteToLocalIdCache[$remoteId];
     }
 
     /**
@@ -106,6 +106,9 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'uid_local' => $uid
             ])
             ->execute();
+
+        self::$remoteToLocalIdCache[$remoteId] = $uid;
+        self::$remoteIdToTableCache[$remoteId] = $tableName;
     }
 
     /**
