@@ -88,6 +88,15 @@ class CrudHandler implements HandlerInterface
             );
         }
 
+        $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
+        if (count($fieldsNotInTca) > 0) {
+            return $responseFactory->createErrorResponse(
+                ['Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
+                409,
+                $request
+            );
+        }
+
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $placeholderId = StringUtility::getUniqueId('NEW');
         $tableName = $request->getResourceType()->__toString();
