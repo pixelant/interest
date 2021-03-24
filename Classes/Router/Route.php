@@ -85,9 +85,19 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
+     * @param string $pattern
+     * @param callable $callback
+     * @return Route
+     */
+    public static function patch(string $pattern, callable $callback): Route
+    {
+        return new static($pattern, 'PATCH', $callback);
+    }
+
+    /**
      * Creates a new Route with the given pattern and callback for the method GET
      *
-     * @param ResourceType|string $pattern
+     * @param string $pattern
      * @param callable $callback
      * @return static
      */

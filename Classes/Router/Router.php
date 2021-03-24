@@ -18,7 +18,8 @@ class Router implements RouterInterface
         'GET'  => [],
         'POST' => [],
         'PUT'  => [],
-        'DELETE' => []
+        'DELETE' => [],
+        'PATCH' => []
     ];
 
     /**
@@ -143,4 +144,17 @@ class Router implements RouterInterface
 
         return $this;
     }
+
+    /**
+     * @param ResourceType|string $pattern
+     * @param callable $callback
+     * @return RouterInterface
+     */
+    public function routePatch($pattern, callable $callback): RouterInterface
+    {
+        $this->add(Route::patch($pattern, $callback));
+
+        return $this;
+    }
+
 }

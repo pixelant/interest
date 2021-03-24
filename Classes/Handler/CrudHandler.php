@@ -44,21 +44,30 @@ class CrudHandler implements HandlerInterface
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
+     * @param string $tableName
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      * @throws Exception
      */
-    public function createRecord(InterestRequestInterface $request, array $recordData = [])
+    public function createRecord(InterestRequestInterface $request, array $recordData = [], string $tableName = '')
     {
         $importDataArray = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $randomString = $this->generateRandomString();
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = ($tableName !== '') ? $tableName : $request->getResourceType()->__toString();
         $responseFactory = $this->objectManager->getResponseFactory();
         $pendingRelations = [];
 
         // Add current table to allowed.
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
+
+        if ($this->checkIfRelationExists($importDataArray['remoteId'])){
+            return $responseFactory->createErrorResponse(
+                ['status' => 'failure','message' => 'RemoteID currently exist in DB'],
+                404,
+                $request
+            );
+        }
 
         if (!empty($importDataArray['data'])){
             foreach ($importDataArray['data'] as $fieldName => $values){
@@ -110,7 +119,7 @@ class CrudHandler implements HandlerInterface
                 $request);
         } else {
             return $responseFactory->createErrorResponse(
-                ['Error occured during data handling process, please check if data is valid'],
+                ['status' => 'failure', 'message' =>'Error occured during data handling process, please check if data is valid'],
                 403,
                 $request);
         }
@@ -182,7 +191,7 @@ class CrudHandler implements HandlerInterface
      * @return bool
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    private function checkIfRelationExists(string $remoteId): bool
+    protected function checkIfRelationExists(string $remoteId): bool
     {
         $queryBuilder = $this->objectManager->getQueryBuilder(self::REMOTE_ID_MAPPING_TABLE);
         $data = $queryBuilder
@@ -346,7 +355,7 @@ class CrudHandler implements HandlerInterface
      * @param string $json
      * @return array
      */
-    private function createArrayFromJson(string $json): array
+    protected function createArrayFromJson(string $json): array
     {
         $stdClass = json_decode($json);
         return json_decode(json_encode($stdClass), true);
@@ -355,18 +364,19 @@ class CrudHandler implements HandlerInterface
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
+     * @param string $tableName
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      * @throws Exception
      */
-    public function updateRecord(InterestRequestInterface $request, array $recordData = []): ResponseInterface
+    public function updateRecord(InterestRequestInterface $request, array $recordData = [], string $tableName = ''): ResponseInterface
     {
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = ($tableName !== '') ? $tableName : $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
         $responseFactory = $this->objectManager->getResponseFactory();
         $updateRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         if (!$this->checkIfRelationExists($updateRecordData['remoteId'])){
-            return $responseFactory->createErrorResponse(['RemoteID not found in DB'], 404, $request);
+            return $responseFactory->createErrorResponse(['status' => 'failure', 'message' =>'RemoteID not found in DB'], 404, $request);
         }
 
         $remoteIdLocalIdRelationData = $this->getRemoteIdLocalIdRelation($updateRecordData['remoteId']);
@@ -421,7 +431,7 @@ class CrudHandler implements HandlerInterface
                 return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
             } else {
                 return $responseFactory->createErrorResponse(
-                    ['Error occured during data handling process, please check if data is valid'],
+                    ['status' => 'failure', 'message' =>'Error occured during data handling process, please check if data is valid'],
                     403,
                     $request);
             }
@@ -451,18 +461,20 @@ class CrudHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
+     * @param array $recordData
+     * @param string $tableName
      * @return ResponseInterface
      * @throws Exception
      */
-    public function deleteRecord(InterestRequestInterface $request): ResponseInterface
+    public function deleteRecord(InterestRequestInterface $request, array $recordData = [], string $tableName = ''): ResponseInterface
     {
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = ($tableName !== '') ? $tableName : $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
-        $deleteRecordData = $this->createArrayFromJson($request->getBody()->getContents());
+        $deleteRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
         if (!$this->checkIfRelationExists($deleteRecordData['remoteId'])){
-            return $responseFactory->createErrorResponse(["Requested remoteId doesn't exists"], 404, $request);
+            return $responseFactory->createErrorResponse(['status' => 'failure', 'message' =>"Requested remoteId doesn't exists"], 404, $request);
         }
 
         $remoteIdLocalIdRelation = $this->getRemoteIdLocalIdRelation($deleteRecordData['remoteId']);
@@ -485,7 +497,7 @@ class CrudHandler implements HandlerInterface
 
         } else {
             return $responseFactory->createErrorResponse(
-                ['Error occured during data handling process, please check if data is valid'],
+                ['status' => 'failure', 'message' =>'Error occured during data handling process, please check if data is valid'],
                 403,
                 $request);
         }
@@ -511,7 +523,7 @@ class CrudHandler implements HandlerInterface
         if ($data){
             return $responseFactory->createSuccessResponse($data, 200, $request);
         } else {
-            return $responseFactory->createErrorResponse(['No records found'], 404, $request);
+            return $responseFactory->createErrorResponse(['status' => 'failure', 'message' =>'No records found'], 404, $request);
         }
     }
     /**
@@ -522,7 +534,7 @@ class CrudHandler implements HandlerInterface
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'createRecord']));
-        $router->add(Route::post($resourceType . '/update', [$this, 'updateRecord']));
+        $router->add(Route::patch($resourceType, [$this, 'updateRecord']));
         $router->add(Route::put($resourceType, [$this, 'createOrUpdateRecord']));
         $router->add(Route::delete($resourceType, [$this, 'deleteRecord']));
         $router->add(Route::get($resourceType, [$this, 'readRecords']));

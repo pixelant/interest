@@ -45,4 +45,13 @@ interface RouteFactoryInterface
      * @return Route
      */
     public static function delete(string $pattern, callable $callback): Route;
+
+    /**
+     * Creates a new Route with the given pattern and callback for the method PATCH
+     *
+     * @param string $pattern
+     * @param callable $callback
+     * @return Route
+     */
+    public static function patch(string $pattern, callable $callback): Route;
 }
