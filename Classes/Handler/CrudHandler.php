@@ -509,7 +509,7 @@ class CrudHandler implements HandlerInterface
      * @param string $json
      * @return array
      */
-    private function createArrayFromJson(string $json): array
+    protected function createArrayFromJson(string $json): array
     {
         $stdClass = json_decode($json);
         return json_decode(json_encode($stdClass), true);
@@ -609,7 +609,7 @@ class CrudHandler implements HandlerInterface
     {
         $tableName = $tableName ?? $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
-        $deleteRecordData = $this->createArrayFromJson($request->getBody()->getContents());
+        $deleteRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
         if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])){
