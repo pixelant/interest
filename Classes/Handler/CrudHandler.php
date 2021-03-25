@@ -223,7 +223,7 @@ class CrudHandler implements HandlerInterface
 
             $relationHandler->start(
                 '',
-                $tableName,
+                $table,
                 '',
                 $pendingRelation['record_uid'],
                 $pendingRelation['table'],
@@ -238,7 +238,7 @@ class CrudHandler implements HandlerInterface
             );
 
             $existingRelations = array_column(
-                $relationHandler->getFromDB()[$foreignTable] ?? [],
+                $relationHandler->getFromDB()[$pendingRelation['table']] ?? [],
                 'uid'
             );
 
