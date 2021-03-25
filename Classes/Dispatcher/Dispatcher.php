@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Dispatcher;
 
+use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\RequestFactoryInterface;
@@ -10,6 +11,10 @@ use Pixelant\Interest\ResponseFactoryInterface;
 use Pixelant\Interest\Router\Route;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Core\ApplicationContext;
+use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Dispatcher implements DispatcherInterface
 {
@@ -50,7 +55,32 @@ class Dispatcher implements DispatcherInterface
     {
         $this->requestFactory->registerCurrentRequest($request);
 
-        return $this->dispatch($this->requestFactory->getRequest());
+        try {
+            return $this->dispatch($this->requestFactory->getRequest());
+        } catch (AbstractRequestHandlerException $exception) {
+            return $this->responseFactory->createResponse(
+                [
+                    'status' => 'failure',
+                    'message' => $exception->getMessage()
+                ],
+                $exception->getCode()
+            );
+        } catch (\Exception $exception) {
+            $trace = [];
+
+            if (GeneralUtility::makeInstance(ApplicationContext::class)->isDevelopment()) {
+                $trace = $exception->getTrace();
+            }
+
+            return $this->responseFactory->createResponse(
+                [
+                    'status' => 'failure',
+                    'message' => 'An exception occurred: ' . $exception->getMessage(),
+                    'trace' => $trace
+                ],
+                500
+            );
+        }
     }
 
     /**
