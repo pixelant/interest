@@ -8,5 +8,4 @@ namespace Pixelant\Interest\Configuration;
  */
 class ConfigurationProvider extends TypoScriptConfigurationProvider
 {
-
 }
