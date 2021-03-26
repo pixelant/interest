@@ -1,13 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Domain\Model\Format;
+use Pixelant\Interest\Domain\Model\ResourceType;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Pixelant\Interest\Domain\Model\ResourceType;
 
 class RequestFactory implements RequestFactoryInterface
 {
@@ -32,7 +33,7 @@ class RequestFactory implements RequestFactoryInterface
     private $factoryClass;
 
     /**
-     * Request Factory constructor
+     * Request Factory constructor.
      *
      * @param ConfigurationProviderInterface $configurationProvider
      * @param string                         $factoryClass Class name of the factory for the original request
@@ -46,7 +47,7 @@ class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Returns the request
+     * Returns the request.
      *
      * @return InterestRequestInterface
      */
@@ -61,6 +62,7 @@ class RequestFactory implements RequestFactoryInterface
 
     /**
      * @return ServerRequestInterface
+     * @throws \LogicException
      */
     private function getOriginalRequest(): ServerRequestInterface
     {
@@ -75,7 +77,7 @@ class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Returns the path and original path for the given input path respecting configured aliases
+     * Returns the path and original path for the given input path respecting configured aliases.
      *
      * @return \stdClass
      */
@@ -85,10 +87,10 @@ class RequestFactory implements RequestFactoryInterface
         $inputPath = $pathAndFormat->path;
 
         $pathInfo = (object)[
-            'path'         => '',
+            'path' => '',
             'originalPath' => '',
             'resourceType' => '',
-            'format'       => $pathAndFormat->format,
+            'format' => $pathAndFormat->format,
         ];
 
         if (!$inputPath) {
@@ -105,10 +107,10 @@ class RequestFactory implements RequestFactoryInterface
         $resourceType = strtok($path, '/');
         if (!$resourceType) {
             return (object)[
-                'path'         => $path,
+                'path' => $path,
                 'originalPath' => '',
                 'resourceType' => '',
-                'format'       => $pathAndFormat->format,
+                'format' => $pathAndFormat->format,
             ];
         }
 
@@ -116,23 +118,23 @@ class RequestFactory implements RequestFactoryInterface
         $resourceTypeAlias = $this->getAliasForPath($resourceType);
         if ($resourceTypeAlias) {
             return (object)[
-                'path'         => preg_replace('!' . $resourceType . '!', $resourceTypeAlias, $path, 1),
+                'path' => preg_replace('!' . $resourceType . '!', $resourceTypeAlias, $path, 1),
                 'originalPath' => $path,
                 'resourceType' => $resourceTypeAlias,
-                'format'       => $pathAndFormat->format,
+                'format' => $pathAndFormat->format,
             ];
         }
 
         return (object)[
-            'path'         => $path,
+            'path' => $path,
             'originalPath' => $path,
             'resourceType' => $resourceType,
-            'format'       => $pathAndFormat->format,
+            'format' => $pathAndFormat->format,
         ];
     }
 
     /**
-     * Check for an alias for the given path
+     * Check for an alias for the given path.
      *
      * @param string $path
      * @return string
@@ -158,7 +160,7 @@ class RequestFactory implements RequestFactoryInterface
         $path = strtok($path, '?');
         if (!$path) {
             return (object)[
-                'path'   => '',
+                'path' => '',
                 'format' => Format::DEFAULT_FORMAT,
             ];
         }
@@ -168,7 +170,7 @@ class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Split path and format
+     * Split path and format.
      *
      * @param string $path
      * @return object
@@ -201,16 +203,16 @@ class RequestFactory implements RequestFactoryInterface
         }
 
         return (object)[
-            'path'   => $path,
+            'path' => $path,
             'format' => $format,
         ];
     }
 
     /**
-     * Returns if the given format is valid
+     * Returns if the given format is valid.
      *
      * @param $format
-     * @return boolean
+     * @return bool
      */
     public static function isValidFormat($format)
     {
@@ -304,7 +306,7 @@ class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Register/overwrite the current request
+     * Register/overwrite the current request.
      *
      * @param ServerRequestInterface $request
      * @return $this
@@ -322,7 +324,7 @@ class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Resets the current request
+     * Resets the current request.
      *
      * @return $this
      */

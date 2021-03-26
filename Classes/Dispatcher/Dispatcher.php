@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Dispatcher;
@@ -8,17 +9,13 @@ use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\RequestFactoryInterface;
 use Pixelant\Interest\ResponseFactoryInterface;
-use Pixelant\Interest\Router\Route;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\ApplicationContext;
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Dispatcher implements DispatcherInterface
 {
-
     /**
      * @var RequestFactoryInterface
      */
@@ -44,8 +41,7 @@ class Dispatcher implements DispatcherInterface
         RequestFactoryInterface $requestFactory,
         ResponseFactoryInterface $responseFactory,
         ObjectManagerInterface $objectManager
-    )
-    {
+    ) {
         $this->requestFactory = $requestFactory;
         $this->responseFactory = $responseFactory;
         $this->objectManager = $objectManager;
@@ -61,7 +57,7 @@ class Dispatcher implements DispatcherInterface
             return $this->responseFactory->createResponse(
                 [
                     'status' => 'failure',
-                    'message' => $exception->getMessage()
+                    'message' => $exception->getMessage(),
                 ],
                 $exception->getCode()
             );
@@ -76,7 +72,7 @@ class Dispatcher implements DispatcherInterface
                 [
                     'status' => 'failure',
                     'message' => 'An exception occurred: ' . $exception->getMessage(),
-                    'trace' => $trace
+                    'trace' => $trace,
                 ],
                 500
             );
@@ -90,18 +86,20 @@ class Dispatcher implements DispatcherInterface
      */
     public function dispatch(InterestRequestInterface $request): ResponseInterface
     {
-        if ($request->getResourceType()->__toString() === 'authentication'){
+        if ($request->getResourceType()->__toString() === 'authentication') {
             return $this->callHandler($request);
         }
 
         $access = $this->objectManager->getAccessController()->getAccess($request);
 
-        switch ($access){
+        // @codingStandardsIgnoreStart
+        switch ($access) {
             case true:
                 return $this->callHandler($request);
             default:
                 return $this->responseFactory->createErrorResponse('Unauthorized, please check if your token is valid', 401, $request);
         }
+        // @codingStandardsIgnoreEnd
     }
 
     /**

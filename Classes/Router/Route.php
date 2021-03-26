@@ -1,11 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
-use Pixelant\Interest\Domain\Model\ResourceType;
 use Pixelant\Interest\Http\InterestRequestInterface;
-use Pixelant\Interest\Router\RouteInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class Route implements RouteInterface, RouteFactoryInterface
@@ -31,7 +30,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     private $callback;
 
     /**
-     * Route constructor
+     * Route constructor.
      *
      * @param string $pattern
      * @param string $method
@@ -49,7 +48,7 @@ class Route implements RouteInterface, RouteFactoryInterface
      * @param callable $callback
      * @return Route
      */
-    public static function get(string $pattern, callable $callback): Route
+    public static function get(string $pattern, callable $callback): self
     {
         return new static($pattern, 'GET', $callback);
     }
@@ -59,7 +58,7 @@ class Route implements RouteInterface, RouteFactoryInterface
      * @param callable $callback
      * @return Route
      */
-    public static function post(string $pattern, callable $callback): Route
+    public static function post(string $pattern, callable $callback): self
     {
         return new static($pattern, 'POST', $callback);
     }
@@ -69,7 +68,7 @@ class Route implements RouteInterface, RouteFactoryInterface
      * @param callable $callback
      * @return Route
      */
-    public static function put(string $pattern, callable $callback): Route
+    public static function put(string $pattern, callable $callback): self
     {
         return new static($pattern, 'PUT', $callback);
     }
@@ -79,7 +78,7 @@ class Route implements RouteInterface, RouteFactoryInterface
      * @param callable $callback
      * @return Route
      */
-    public static function delete(string $pattern, callable $callback): Route
+    public static function delete(string $pattern, callable $callback): self
     {
         return new static($pattern, 'DELETE', $callback);
     }
@@ -89,13 +88,13 @@ class Route implements RouteInterface, RouteFactoryInterface
      * @param callable $callback
      * @return Route
      */
-    public static function patch(string $pattern, callable $callback): Route
+    public static function patch(string $pattern, callable $callback): self
     {
         return new static($pattern, 'PATCH', $callback);
     }
 
     /**
-     * Creates a new Route with the given pattern and callback for the method GET
+     * Creates a new Route with the given pattern and callback for the method GET.
      *
      * @param string $pattern
      * @param callable $callback
@@ -107,7 +106,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
-     * Creates a new Route with the given pattern, method and callback
+     * Creates a new Route with the given pattern, method and callback.
      *
      * @param string $pattern
      * @param string $method
@@ -120,7 +119,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
-     * Returns the normalized path pattern
+     * Returns the normalized path pattern.
      *
      * @return string
      */
@@ -130,7 +129,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
-     * Returns the request method for this route
+     * Returns the request method for this route.
      *
      * @return string
      */
@@ -140,7 +139,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
-     * Returns the requested parameters
+     * Returns the requested parameters.
      *
      * @return string[]
      */
@@ -150,7 +149,7 @@ class Route implements RouteInterface, RouteFactoryInterface
     }
 
     /**
-     * Process the route
+     * Process the route.
      *
      * @param InterestRequestInterface $request
      * @param array                $parameters
@@ -163,4 +162,3 @@ class Route implements RouteInterface, RouteFactoryInterface
         return $callback($request, ...$parameters);
     }
 }
-

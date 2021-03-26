@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Dispatcher;
@@ -8,13 +9,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- *
  * Interface for the main dispatcher.
  */
 interface DispatcherInterface
 {
     /**
-     * Process the raw request
+     * Process the raw request.
      *
      * Entry point for the PSR 7 middleware
      *
@@ -24,7 +24,7 @@ interface DispatcherInterface
     public function processRequest(ServerRequestInterface $request): ResponseInterface;
 
     /**
-     * Dispatch the request
+     * Dispatch the request.
      *
      * @param InterestRequestInterface $request
      * @return ResponseInterface

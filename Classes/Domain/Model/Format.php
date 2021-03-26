@@ -1,38 +1,38 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Model;
 
-
 class Format
 {
-    const DEFAULT_FORMAT = 'json';
-    const MIME_TYPES = [
-        'txt'   => 'text/plain',
-        'html'  => 'text/html',
+    public const DEFAULT_FORMAT = 'json';
+    public const MIME_TYPES = [
+        'txt' => 'text/plain',
+        'html' => 'text/html',
         'xhtml' => 'application/xhtml+xml',
-        'xml'   => 'application/xml',
-        'css'   => 'text/css',
-        'js'    => 'application/javascript',
-        'json'  => 'application/json',
-        'csv'   => 'text/csv',
+        'xml' => 'application/xml',
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'json' => 'application/json',
+        'csv' => 'text/csv',
         // images
-        'png'   => 'image/png',
-        'jpe'   => 'image/jpeg',
-        'jpeg'  => 'image/jpeg',
-        'jpg'   => 'image/jpeg',
-        'gif'   => 'image/gif',
-        'bmp'   => 'image/bmp',
-        'ico'   => 'image/vnd.microsoft.icon',
-        'tiff'  => 'image/tiff',
-        'tif'   => 'image/tiff',
-        'svg'   => 'image/svg+xml',
-        'svgz'  => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpe' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'jpg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'bmp' => 'image/bmp',
+        'ico' => 'image/vnd.microsoft.icon',
+        'tiff' => 'image/tiff',
+        'tif' => 'image/tiff',
+        'svg' => 'image/svg+xml',
+        'svgz' => 'image/svg+xml',
         // archives
-        'zip'   => 'application/zip',
-        'rar'   => 'application/x-rar-compressed',
+        'zip' => 'application/zip',
+        'rar' => 'application/x-rar-compressed',
         // adobe
-        'pdf'   => 'application/pdf',
+        'pdf' => 'application/pdf',
     ];
 
     /**
@@ -41,7 +41,7 @@ class Format
     private $format;
 
     /**
-     * Format constructor
+     * Format constructor.
      *
      * @param string $format
      */
@@ -52,7 +52,7 @@ class Format
     }
 
     /**
-     * Return an instance of the default format
+     * Return an instance of the default format.
      *
      * @return Format
      */
@@ -62,7 +62,7 @@ class Format
     }
 
     /**
-     * Return a HTML Format instance
+     * Return a HTML Format instance.
      *
      * @return Format
      */
@@ -72,7 +72,7 @@ class Format
     }
 
     /**
-     * Return a JSON Format instance
+     * Return a JSON Format instance.
      *
      * @return Format
      */
@@ -87,10 +87,10 @@ class Format
     }
 
     /**
-     * Return if the given format is valid
+     * Return if the given format is valid.
      *
      * @param $format
-     * @return boolean
+     * @return bool
      */
     public static function isValidFormat($format)
     {
@@ -105,8 +105,9 @@ class Format
 
     /**
      * @param string $format
+     * @throws \InvalidArgumentException
      */
-    private static function assertValidFormat($format)
+    private static function assertValidFormat($format): void
     {
         if (!is_string($format)) {
             throw new \InvalidArgumentException(

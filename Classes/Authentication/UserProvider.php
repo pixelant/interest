@@ -1,16 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Authentication;
 
 use Pixelant\Interest\ObjectManagerInterface;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class UserProvider implements UserProviderInterface
 {
-
-    const BE_USERS_TABLE = 'be_users';
+    public const BE_USERS_TABLE = 'be_users';
 
     /**
      * @var ObjectManagerInterface
@@ -25,6 +24,7 @@ class UserProvider implements UserProviderInterface
     {
         $this->objectManager = $objectManager;
     }
+
     /**
      * Compare given username and password with current BE user credentials.
      *
@@ -43,12 +43,12 @@ class UserProvider implements UserProviderInterface
             ->select('*')
             ->from(self::BE_USERS_TABLE)
             ->where(
-                $queryBuilder->expr()->eq('username', "'".$username."'")
+                $queryBuilder->expr()->eq('username', "'" . $username . "'")
             )
             ->execute()
             ->fetchAllAssociative();
 
-        if (!$beUser){
+        if (!$beUser) {
             return false;
         }
 
@@ -56,7 +56,7 @@ class UserProvider implements UserProviderInterface
         $hashedPassword = $saltFactory->get($beUser['password'], $GLOBALS['BE_USER']->loginType);
         $isMatching = $hashedPassword->checkPassword($password, $beUser['password']);
 
-        if ($isMatching){
+        if ($isMatching) {
             return true;
         }
 
