@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
@@ -10,20 +11,19 @@ use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
 
 class Router implements RouterInterface
 {
-
     /**
      * @var array[]
      */
     protected array $registeredRoutes = [
-        'GET'  => [],
+        'GET' => [],
         'POST' => [],
-        'PUT'  => [],
+        'PUT' => [],
         'DELETE' => [],
-        'PATCH' => []
+        'PATCH' => [],
     ];
 
     /**
-     * Dispatch the request
+     * Dispatch the request.
      *
      * @param InterestRequestInterface $request
      * @return ResponseInterface
@@ -61,10 +61,10 @@ class Router implements RouterInterface
             return [];
         }
 
-        $path =  trim($request->getPath(), '/');
+        $path = trim($request->getPath(), '/');
         $matchingRoutes = [];
         foreach ($registeredRoutes as $pattern => $route) {
-            if ($pattern === $path){
+            if ($pattern === $path) {
                 $matchingRoutes[] = $route;
             }
         }
@@ -156,5 +156,4 @@ class Router implements RouterInterface
 
         return $this;
     }
-
 }

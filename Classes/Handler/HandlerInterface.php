@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
@@ -9,7 +10,7 @@ use Pixelant\Interest\Router\RouterInterface;
 interface HandlerInterface
 {
     /**
-     * Let the handler configure the routes
+     * Let the handler configure the routes.
      *
      * @param RouterInterface $router
      * @param InterestRequestInterface $request

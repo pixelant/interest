@@ -23,11 +23,11 @@ class BatchHandler extends CrudHandler
         $responseFactory = $this->objectManager->getResponseFactory();
         $standardizedArray = $this->getStandardizedArray($importDataArray);
         $responseData = [
-            'status' => 'success'
+            'status' => 'success',
         ];
         $isSuccess = true;
 
-        foreach ($standardizedArray as $tableName => $importData){
+        foreach ($standardizedArray as $tableName => $importData) {
             foreach ($importData as $importItem) {
                 $response = $this->createRecord($request, $importItem, $tableName);
 
@@ -35,16 +35,16 @@ class BatchHandler extends CrudHandler
                 $response->getBody()->rewind();
 
                 $responseData['statuses'][$importItem['remoteId']] = [
-                    $this->createArrayFromJson($response->getBody()->getContents())
+                    $this->createArrayFromJson($response->getBody()->getContents()),
                 ];
 
-                if ($response->getStatusCode() !== 200){
+                if ($response->getStatusCode() !== 200) {
                     $isSuccess = false;
                 }
             }
         }
 
-        if (!$isSuccess){
+        if (!$isSuccess) {
             $responseData['status'] = 'failure';
         }
 
@@ -63,11 +63,11 @@ class BatchHandler extends CrudHandler
         $responseFactory = $this->objectManager->getResponseFactory();
         $standardizedArray = $this->getStandardizedArray($updateDataArray);
         $responseData = [
-            'status' => 'success'
+            'status' => 'success',
         ];
         $isSuccess = true;
 
-        foreach ($standardizedArray as $tableName => $importData){
+        foreach ($standardizedArray as $tableName => $importData) {
             foreach ($importData as $importItem) {
                 $response = $this->updateRecord($request, $importItem, $tableName);
 
@@ -75,17 +75,16 @@ class BatchHandler extends CrudHandler
                 $response->getBody()->rewind();
 
                 $responseData['statuses'][$importItem['remoteId']] = [
-                    $this->createArrayFromJson($response->getBody()->getContents())
+                    $this->createArrayFromJson($response->getBody()->getContents()),
                 ];
 
-                if ($response->getStatusCode() !== 200){
+                if ($response->getStatusCode() !== 200) {
                     $isSuccess = false;
                 }
-
             }
         }
 
-        if (!$isSuccess){
+        if (!$isSuccess) {
             $responseData['status'] = 'failure';
         }
 
@@ -102,13 +101,13 @@ class BatchHandler extends CrudHandler
         $responseFactory = $this->objectManager->getResponseFactory();
         $standardizedArray = $this->getStandardizedArray($importDataArray);
         $responseData = [
-            'status' => 'success'
+            'status' => 'success',
         ];
         $isSuccess = true;
 
-        foreach ($standardizedArray as $tableName => $importData){
+        foreach ($standardizedArray as $tableName => $importData) {
             foreach ($importData as $importItem) {
-                if ($this->mappingRepository->exists($importItem['remoteId'])){
+                if ($this->checkIfRelationExists($importItem['remoteId'])) {
                     $response = $this->updateRecord($request, $importItem, $tableName);
                 } else {
                     $response = $this->createRecord($request, $importItem, $tableName);
@@ -118,17 +117,16 @@ class BatchHandler extends CrudHandler
                 $response->getBody()->rewind();
 
                 $responseData['statuses'][$importItem['remoteId']] = [
-                    $this->createArrayFromJson($response->getBody()->getContents())
+                    $this->createArrayFromJson($response->getBody()->getContents()),
                 ];
 
-                if ($response->getStatusCode() !== 200){
+                if ($response->getStatusCode() !== 200) {
                     $isSuccess = false;
                 }
-
             }
         }
 
-        if (!$isSuccess){
+        if (!$isSuccess) {
             $responseData['status'] = 'failure';
         }
 
@@ -144,27 +142,27 @@ class BatchHandler extends CrudHandler
         $deleteDataArray = $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
         $responseData = [
-            'status' => 'success'
+            'status' => 'success',
         ];
         $isSuccess = true;
 
-        foreach ($deleteDataArray['data'] as $tableName => $deleteData){
-            foreach ($deleteData as $remoteId){
+        foreach ($deleteDataArray['data'] as $tableName => $deleteData) {
+            foreach ($deleteData as $remoteId) {
                 $response = $this->deleteRecord($request, ['remoteId' => $remoteId], $tableName);
 
                 $response->getBody()->rewind();
 
                 $responseData['statuses'][$remoteId] = [
-                    $this->createArrayFromJson($response->getBody()->getContents())
+                    $this->createArrayFromJson($response->getBody()->getContents()),
                 ];
 
-                if ($response->getStatusCode() !== 200){
+                if ($response->getStatusCode() !== 200) {
                     $isSuccess = false;
                 }
             }
         }
 
-        if (!$isSuccess){
+        if (!$isSuccess) {
             $responseData['status'] = 'failure';
         }
 
@@ -181,11 +179,11 @@ class BatchHandler extends CrudHandler
     {
         $standardizedArray = [];
 
-        foreach ($array['data'] as $tableName => $data){
+        foreach ($array['data'] as $tableName => $data) {
             foreach ($data as $remoteId => $importData) {
                 $standardizedArray[$tableName][] = [
                     'remoteId' => $remoteId,
-                    'data' => $importData
+                    'data' => $importData,
                 ];
             }
         }
@@ -193,7 +191,7 @@ class BatchHandler extends CrudHandler
         return $standardizedArray;
     }
 
-    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request)
+    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request): void
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'batchCreate']));

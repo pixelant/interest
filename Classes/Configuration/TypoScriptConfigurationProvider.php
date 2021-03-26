@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Configuration;
@@ -7,7 +8,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 
 /**
- * Class TypoScriptConfigurationProvider
+ * Class TypoScriptConfigurationProvider.
  */
 class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
 {
@@ -19,13 +20,13 @@ class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
     /**
      * @param ConfigurationManager $configurationManager
      */
-    public function injectConfigurationManager(ConfigurationManager $configurationManager)
+    public function injectConfigurationManager(ConfigurationManager $configurationManager): void
     {
         $this->configurationManager = $configurationManager;
     }
 
     /**
-     * Returns the settings read from the TypoScript
+     * Returns the settings read from the TypoScript.
      *
      * @return array
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException

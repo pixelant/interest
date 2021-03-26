@@ -2,17 +2,13 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Domain\Repository;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Repository for interaction with the database table tx_interest_remote_id_mapping
+ * Repository for interaction with the database table tx_interest_remote_id_mapping.
  */
 class RemoteIdMappingRepository extends AbstractRepository
 {
@@ -87,7 +83,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param int $uid
      * @throws UniqueConstraintViolationException
      */
-    public function add(string $remoteId, string $tableName, int $uid)
+    public function add(string $remoteId, string $tableName, int $uid): void
     {
         if ($this->exists($remoteId)) {
             throw new UniqueConstraintViolationException(
@@ -103,7 +99,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->values([
                 'remote_id' => $remoteId,
                 'table' => $tableName,
-                'uid_local' => $uid
+                'uid_local' => $uid,
             ])
             ->execute();
 
@@ -112,7 +108,7 @@ class RemoteIdMappingRepository extends AbstractRepository
     }
 
     /**
-     * Checks if a relation to a local ID exists for remoteId
+     * Checks if a relation to a local ID exists for remoteId.
      *
      * @param string $remoteId
      * @return bool
@@ -128,7 +124,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      */
-    public function remove(string $remoteId)
+    public function remove(string $remoteId): void
     {
         self::$remoteToLocalIdCache[$remoteId] = 0;
         self::$remoteIdToTableCache[$remoteId] = '';

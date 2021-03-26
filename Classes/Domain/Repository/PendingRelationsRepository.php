@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Domain\Repository;
 
 /**
@@ -13,7 +12,7 @@ class PendingRelationsRepository extends AbstractRepository
     public const TABLE_NAME = 'tx_interest_pending_relations';
 
     /**
-     * Get all pending
+     * Get all pending.
      *
      * @param string $remoteId
      * @return array
@@ -41,7 +40,7 @@ class PendingRelationsRepository extends AbstractRepository
      * @param int $uid
      * @param array $remoteIds
      */
-    public function set(string $table, string $field, int $uid, array $remoteIds)
+    public function set(string $table, string $field, int $uid, array $remoteIds): void
     {
         $this->removeLocal($table, $field, $uid);
 
@@ -67,7 +66,7 @@ class PendingRelationsRepository extends AbstractRepository
      * @param string $field
      * @param int $uid
      */
-    public function removeLocal(string $table, string $field, int $uid)
+    public function removeLocal(string $table, string $field, int $uid): void
     {
         $queryBuilder = $this->getQueryBuilder();
 
@@ -76,15 +75,18 @@ class PendingRelationsRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'table',
-                    $queryBuilder->createNamedParameter($table), \PDO::PARAM_STR
+                    $queryBuilder->createNamedParameter($table),
+                    \PDO::PARAM_STR
                 ),
                 $queryBuilder->expr()->eq(
-                    'field', $queryBuilder->createNamedParameter($field),
+                    'field',
+                    $queryBuilder->createNamedParameter($field),
                     \PDO::PARAM_STR
                 ),
                 $queryBuilder->expr()->eq(
                     'record_uid',
-                    $queryBuilder->createNamedParameter($uid), \PDO::PARAM_INT
+                    $queryBuilder->createNamedParameter($uid),
+                    \PDO::PARAM_INT
                 ),
             )
             ->execute();
@@ -95,7 +97,7 @@ class PendingRelationsRepository extends AbstractRepository
      *
      * @param string $remoteId
      */
-    public function removeRemote(string $remoteId)
+    public function removeRemote(string $remoteId): void
     {
         $queryBuilder = $this->getQueryBuilder();
 
@@ -104,7 +106,8 @@ class PendingRelationsRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'remote_id',
-                    $queryBuilder->createNamedParameter($remoteId), \PDO::PARAM_STR
+                    $queryBuilder->createNamedParameter($remoteId),
+                    \PDO::PARAM_STR
                 )
             )
             ->execute();

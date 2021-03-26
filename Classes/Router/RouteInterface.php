@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
@@ -9,7 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 interface RouteInterface
 {
     /**
-     * Process the route
+     * Process the route.
      *
      * @param InterestRequestInterface $request
      * @param array $parameters
@@ -18,21 +19,21 @@ interface RouteInterface
     public function process(InterestRequestInterface $request, ...$parameters): ResponseInterface;
 
     /**
-     * Returns the normalized path pattern
+     * Returns the normalized path pattern.
      *
      * @return string
      */
     public function getPattern(): string;
 
     /**
-     * Returns the request method for this route
+     * Returns the request method for this route.
      *
      * @return string
      */
     public function getMethod(): string;
 
     /**
-     * Returns the requested parameters
+     * Returns the requested parameters.
      *
      * @return string[]
      */
