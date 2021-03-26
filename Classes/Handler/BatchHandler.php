@@ -2,10 +2,14 @@
 
 namespace Pixelant\Interest\Handler;
 
+use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Http\InterestRequestInterface;
+use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 
 class BatchHandler extends CrudHandler
 {
@@ -22,7 +26,6 @@ class BatchHandler extends CrudHandler
             'status' => 'success'
         ];
         $isSuccess = true;
-
 
         foreach ($standardizedArray as $tableName => $importData){
             foreach ($importData as $importItem) {
@@ -105,7 +108,7 @@ class BatchHandler extends CrudHandler
 
         foreach ($standardizedArray as $tableName => $importData){
             foreach ($importData as $importItem) {
-                if ($this->checkIfRelationExists($importItem['remoteId'])){
+                if ($this->mappingRepository->exists($importItem['remoteId'])){
                     $response = $this->updateRecord($request, $importItem, $tableName);
                 } else {
                     $response = $this->createRecord($request, $importItem, $tableName);

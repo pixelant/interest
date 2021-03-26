@@ -69,7 +69,20 @@ class Dispatcher implements DispatcherInterface
             $trace = [];
 
             if (GeneralUtility::makeInstance(ApplicationContext::class)->isDevelopment()) {
-                $trace = $exception->getTrace();
+                $currentException = $exception;
+                do {
+                    $trace = array_merge(
+                        $trace, [
+                            $currentException->getMessage() => array_merge([
+                                [
+                                    'file' => $currentException->getFile(),
+                                    'line' => $currentException->getLine(),
+                                ],
+                                $exception->getTrace(),
+                            ]),
+                        ]
+                    );
+                } while ($currentException = $exception->getPrevious());
             }
 
             return $this->responseFactory->createResponse(

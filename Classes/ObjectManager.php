@@ -109,7 +109,7 @@ class ObjectManager implements ObjectManagerInterface
         if ($handler !== null && $handler instanceof HandlerInterface){
             return $handler;
         } else {
-            throw new \UnexpectedValueException('Wrong handler class given.') ;
+            throw new \UnexpectedValueException('Unknown resource type: ' . $request->getResourceType()->__toString()) ;
         }
     }
 
