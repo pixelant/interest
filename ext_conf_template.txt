@@ -1,0 +1,5 @@
+# cat=Logging; type=boolean; label=Enable logging
+log = 0
+
+# cat=Logging; type=int+; label=Logging threshold: The lower limit in execution time above which logging is enabled.
+logMs = 0
