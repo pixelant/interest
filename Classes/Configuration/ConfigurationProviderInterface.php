@@ -17,6 +17,33 @@ interface ConfigurationProviderInterface
     const ACCESS_METHOD_READ = 'read';
 
     /**
+     * @return array
+     */
+    public function getExtensionConfiguration(): array;
+
+    /**
+     * Returns true if logging is enabled.
+     *
+     * @return bool
+     */
+    public function isLoggingEnabled(): bool;
+
+    /**
+     * Returns the lower limit in execution time above which logging is enabled.
+     *
+     * @return int The number of milliseconds
+     */
+    public function getLoggingMinimumExecutionTime(): int;
+
+    /**
+     * Returns true if logging is enabled and the supplied $milliseconds is higher or equal to the execution time limit.
+     *
+     * @param int $milliseconds
+     * @return bool
+     */
+    public function isLoggingEnabledForExecutionTime(int $milliseconds): bool;
+
+    /**
      * Returns the setting with the given key
      *
      * @param string $keyPath
