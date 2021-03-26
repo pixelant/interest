@@ -11,12 +11,12 @@ $EM_CONF[$_EXTKEY] = [
     ],
     'autoload' => [
         'psr-4' => [
-            'TTN\\Tea\\' => 'Classes/',
+            'Pixelant\\Interest\\' => 'Classes/',
         ],
     ],
     'autoload-dev' => [
         'psr-4' => [
-            'TTN\\Tea\\Tests\\' => 'Tests/',
+            'Pixelant\\Interest\\Tests\\' => 'Tests/',
         ],
     ],
 ];
