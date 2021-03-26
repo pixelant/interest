@@ -1,4 +1,4 @@
-# cat=Logging; type=boolean; label=Enable logging
+# cat=Logging; type=options[Disabled=0,Headers=1,Database=2,Both=1]; label=Enable logging: In response headers and/or database.
 log = 0
 
 # cat=Logging; type=int+; label=Logging threshold: The lower limit in execution time above which logging is enabled.

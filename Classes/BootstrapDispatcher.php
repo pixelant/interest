@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
+use Pixelant\Interest\Configuration\ConfigurationProvider;
+use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Dispatcher\Dispatcher;
 use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
 use Psr\Http\Message\ResponseInterface;
@@ -103,8 +105,14 @@ class BootstrapDispatcher
     {
         $requestFactory = $this->objectManager->getRequestFactory();
         $responseFactory = $this->objectManager->getResponseFactory();
+        $configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
-        $this->dispatcher = new Dispatcher($requestFactory, $responseFactory, $this->objectManager);
+        $this->dispatcher = new Dispatcher(
+            $requestFactory,
+            $responseFactory,
+            $this->objectManager,
+            $configurationProvider
+        );
     }
 
     private function initializePageDoktypes()

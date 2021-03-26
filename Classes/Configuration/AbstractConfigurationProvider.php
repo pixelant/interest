@@ -37,7 +37,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
         }
 
         $this->extensionConfiguration['log'] =
-            (bool)(getenv('APP_INTEREST_LOG') ?? $this->extensionConfiguration['log']);
+            (int)(getenv('APP_INTEREST_LOG') ?? $this->extensionConfiguration['log']);
         $this->extensionConfiguration['logMs'] =
             (int)(getenv('APP_INTEREST_LOG_MS') ?? $this->extensionConfiguration['logMs']);
     }
@@ -57,7 +57,27 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
      */
     public function isLoggingEnabled(): bool
     {
-        return $this->extensionConfiguration['log'];
+        return (bool)$this->extensionConfiguration['log'];
+    }
+
+    /**
+     * Returns true if logging (of execution time) should be done in response headers.
+     *
+     * @return bool
+     */
+    public function isHeaderLoggingEnabled(): bool
+    {
+        return (bool)($this->extensionConfiguration['log'] & 1);
+    }
+
+    /**
+     * Returns true if logging (of execution time, request, and response data) should be done in database.
+     *
+     * @return bool
+     */
+    public function isDatabaseLoggingEnabled(): bool
+    {
+        return (bool)($this->extensionConfiguration['log'] & 2);
     }
 
     /**

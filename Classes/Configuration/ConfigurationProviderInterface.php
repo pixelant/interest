@@ -28,6 +28,21 @@ interface ConfigurationProviderInterface
      */
     public function isLoggingEnabled(): bool;
 
+
+    /**
+     * Returns true if logging (of execution time) should be done in response headers.
+     *
+     * @return bool
+     */
+    public function isHeaderLoggingEnabled(): bool;
+
+    /**
+     * Returns true if logging (of execution time, request, and response data) should be done in database.
+     *
+     * @return bool
+     */
+    public function isDatabaseLoggingEnabled(): bool;
+
     /**
      * Returns the lower limit in execution time above which logging is enabled.
      *
