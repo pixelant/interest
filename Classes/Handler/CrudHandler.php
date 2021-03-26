@@ -89,7 +89,7 @@ class CrudHandler implements HandlerInterface
         $this->pendingRelationsRepository = $pendingRelationsRepository;
     }
 
-    public function setCurrentRequest(InterestRequestInterface $request)
+    public function setCurrentRequest(InterestRequestInterface $request): void
     {
         $this->currentRequest = $request;
     }

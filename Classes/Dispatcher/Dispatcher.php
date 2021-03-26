@@ -88,7 +88,8 @@ class Dispatcher implements DispatcherInterface
                 $currentException = $exception;
                 do {
                     $trace = array_merge(
-                        $trace, [
+                        $trace,
+                        [
                             $currentException->getMessage() => array_merge([
                                 [
                                     'file' => $currentException->getFile(),
