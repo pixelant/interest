@@ -2,4 +2,4 @@
 
 defined('TYPO3_MODE') || die('Access denied.');
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addStaticFile('inteREST', 'Configuration/TypoScript', 'Interest');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addStaticFile('interest', 'Configuration/TypoScript', 'Interest');
