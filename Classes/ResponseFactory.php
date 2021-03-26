@@ -1,18 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use Pixelant\Interest\Http\Header;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Http\JsonResponse;
-use TYPO3\CMS\Core\Http\Response as TYPO3Response;
 
 class ResponseFactory implements ResponseFactoryInterface
 {
     /**
-     * @param array|string $data
+     * @param array $data
      * @param int $status
      * @return ResponseInterface
      */
@@ -32,8 +31,11 @@ class ResponseFactory implements ResponseFactoryInterface
         return $this->createFormattedResponse($data, $status, true, $request);
     }
 
-    public function createSuccessResponse(array $data, int $status, InterestRequestInterface $request): ResponseInterface
-    {
+    public function createSuccessResponse(
+        array $data,
+        int $status,
+        InterestRequestInterface $request
+    ): ResponseInterface {
         return $this->createFormattedResponse($data, $status, false, $request);
     }
 
@@ -46,11 +48,12 @@ class ResponseFactory implements ResponseFactoryInterface
     }
 
     /**
-     * Returns a response with the given message and status code
+     * Returns a response with the given message and status code.
      *
-     * @param string|array         $data       Data to send
-     * @param int                  $status     Status code of the response
-     * @param bool                 $forceError If TRUE the response will be treated as an error, otherwise any status below 400 will be a normal response
+     * @param array $data Data to send
+     * @param int $status Status code of the response
+     * @param bool $forceError If TRUE the response will be treated as an error,
+     *                         otherwise any status below 400 will be a normal response
      * @param InterestRequestInterface $request
      * @return ResponseInterface
      */

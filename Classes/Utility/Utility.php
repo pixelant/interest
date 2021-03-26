@@ -1,30 +1,30 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Utility;
 
 use Pixelant\Interest\Domain\Model\ResourceType;
 
-
 /**
- * A utility class with static methods for Data Providers
+ * A utility class with static methods for Data Providers.
  */
 class Utility
 {
     /**
-     * Separator between vendor, extension and model in the API resource type
+     * Separator between vendor, extension and model in the API resource type.
      */
     private const API_RESOURCE_TYPE_PART_SEPARATOR = '-';
 
     /**
-     * Mapping from singular to plural
+     * Mapping from singular to plural.
      *
      * @var array
      */
     protected static $singularToPlural = [];
 
     /**
-     * Returns an array of class name parts including vendor, extension and domain model
+     * Returns an array of class name parts including vendor, extension and domain model.
      *
      * Example:
      *   array(
@@ -56,17 +56,17 @@ class Utility
             $parts[$lastPartIndex] = static::singularize($parts[$lastPartIndex]);
         }
 
+        // @codingStandardsIgnoreStart
         return [
             ucfirst($parts[0]),
             ucfirst($parts[1]),
-            isset($parts[2])
-                ? str_replace(' ', '\\', ucwords(str_replace('-', ' ', $parts[2])))
-                : '',
+            isset($parts[2]) ? str_replace(' ', '\\', ucwords(str_replace('-', ' ', $parts[2]))) : '',
         ];
+        // @codingStandardsIgnoreEnd
     }
 
     /**
-     * Return the Domain Model class or interface name for the given API resource type
+     * Return the Domain Model class or interface name for the given API resource type.
      *
      * @param ResourceType $resourceType
      * @param bool         $convertPlural
@@ -74,25 +74,28 @@ class Utility
      */
     public static function getModelEntityForResourceType(ResourceType $resourceType, $convertPlural = true): ?string
     {
-        list($vendor, $extension, $model) = Utility::getClassNamePartsForResourceType($resourceType, $convertPlural);
+        [$vendor, $extension, $model] = self::getClassNamePartsForResourceType($resourceType, $convertPlural);
         $namespaceVersion = ($vendor ? $vendor . '\\' : '') . $extension . '\\Domain\\Model\\' . $model;
         $underscoreVersion = 'Tx_' . $extension . '_Domain_Model_' . $model;
 
         if (class_exists($namespaceVersion)) {
             return $namespaceVersion;
-        } elseif (class_exists($underscoreVersion)) {
-            return $underscoreVersion;
-        } elseif (interface_exists($namespaceVersion)) {
-            return $namespaceVersion;
-        } elseif (interface_exists($underscoreVersion)) {
-            return $underscoreVersion;
-        } else {
-            return null;
         }
+        if (class_exists($underscoreVersion)) {
+            return $underscoreVersion;
+        }
+        if (interface_exists($namespaceVersion)) {
+            return $namespaceVersion;
+        }
+        if (interface_exists($underscoreVersion)) {
+            return $underscoreVersion;
+        }
+
+        return null;
     }
 
     /**
-     * Tries to generate the API resource type for the given class name
+     * Tries to generate the API resource type for the given class name.
      *
      * @param string $className
      * @return ResourceType|bool Returns the resource type or FALSE if it couldn't be determined
@@ -149,20 +152,20 @@ class Utility
         // the last rule (s) would catch double (ss) words
         // if we didn't stop before it got to that rule.
         $rules = [
-            'ss'  => false,
-            'os'  => 'o',
+            'ss' => false,
+            'os' => 'o',
             'ies' => 'y',
             'xes' => 'x',
             'oes' => 'o',
             'ves' => 'f',
-            's'   => '',
+            's' => '',
         ];
         // Loop through all the rules and do the replacement.
         foreach (array_keys($rules) as $key) {
             // If the end of the word doesn't match the key,
             // it's not a candidate for replacement. Move on
             // to the next plural ending.
-            if (substr($word, (strlen($key) * -1)) != $key) {
+            if (substr($word, (strlen($key) * -1)) !== $key) {
                 continue;
             }
             // If the value of the key is false, stop looping
@@ -179,18 +182,18 @@ class Utility
     }
 
     /**
-     * Add a mapping from singular to plural
+     * Add a mapping from singular to plural.
      *
      * @param $singular
      * @param $plural
      */
-    public static function registerSingularForPlural($singular, $plural)
+    public static function registerSingularForPlural($singular, $plural): void
     {
         static::$singularToPlural[$singular] = $plural;
     }
 
     /**
-     * Transforms UpperCamelCase Resource Types into lower_case_underscore
+     * Transforms UpperCamelCase Resource Types into lower_case_underscore.
      *
      * @param string|ResourceType $resourceType
      * @return string
@@ -224,7 +227,7 @@ class Utility
     }
 
     /**
-     * Convert a camelCase string to lowercase_underscore
+     * Convert a camelCase string to lowercase_underscore.
      *
      * @param string $input
      * @return string
@@ -233,7 +236,7 @@ class Utility
     {
         $value = preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $input);
 
-        /** @noinspection PhpComposerExtensionStubsInspection */
+        // @noinspection PhpComposerExtensionStubsInspection
         return is_callable('mb_strtolower') ? mb_strtolower($value, 'utf-8') : strtolower($value);
     }
 }

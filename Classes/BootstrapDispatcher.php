@@ -1,21 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
-use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Dispatcher\Dispatcher;
-use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
 /**
- *
  * Main entrypoint for REST requests.
  */
 class BootstrapDispatcher
@@ -67,9 +65,9 @@ class BootstrapDispatcher
         return $this->dispatcher->processRequest($request);
     }
 
-    private function bootstrap(ServerRequestInterface $request)
+    private function bootstrap(ServerRequestInterface $request): void
     {
-        if (!$this->isInitialized){
+        if (!$this->isInitialized) {
             Bootstrap::initializeBackendUser();
             Bootstrap::initializeLanguageObject();
             $this->initializeObjectManager();
@@ -83,19 +81,19 @@ class BootstrapDispatcher
         }
     }
 
-    private function initializeObjectManager()
+    private function initializeObjectManager(): void
     {
-        if (!$this->objectManager){
+        if (!$this->objectManager) {
             $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         }
     }
 
     /**
-     * Initialize the Configuration Manager instance
+     * Initialize the Configuration Manager instance.
      *
      * @param array $configuration
      */
-    private function initializeConfiguration(array $configuration)
+    private function initializeConfiguration(array $configuration): void
     {
         $this->configurationManager = $this->objectManager->get(ConfigurationManagerInterface::class);
         $this->configurationManager->setConfiguration($configuration);
@@ -115,14 +113,14 @@ class BootstrapDispatcher
         );
     }
 
-    private function initializePageDoktypes()
+    private function initializePageDoktypes(): void
     {
-        $GLOBALS['PAGES_TYPES'] =
-            [
+        $GLOBALS['PAGES_TYPES']
+            = [
                 'default' => [
                     'allowedTables' => '',
-                    'onlyAllowedTables' => false
-                ]
+                    'onlyAllowedTables' => false,
+                ],
             ];
     }
 
@@ -130,39 +128,40 @@ class BootstrapDispatcher
      * @param ServerRequestInterface $request
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    private function authenticateBackendUser(ServerRequestInterface $request)
+    private function authenticateBackendUser(ServerRequestInterface $request): void
     {
         $serverParams = $request->getServerParams();
         $username = null;
         $password = null;
 
-        if ($serverParams["HTTP_AUTHORIZATION"]){
+        if ($serverParams['HTTP_AUTHORIZATION']) {
             $queryBuilder = $this->objectManager->getQueryBuilder('tx_interest_api_token');
 
             $tokenCount = $queryBuilder
                 ->count('uid')
                 ->from('tx_interest_api_token')
                 ->where(
-                    $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                    $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHORIZATION'] . "'")
                 )
                 ->execute()
                 ->fetchOne();
 
-            if ($tokenCount > 0){
+            if ($tokenCount > 0) {
                 $userCredentials = $queryBuilder
                     ->select('be_user', 'password')
                     ->from('tx_interest_api_token')
                     ->where(
-                        $queryBuilder->expr()->eq('token', "'".$serverParams["HTTP_AUTHORIZATION"]."'")
+                        $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHORIZATION'] . "'")
                     )
                     ->execute()
                     ->fetchAllAssociative();
 
-                $username= $userCredentials[0]['be_user'];
+                $username = $userCredentials[0]['be_user'];
                 $password = $userCredentials[0]['password'];
-
             } else {
-                list($username, $password) = explode( ':',base64_decode(substr($serverParams["HTTP_AUTHORIZATION"], 6)));
+                // @codingStandardsIgnoreStart
+                [$username, $password] = explode(':', base64_decode(substr($serverParams['HTTP_AUTHORIZATION'], 6), true));
+                // @codingStandardsIgnoreEnd
             }
         }
 
@@ -171,20 +170,20 @@ class BootstrapDispatcher
             ->select('*')
             ->from('be_users')
             ->where(
-                $queryBuilder->expr()->eq('username', "'".$username."'")
+                $queryBuilder->expr()->eq('username', "'" . $username . "'")
             )
             ->execute()
             ->fetchAllAssociative();
 
-
         $passwordHashFactory = $this->objectManager->get(PasswordHashFactory::class);
         $hashClassForGivenPassword = $passwordHashFactory->get(
             $user[0]['password'],
-            $GLOBALS['BE_USER']->loginType);
+            $GLOBALS['BE_USER']->loginType
+        );
 
         $isMatch = $hashClassForGivenPassword->checkPassword($password, $user[0]['password']);
 
-        if ($isMatch){
+        if ($isMatch) {
             $GLOBALS['BE_USER']->user = $user[0];
             Bootstrap::initializeBackendAuthentication();
         }

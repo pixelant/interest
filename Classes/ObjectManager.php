@@ -1,20 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use TYPO3\CMS\Core\Authentication\AuthenticationService;
-use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use Pixelant\Interest\Authentication\AuthenticationProviderInterface;
 use Pixelant\Interest\Authentication\UserProviderInterface;
-use Pixelant\Interest\Handler\HandlerInterface;
-use Pixelant\Interest\Http\InterestRequestInterface;
-use Pixelant\Interest\Controller\AccessControllerInterface;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
+use Pixelant\Interest\Controller\AccessControllerInterface;
+use Pixelant\Interest\Handler\HandlerInterface;
+use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\Router\RouterInterface;
 use Psr\Container\ContainerInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\Exception;
@@ -23,7 +23,7 @@ use TYPO3\CMS\Extbase\Object\ObjectManager as TYPO3ObjectManager;
 class ObjectManager implements ObjectManagerInterface
 {
     /**
-     * Configuration provider
+     * Configuration provider.
      *
      * @var TypoScriptConfigurationProvider
      */
@@ -35,7 +35,7 @@ class ObjectManager implements ObjectManagerInterface
     protected $container;
 
     /**
-     * Object Manager constructor
+     * Object Manager constructor.
      *
      * @param ContainerInterface|\TYPO3\CMS\Extbase\Object\ObjectManagerInterface $container
      */
@@ -81,13 +81,14 @@ class ObjectManager implements ObjectManagerInterface
     public function getAccessController(InterestRequestInterface $request = null): AccessControllerInterface
     {
         $objectManager = $this->get(ObjectManagerInterface::class);
+
         return $this->get(AccessControllerInterface::class, $objectManager);
     }
 
     /**
      * @param InterestRequestInterface|null $request
      * @return HandlerInterface
-     * @throws Exception
+     * @throws \UnexpectedValueException
      */
     public function getHandler(InterestRequestInterface $request = null): HandlerInterface
     {
@@ -98,19 +99,18 @@ class ObjectManager implements ObjectManagerInterface
         $configuration = $configurationProvider->getSettings();
         $handler = null;
 
-        foreach ($configuration['paths'] as $path => $value)
-        {
-            if ($path == $resourceType){
+        foreach ($configuration['paths'] as $path => $value) {
+            if ($path === $resourceType) {
                 $handlerClass = trim($value['handlerClass'], '\\');
                 $handler = $this->get($handlerClass, $objectManager, $dataHandler);
             }
         }
 
-        if ($handler !== null && $handler instanceof HandlerInterface){
+        if ($handler !== null && $handler instanceof HandlerInterface) {
             return $handler;
-        } else {
-            throw new \UnexpectedValueException('Wrong handler class given.') ;
         }
+
+        throw new \UnexpectedValueException('Wrong handler class given.');
     }
 
     /**
@@ -143,6 +143,7 @@ class ObjectManager implements ObjectManagerInterface
     {
         $userProvider = $this->getUserProvider();
         $objectManager = $this->get(ObjectManagerInterface::class);
+
         return $this->get(AuthenticationProviderInterface::class, $userProvider, $objectManager);
     }
 

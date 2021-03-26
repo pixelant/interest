@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Model;
 
-class ResourceType {
-
+class ResourceType
+{
     /**
      * @var string
      */
@@ -30,8 +31,9 @@ class ResourceType {
 
     /**
      * @param string $resourceType
+     * @throws \InvalidArgumentException
      */
-    public static function assertValidResourceType($resourceType)
+    public static function assertValidResourceType(string $resourceType): void
     {
         if (!$resourceType instanceof self && !is_string($resourceType)) {
             throw new \InvalidArgumentException(

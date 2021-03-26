@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
@@ -18,16 +19,15 @@ use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\CsvUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
 class CrudHandler implements HandlerInterface
 {
-    const REMOTE_ID_MAPPING_TABLE = 'tx_interest_remote_id_mapping';
+    public const REMOTE_ID_MAPPING_TABLE = 'tx_interest_remote_id_mapping';
 
-    const PENDING_RELATIONS_TABLE = 'tx_interest_pending_relations';
+    public const PENDING_RELATIONS_TABLE = 'tx_interest_pending_relations';
 
     /**
      * @var ObjectManagerInterface
@@ -70,15 +70,13 @@ class CrudHandler implements HandlerInterface
      * @param ObjectManagerInterface $objectManager
      * @param DataHandler $dataHandler
      * @param RemoteIdMappingRepository $mappingRepository
-     *
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
         DataHandler $dataHandler,
         RemoteIdMappingRepository $mappingRepository,
         PendingRelationsRepository $pendingRelationsRepository
-    )
-    {
+    ) {
         $this->objectManager = $objectManager;
         $this->dataHandler = $dataHandler;
         $this->mappingRepository = $mappingRepository;
@@ -90,17 +88,15 @@ class CrudHandler implements HandlerInterface
      * @param array $recordData
      * @param string|null $tableName
      * @return ResponseInterface
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
-     * @throws Exception
+     * @throws NotFoundException
+     * @throws ConflictException
      */
     public function createRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null)
     {
-        list(
+        [
             'remoteId' => $remoteId,
             'data' => $importData
-        ) = !empty($recordData)
-            ? $recordData
-            : $this->createArrayFromJson($request->getBody()->getContents());
+        ] = !empty($recordData) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
         $tableName = $tableName ?? $request->getResourceType()->__toString();
@@ -135,8 +131,8 @@ class CrudHandler implements HandlerInterface
             [
                 'status' => 'success',
                 'data' => [
-                    'uid' => $localId
-                ]
+                    'uid' => $localId,
+                ],
             ],
             200,
             $request
@@ -150,6 +146,7 @@ class CrudHandler implements HandlerInterface
      * @param string $localId
      * @param string $remoteId
      * @param array $recordData
+     * @throws DataHandlerErrorException
      * @return int The inserted UID
      */
     protected function executeDataInsertOrUpdate(
@@ -157,8 +154,7 @@ class CrudHandler implements HandlerInterface
         string $localId,
         string $remoteId,
         array $recordData
-    ): int
-    {
+    ): int {
         $data = [];
 
         $isNewRecord = strpos($localId, 'NEW') === 0;
@@ -211,7 +207,7 @@ class CrudHandler implements HandlerInterface
      * @param string $remoteId The remote ID
      * @param array $data DataHandler datamap array to insert data into. Passed by reference.
      */
-    protected function resolvePendingRelations(string $table, string $remoteId, string $placeholderId, &$data)
+    protected function resolvePendingRelations(string $table, string $remoteId, string $placeholderId, &$data): void
     {
         foreach ($this->pendingRelationsRepository->get($remoteId) as $pendingRelation) {
             /** @var RelationHandler $relationHandler */
@@ -238,8 +234,8 @@ class CrudHandler implements HandlerInterface
                 'uid'
             );
 
-            $data[$pendingRelation['table']][$pendingRelation['record_uid']][$pendingRelation['field']] =
-                implode(',', array_merge($existingRelations, [$placeholderId]));
+            $data[$pendingRelation['table']][$pendingRelation['record_uid']][$pendingRelation['field']]
+                = implode(',', array_merge($existingRelations, [$placeholderId]));
         }
     }
 
@@ -268,6 +264,7 @@ class CrudHandler implements HandlerInterface
                 foreach ($fieldValue as $remoteIdRelation) {
                     if ($this->mappingRepository->exists($remoteIdRelation)) {
                         $importData[$fieldName][] = $this->mappingRepository->get($remoteIdRelation);
+
                         continue;
                     }
 
@@ -284,7 +281,7 @@ class CrudHandler implements HandlerInterface
      *
      * @see prepareRelations()
      */
-    protected function persistPendingRelations()
+    protected function persistPendingRelations(): void
     {
         foreach ($this->pendingRelations as $remoteId => $data) {
             foreach ($data as $fieldName => $relations) {
@@ -308,15 +305,15 @@ class CrudHandler implements HandlerInterface
      */
     private function dataHandling(array $data = [], array $cmd = [])
     {
-        if (!empty($data)){
+        if (!empty($data)) {
             $this->dataHandler->start($data, []);
             $this->dataHandler->process_datamap();
-        } else if (!empty($cmd)) {
+        } elseif (!empty($cmd)) {
             $this->dataHandler->start([], $cmd);
             $this->dataHandler->process_cmdmap();
         }
 
-        if (!empty($this->dataHandler->errorLog)){
+        if (!empty($this->dataHandler->errorLog)) {
             return false;
         }
 
@@ -330,6 +327,7 @@ class CrudHandler implements HandlerInterface
     protected function createArrayFromJson(string $json): array
     {
         $stdClass = json_decode($json);
+
         return json_decode(json_encode($stdClass), true);
     }
 
@@ -338,17 +336,18 @@ class CrudHandler implements HandlerInterface
      * @param array $recordData
      * @param string|null $tableName
      * @return ResponseInterface
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
-     * @throws Exception
+     * @throws NotFoundException
+     * @throws ConflictException
      */
-    public function updateRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null): ResponseInterface
-    {
-        list(
+    public function updateRecord(
+        InterestRequestInterface $request,
+        array $recordData = [],
+        ?string $tableName = null
+    ): ResponseInterface {
+        [
             'remoteId' => $remoteId,
             'data' => $importData
-        ) = !empty($recordData)
-            ? $recordData
-            : $this->createArrayFromJson($request->getBody()->getContents());
+        ] = !empty($recordData) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
         $tableName = $tableName ?? $request->getResourceType()->__toString();
@@ -379,8 +378,8 @@ class CrudHandler implements HandlerInterface
             [
                 'status' => 'success',
                 'data' => [
-                    'uid' => $this->mappingRepository->get($remoteId)
-                ]
+                    'uid' => $this->mappingRepository->get($remoteId),
+                ],
             ],
             200,
             $request
@@ -398,32 +397,33 @@ class CrudHandler implements HandlerInterface
 
         // Passing record data as second argument because can't get request body from createRecord and updateRecord
         // TODO: What the reason?
-        if (!$this->mappingRepository->exists($recordData['remoteId'])){
+        if (!$this->mappingRepository->exists($recordData['remoteId'])) {
             return $this->createRecord($request, $recordData);
-        } else {
-            return $this->updateRecord($request, $recordData);
         }
+
+        return $this->updateRecord($request, $recordData);
     }
 
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
-     * @param string $tableName
+     * @param string|null $tableName
      * @return ResponseInterface
-     * @throws Exception
+     * @throws NotFoundException
      */
     public function deleteRecord(
         InterestRequestInterface $request,
         array $recordData = [],
         ?string $tableName = null
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         $tableName = $tableName ?? $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
-        $deleteRecordData = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
+
+        $deleteRecordData
+            = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
-        if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])){
+        if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])) {
             throw new NotFoundException(
                 'The remoteId "' . $deleteRecordData['remoteId'] . '" doesn\'t exist',
                 $request
@@ -432,20 +432,18 @@ class CrudHandler implements HandlerInterface
 
         $remoteIdLocalIdRelation = $this->getRemoteIdLocalIdRelation($deleteRecordData['remoteId']);
 
-        $cmd[
-            $remoteIdLocalIdRelation[0]['table']][$remoteIdLocalIdRelation[0]['uid_local']
-        ]['delete'] = 1;
+        $cmd[$remoteIdLocalIdRelation[0]['table']][$remoteIdLocalIdRelation[0]['uid_local']]['delete'] = 1;
 
         if (!$this->dataHandling([], $cmd)) {
             return $responseFactory->createErrorResponse(
                 [
                     'status' => 'failure',
-                    'message' =>
-                        'Error occured during data handling process. ' .
-                        '(' . implode(', ', $this->dataHandler->errorLog) . ')'
+                    'message' => 'Error occured during data handling process. ' .
+                        '(' . implode(', ', $this->dataHandler->errorLog) . ')',
                 ],
                 403,
-                $request);
+                $request
+            );
         }
 
         $this->mappingRepository->remove($deleteRecordData['remoteId']);
@@ -479,11 +477,12 @@ class CrudHandler implements HandlerInterface
             $request
         );
     }
+
     /**
      * @param RouterInterface $router
      * @param InterestRequestInterface $request
      */
-    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request)
+    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request): void
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'createRecord']));
@@ -494,7 +493,7 @@ class CrudHandler implements HandlerInterface
     }
 
     /**
-     * Returns true if the field is a relation
+     * Returns true if the field is a relation.
      *
      * @param string $table
      * @param string $field
@@ -510,7 +509,7 @@ class CrudHandler implements HandlerInterface
 
         // Has type field
         if ($typeField !== '') {
-            if (key_exists($typeField, $data)) {
+            if (array_key_exists($typeField, $data)) {
                 $typeValue = (string)$data[$typeField];
             } else {
                 $typeValue = $this->getTypeValue($table, $remoteId);
@@ -531,7 +530,7 @@ class CrudHandler implements HandlerInterface
                 && $fieldTcaConfiguration['internal_type'] === 'db'
             )
             || (
-                in_array($fieldTcaConfiguration['type'], ['inline', 'select'])
+                in_array($fieldTcaConfiguration['type'], ['inline', 'select'], true)
                 && isset($fieldTcaConfiguration['foreign_table'])
             );
     }
@@ -576,8 +575,7 @@ class CrudHandler implements HandlerInterface
         string $table,
         string $field,
         array $row
-    ): array
-    {
+    ): array {
         $tcaFieldConf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
         $recordType = BackendUtility::getTCAtypeValue($table, $row);
         $columnsOverridesConfigOfField
