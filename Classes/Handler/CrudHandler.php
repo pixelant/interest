@@ -13,6 +13,7 @@ use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
@@ -50,6 +51,11 @@ class CrudHandler implements HandlerInterface
     protected PendingRelationsRepository $pendingRelationsRepository;
 
     /**
+     * @var InterestRequestInterface
+     */
+    protected RequestInterface $currentRequest;
+
+    /**
      * Used by prepareRelations() and persistPendingRelations().
      *
      * $pendingRelations[<remoteId>][<fieldName>] = [<remoteId1>, <remoteId2>, ...]
@@ -83,6 +89,11 @@ class CrudHandler implements HandlerInterface
         $this->pendingRelationsRepository = $pendingRelationsRepository;
     }
 
+    public function setCurrentRequest(InterestRequestInterface $request): void
+    {
+        $this->currentRequest = $request;
+    }
+
     /**
      * @param InterestRequestInterface $request
      * @param array $recordData
@@ -93,6 +104,8 @@ class CrudHandler implements HandlerInterface
      */
     public function createRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null)
     {
+        $this->setCurrentRequest($request);
+
         [
             'remoteId' => $remoteId,
             'data' => $importData
@@ -177,7 +190,7 @@ class CrudHandler implements HandlerInterface
         }
 
         if (!$this->dataHandling($data)) {
-            throw new DataHandlerErrorException($this->dataHandler, $request);
+            throw new DataHandlerErrorException($this->dataHandler, $this->currentRequest);
         }
 
         if ($isNewRecord) {
@@ -416,6 +429,8 @@ class CrudHandler implements HandlerInterface
         array $recordData = [],
         ?string $tableName = null
     ): ResponseInterface {
+        $this->setCurrentRequest($request);
+
         $tableName = $tableName ?? $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
@@ -430,9 +445,7 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $remoteIdLocalIdRelation = $this->getRemoteIdLocalIdRelation($deleteRecordData['remoteId']);
-
-        $cmd[$remoteIdLocalIdRelation[0]['table']][$remoteIdLocalIdRelation[0]['uid_local']]['delete'] = 1;
+        $cmd[$this->mappingRepository->get($deleteRecordData['remoteId'])]['delete'] = 1;
 
         if (!$this->dataHandling([], $cmd)) {
             return $responseFactory->createErrorResponse(
@@ -458,6 +471,8 @@ class CrudHandler implements HandlerInterface
      */
     public function readRecords(InterestRequestInterface $request): ResponseInterface
     {
+        $this->setCurrentRequest($request);
+
         $tableName = $request->getResourceType()->__toString();
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
         $queryBuilder = $this->objectManager->getQueryBuilder($tableName);

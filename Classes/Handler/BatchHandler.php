@@ -103,7 +103,7 @@ class BatchHandler extends CrudHandler
 
         foreach ($standardizedArray as $tableName => $importData) {
             foreach ($importData as $importItem) {
-                if ($this->checkIfRelationExists($importItem['remoteId'])) {
+                if ($this->mappingRepository->exists($importItem['remoteId'])) {
                     $response = $this->updateRecord($request, $importItem, $tableName);
                 } else {
                     $response = $this->createRecord($request, $importItem, $tableName);
