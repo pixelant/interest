@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest;
 
 use Pixelant\Interest\Dispatcher\Dispatcher;
+use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;

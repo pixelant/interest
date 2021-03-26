@@ -11,11 +11,11 @@ interface ResponseFactoryInterface
     /**
      * Returns a response with the given content and status code
      *
-     * @param string|array $data   Data to send
+     * @param array $data   Data to send
      * @param int          $status Status code of the response
      * @return ResponseInterface
      */
-    public function createResponse($data, int $status): ResponseInterface;
+    public function createResponse(array $data, int $status): ResponseInterface;
 
     /**
      * Returns a response with the given message and status code
@@ -27,7 +27,7 @@ interface ResponseFactoryInterface
      * @param InterestRequestInterface $request
      * @return ResponseInterface
      */
-    public function createErrorResponse($data, int $status, InterestRequestInterface $request): ResponseInterface;
+    public function createErrorResponse(array $data, int $status, InterestRequestInterface $request): ResponseInterface;
 
     /**
      * Returns a response with the given message and status code
@@ -39,5 +39,5 @@ interface ResponseFactoryInterface
      * @param InterestRequestInterface $request
      * @return ResponseInterface
      */
-    public function createSuccessResponse($data, int $status, InterestRequestInterface $request): ResponseInterface;
+    public function createSuccessResponse(array $data, int $status, InterestRequestInterface $request): ResponseInterface;
 }

@@ -3,6 +3,7 @@
 namespace Pixelant\Interest\Handler;
 
 use GuzzleHttp\Client;
+use Pixelant\Interest\Handler\Exception\FileHandlingException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
@@ -79,9 +80,8 @@ class FileUploadHandler implements HandlerInterface
                 $request
             );
         } else {
-            return $responseFactory->createErrorResponse(
-                ['error' => 'File was not uploaded, check if data valid.'],
-                404,
+            throw new FileHandlingException(
+                'File was not uploaded.',
                 $request
             );
         }

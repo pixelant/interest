@@ -5,6 +5,9 @@ namespace Pixelant\Interest\Handler;
 
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Handler\Exception\ConflictException;
+use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
+use Pixelant\Interest\Handler\Exception\NotFoundException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
@@ -103,26 +106,23 @@ class CrudHandler implements HandlerInterface
         $tableName = $tableName ?? $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'No remote ID given.'],
-                404,
+            throw new NotFoundException(
+                'No remote ID given.',
                 $request
             );
         }
 
         if ($this->mappingRepository->exists($remoteId)) {
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Remote ID "' . $remoteId . '" already exists.'],
-                409,
+            throw new ConflictException(
+                'Remote ID "' . $remoteId . '" already exists.',
                 $request
             );
         }
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca))],
-                409,
+            throw new ConflictException(
+                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
                 $request
             );
         }
@@ -181,11 +181,7 @@ class CrudHandler implements HandlerInterface
         }
 
         if (!$this->dataHandling($data)) {
-            return $responseFactory->createErrorResponse(
-                ['Error occured during data handling process, please check if data is valid'],
-                403,
-                $request
-            );
+            throw new DataHandlerErrorException($this->dataHandler, $request);
         }
 
         if ($isNewRecord) {
@@ -223,7 +219,7 @@ class CrudHandler implements HandlerInterface
 
             $relationHandler->start(
                 '',
-                $tableName,
+                $table,
                 '',
                 $pendingRelation['record_uid'],
                 $pendingRelation['table'],
@@ -238,7 +234,7 @@ class CrudHandler implements HandlerInterface
             );
 
             $existingRelations = array_column(
-                $relationHandler->getFromDB()[$foreignTable] ?? [],
+                $relationHandler->getFromDB()[$pendingRelation['table']] ?? [],
                 'uid'
             );
 
@@ -357,24 +353,17 @@ class CrudHandler implements HandlerInterface
         $responseFactory = $this->objectManager->getResponseFactory();
         $tableName = $tableName ?? $request->getResourceType()->__toString();
 
-        if (!$this->mappingRepository->exists($remoteId)){
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Remote ID "' . $remoteId . '" does not exist.'],
-                404,
+        if (!$this->mappingRepository->exists($remoteId)) {
+            throw new NotFoundException(
+                'Remote ID "' . $remoteId . '" does not exist.',
                 $request
             );
         }
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
-            return $responseFactory->createErrorResponse(
-                [
-                    'status' => 'failure',
-                    'message' =>
-                        'Unknown field(s) in field list: '
-                        . implode(', ', array_keys($fieldsNotInTca))
-                ],
-                409,
+            throw new ConflictException(
+                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
                 $request
             );
         }
@@ -435,10 +424,9 @@ class CrudHandler implements HandlerInterface
         $responseFactory = $this->objectManager->getResponseFactory();
 
         if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])){
-            return $responseFactory->createErrorResponse([
-                'status' => 'failure',
-                'message' => 'The remoteId "' . $deleteRecordData['remoteId'] . '" doesn\'t exist'],
-                404, $request
+            throw new NotFoundException(
+                'The remoteId "' . $deleteRecordData['remoteId'] . '" doesn\'t exist',
+                $request
             );
         }
 
@@ -478,21 +466,18 @@ class CrudHandler implements HandlerInterface
         $responseFactory = $this->objectManager->getResponseFactory();
 
         // TODO: Add permission check.
+        // TODO: Add limit and pagination option
         $data = $queryBuilder
             ->select('*')
             ->from($tableName)
             ->execute()
             ->fetchAllAssociative();
 
-        if ($data){
-            return $responseFactory->createSuccessResponse($data, 200, $request);
-        } else {
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'No records found'],
-                404,
-                $request
-            );
-        }
+        return $responseFactory->createSuccessResponse(
+            ['status' => 'success', 'data' => $data],
+            200,
+            $request
+        );
     }
     /**
      * @param RouterInterface $router

@@ -6,6 +6,7 @@ namespace Pixelant\Interest;
 use Pixelant\Interest\Http\Header;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\Response as TYPO3Response;
 
 class ResponseFactory implements ResponseFactoryInterface
@@ -15,23 +16,23 @@ class ResponseFactory implements ResponseFactoryInterface
      * @param int $status
      * @return ResponseInterface
      */
-    public function createResponse($data, int $status): ResponseInterface
+    public function createResponse(array $data, int $status): ResponseInterface
     {
         $responseClass = $this->getResponseImplementationClass();
-        /** @var ResponseInterface $response */
+        /** @var JsonResponse $response */
         $response = new $responseClass();
         $response = $response->withStatus($status);
-        $response->getBody()->write($data);
+        $response->setPayload($data);
 
         return $response;
     }
 
-    public function createErrorResponse($data, int $status, InterestRequestInterface $request): ResponseInterface
+    public function createErrorResponse(array $data, int $status, InterestRequestInterface $request): ResponseInterface
     {
         return $this->createFormattedResponse($data, $status, true, $request);
     }
 
-    public function createSuccessResponse($data, int $status, InterestRequestInterface $request): ResponseInterface
+    public function createSuccessResponse(array $data, int $status, InterestRequestInterface $request): ResponseInterface
     {
         return $this->createFormattedResponse($data, $status, false, $request);
     }
@@ -41,10 +42,7 @@ class ResponseFactory implements ResponseFactoryInterface
      */
     private function getResponseImplementationClass()
     {
-        if (class_exists(TYPO3Response::class)) {
-            return TYPO3Response::class;
-        }
-        throw new \LogicException('No response implementation found');
+        return JsonResponse::class;
     }
 
     /**
@@ -57,63 +55,17 @@ class ResponseFactory implements ResponseFactoryInterface
      * @return ResponseInterface
      */
     private function createFormattedResponse(
-        $data,
+        array $data,
         int $status,
         bool $forceError,
         InterestRequestInterface $request
     ): ResponseInterface {
         $responseClass = $this->getResponseImplementationClass();
-        /** @var ResponseInterface $response */
+        /** @var JsonResponse $response */
         $response = new $responseClass();
         $response = $response->withStatus($status);
         $response = $response->withAddedHeader('Access-Control-Allow-Origin', '*');
-
-        $messageKey = 'message';
-        if ($forceError || $status >= 400) {
-            $messageKey = 'error';
-        }
-
-        switch ($request->getFormat()) {
-            case 'json':
-                switch (gettype($data)) {
-                    case 'string':
-                        $body = [
-                            $messageKey => $data,
-                        ];
-                        break;
-
-                    case 'integer':
-                    case 'double':
-                    case 'boolean':
-                        $body = $data;
-                        break;
-
-                    case 'array':
-                        $body = $data;
-                        break;
-
-                    case 'NULL':
-                        $body = [
-                            $messageKey => $response->getReasonPhrase(),
-                        ];
-                        break;
-
-                    default:
-                        $body = null;
-                }
-
-                $response->getBody()->write(json_encode($body));
-                $response = $response->withHeader(Header::CONTENT_TYPE, 'application/json');
-                break;
-
-            default:
-                $response->getBody()->write(
-                    sprintf(
-                        'Unsupported format: %s. Please set the Accept header to application/json',
-                        $request->getFormat()
-                    )
-                );
-        }
+        $response->setPayload($data);
 
         return $response;
     }
