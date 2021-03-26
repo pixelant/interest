@@ -1,7 +1,7 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'interest',
-    'description' => 'REST API for read/write access to database',
+    'title' => 'REST API for Integrations',
+    'description' => 'Integrate external data with TYPO3. Data is handled as a backend user. Logging, access permissions, and validity checks are the same as when a real user is editing/viewing data in the backend.',
     'version' => '1.0.0-alpha',
     'category' => 'plugin',
     'constraints' => [
@@ -11,12 +11,12 @@ $EM_CONF[$_EXTKEY] = [
     ],
     'autoload' => [
         'psr-4' => [
-            'TTN\\Tea\\' => 'Classes/',
+            'Pixelant\\Interest\\' => 'Classes/',
         ],
     ],
     'autoload-dev' => [
         'psr-4' => [
-            'TTN\\Tea\\Tests\\' => 'Tests/',
+            'Pixelant\\Interest\\Tests\\' => 'Tests/',
         ],
     ],
 ];

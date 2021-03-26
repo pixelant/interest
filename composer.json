@@ -54,7 +54,7 @@
 		"typo3/cms": {
 			"cms-package-dir": "{$vendor-dir}/typo3/cms",
 			"web-dir": ".Build/public",
-			"extension-key": "inteREST"
+			"extension-key": "interest"
 		}
 	},
 	"autoload": {
