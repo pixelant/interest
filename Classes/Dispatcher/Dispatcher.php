@@ -167,6 +167,9 @@ class Dispatcher implements DispatcherInterface
                     ->values([
                         'timestamp' => time(),
                         'execution_time' => $executionTime,
+                        'status_code' => $response->getStatusCode(),
+                        'method' => $request->getMethod(),
+                        'uri' => (string)$request->getUri(),
                         'request_headers' => substr(json_encode($request->getHeaders()), 0, 65535),
                         'request_body' => substr((string)$request->getBody(), 0, 16777215),
                         'response_headers' => substr(json_encode($response->getHeaders()), 0, 65535),
