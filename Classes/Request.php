@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use Pixelant\Interest\Http\ServerRequestProxyTrait;
+use Pixelant\Interest\Domain\Model\Format;
 use Pixelant\Interest\Domain\Model\ResourceType;
 use Pixelant\Interest\Http\InterestRequestInterface;
+use Pixelant\Interest\Http\ServerRequestProxyTrait;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
-use Pixelant\Interest\Domain\Model\Format;
 
 class Request implements ServerRequestInterface, InterestRequestInterface
 {
@@ -40,7 +41,7 @@ class Request implements ServerRequestInterface, InterestRequestInterface
     private Format $format;
 
     /**
-     * Constructor for a new request with the given Server Request, resource type and format
+     * Constructor for a new request with the given Server Request, resource type and format.
      *
      * @param ServerRequestInterface $originalRequest
      * @param UriInterface $internalUri
@@ -55,13 +56,13 @@ class Request implements ServerRequestInterface, InterestRequestInterface
         ResourceType $resourceType,
         Format $format
     ) {
-
         $this->originalRequest = $originalRequest;
         $this->originalPath = $originalPath;
         $this->resourceType = $resourceType;
         $this->internalUri = $internalUri;
         $this->format = $format;
     }
+
     /**
      * @return string
      */
@@ -82,7 +83,7 @@ class Request implements ServerRequestInterface, InterestRequestInterface
      * @param ServerRequestInterface $request
      * @return $this
      */
-    protected function setOriginalRequest(ServerRequestInterface $request): Request
+    protected function setOriginalRequest(ServerRequestInterface $request): self
     {
         $this->originalRequest = $request;
 
@@ -126,7 +127,7 @@ class Request implements ServerRequestInterface, InterestRequestInterface
         return $this->format;
     }
 
-    public function withFormat(Format $format): Request
+    public function withFormat(Format $format): self
     {
         return new static(
             $this->originalRequest,

@@ -8,8 +8,8 @@ return [
                 'typo3/cms-frontend/backend-user-authentication',
             ],
             'after' => [
-                'typo3/cms-frontend/site'
-            ]
+                'typo3/cms-frontend/site',
+            ],
         ],
-    ]
+    ],
 ];

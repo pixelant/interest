@@ -1,6 +1,6 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'inteREST',
+    'title' => 'interest',
     'description' => 'REST API for read/write access to database',
     'version' => '1.0.0-alpha',
     'category' => 'plugin',

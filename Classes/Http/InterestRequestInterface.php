@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Http;
@@ -37,7 +38,7 @@ interface InterestRequestInterface extends ServerRequestInterface
     public function getSendData();
 
     /**
-     * Returns instance with given resource type
+     * Returns instance with given resource type.
      *
      * @param ResourceType $resourceType
      * @return $this

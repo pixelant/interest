@@ -1,16 +1,16 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Configuration;
 
-use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
-use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\Exception\InvalidTypeException;
-use TYPO3\CMS\Core\Resource\Exception\InvalidConfigurationException;
-use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Domain\Model\ResourceType;
 use Pixelant\Interest\Utility\Utility;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Resource\Exception\InvalidConfigurationException;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\Exception\InvalidTypeException;
 
 class AbstractConfigurationProvider implements ConfigurationProviderInterface
 {
@@ -116,6 +116,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
     public function setSettings(array $settings): self
     {
         $this->settings = $settings;
+
         return $this;
     }
 
@@ -142,7 +143,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
                 $matchingSetting = null;
             }
         }
-        if (is_null($matchingSetting) && !is_null($defaultValue)) {
+        if (null === $matchingSetting && null !== $defaultValue) {
             return $defaultValue;
         }
 
@@ -150,7 +151,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
     }
 
     /**
-     * Returns the configuration matching the given resource type
+     * Returns the configuration matching the given resource type.
      *
      * @param ResourceType $resourceType
      * @return ResourceConfiguration
@@ -167,7 +168,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
             throw new InvalidTypeException(
                 sprintf(
                     'Invalid normalized Resource Type "%s"',
-                    is_null($resourceTypeString) ? 'null' : $resourceTypeString
+                    null === $resourceTypeString ? 'null' : $resourceTypeString
                 )
             );
         }
@@ -191,7 +192,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
     }
 
     /**
-     * Check if the given pattern matches the resource type
+     * Check if the given pattern matches the resource type.
      *
      * @param string $pattern
      * @param string $resourceTypeString
@@ -205,11 +206,11 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
             str_replace('?', '\w', (string)$pattern)
         );
 
-        return preg_match("!^$currentPathPattern$!", (string)$resourceTypeString);
+        return preg_match("!^${currentPathPattern}$!", (string)$resourceTypeString);
     }
 
     /**
-     * Returns the paths configured in the settings
+     * Returns the paths configured in the settings.
      *
      * @return ResourceConfiguration[]
      * @throws InvalidConfigurationException
@@ -220,12 +221,10 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
         foreach ($this->getRawConfiguredResourceTypes() as $path => $configuration) {
             [$configuration, $normalizeResourceType] = $this->preparePath($configuration, $path);
 
-            $readAccess = isset($configuration[self::ACCESS_METHOD_READ])
-                ? new Access($configuration[self::ACCESS_METHOD_READ])
-                : Access::denied();
-            $writeAccess = isset($configuration[self::ACCESS_METHOD_WRITE])
-                ? new Access($configuration[self::ACCESS_METHOD_WRITE])
-                : Access::denied();
+            /** @codingStandardsIgnoreStart */
+            $readAccess = isset($configuration[self::ACCESS_METHOD_READ]) ? new Access($configuration[self::ACCESS_METHOD_READ]) : Access::denied();
+            $writeAccess = isset($configuration[self::ACCESS_METHOD_WRITE]) ? new Access($configuration[self::ACCESS_METHOD_WRITE]) : Access::denied();
+            // @codingStandardsIgnoreEnd
 
             if (isset($configuration['className'])) {
                 throw new InvalidConfigurationException('Unsupported configuration key "className"');
@@ -237,7 +236,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
                 $resourceType,
                 $readAccess,
                 $writeAccess,
-                isset($configuration['handlerClass']) ? $configuration['handlerClass'] : '',
+                $configuration['handlerClass'] ?? '',
                 $this->getAliasesForResourceType($resourceType)
             );
         }
@@ -255,11 +254,11 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
             return $settings['paths'];
         }
 
-        return isset($settings['paths.']) ? $settings['paths.'] : [];
+        return $settings['paths.'] ?? [];
     }
 
     /**
-     * If no explicit path is configured use the current key
+     * If no explicit path is configured use the current key.
      *
      * @param array  $configuration
      * @param string $path
@@ -267,7 +266,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
      */
     private function preparePath(array $configuration, $path)
     {
-        $resourceType = isset($configuration['path']) ? $configuration['path'] : trim($path, '.');
+        $resourceType = $configuration['path'] ?? trim($path, '.');
         $normalizeResourceType = Utility::normalizeResourceType($resourceType);
         $configuration['path'] = $normalizeResourceType;
 
@@ -275,7 +274,7 @@ class AbstractConfigurationProvider implements ConfigurationProviderInterface
     }
 
     /**
-     * Fetch aliases for the given Resource Type
+     * Fetch aliases for the given Resource Type.
      *
      * @param ResourceType $resourceType
      * @return string[]

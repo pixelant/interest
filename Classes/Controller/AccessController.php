@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Controller;
@@ -6,7 +7,7 @@ namespace Pixelant\Interest\Controller;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 
-class AccessController  implements AccessControllerInterface
+class AccessController implements AccessControllerInterface
 {
     /**
      * @var ObjectManagerInterface

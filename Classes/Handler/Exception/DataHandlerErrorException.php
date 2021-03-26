@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Handler\Exception;
 
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
@@ -26,10 +25,8 @@ class DataHandlerErrorException extends AbstractRequestHandlerException
             );
         }
 
-        $message = 'Error occured during the data handling: ' . implode(', ', $this->dataHandler->errorLog) . ')';
+        $message = 'Error occured during the data handling: ' . implode(', ', $dataHandler->errorLog) . ')';
 
-        parent::__construct($message, $request, $previous);
+        parent::__construct($message, $request);
     }
-
-
 }

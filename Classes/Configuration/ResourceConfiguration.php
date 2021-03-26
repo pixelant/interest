@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Configuration;
@@ -34,7 +35,7 @@ class ResourceConfiguration
     private array $aliases;
 
     /**
-     * ResourceConfiguration constructor
+     * ResourceConfiguration constructor.
      *
      * @param ResourceType $resourceType
      * @param Access       $read
@@ -47,7 +48,7 @@ class ResourceConfiguration
         Access $read,
         Access $write,
         string $handlerClass,
-        array $aliases,
+        array $aliases
     ) {
         $this->resourceType = $resourceType;
         $this->read = $read;
@@ -97,7 +98,11 @@ class ResourceConfiguration
         return $this->aliases;
     }
 
-    private function assertStringArray(array $aliases)
+    /**
+     * @param array $aliases
+     * @throws InvalidArgumentException
+     */
+    private function assertStringArray(array $aliases): void
     {
         foreach ($aliases as $alias) {
             if (!is_string($alias)) {

@@ -1,8 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Http;
-
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -11,7 +11,7 @@ use Psr\Http\Message\UriInterface;
 trait ServerRequestProxyTrait
 {
     /**
-     * Returns the original request
+     * Returns the original request.
      *
      * @return ServerRequestInterface
      */
@@ -43,7 +43,6 @@ trait ServerRequestProxyTrait
     {
         return $this->getOriginalRequest()->getProtocolVersion();
     }
-
 
     /**
      * Retrieves all message header values.
@@ -131,7 +130,6 @@ trait ServerRequestProxyTrait
         return $this->getOriginalRequest()->getHeaderLine($name);
     }
 
-
     /**
      * Gets the body of the message.
      *
@@ -141,7 +139,6 @@ trait ServerRequestProxyTrait
     {
         return $this->getOriginalRequest()->getBody();
     }
-
 
     /**
      * Retrieves the message's request target.
@@ -164,7 +161,6 @@ trait ServerRequestProxyTrait
         return $this->getOriginalRequest()->getRequestTarget();
     }
 
-
     /**
      * Retrieves the HTTP method of the request.
      *
@@ -175,13 +171,12 @@ trait ServerRequestProxyTrait
         return $this->getOriginalRequest()->getMethod();
     }
 
-
     /**
      * Retrieves the URI instance.
      *
      * This method MUST return a UriInterface instance.
      *
-     * @link http://tools.ietf.org/html/rfc3986#section-4.3
+     * @see http://tools.ietf.org/html/rfc3986#section-4.3
      * @return UriInterface Returns a UriInterface instance
      *     representing the URI of the request.
      */
@@ -189,7 +184,6 @@ trait ServerRequestProxyTrait
     {
         return $this->getOriginalRequest()->getUri();
     }
-
 
     /**
      * Retrieve server parameters.
@@ -220,7 +214,6 @@ trait ServerRequestProxyTrait
         return $this->getOriginalRequest()->getCookieParams();
     }
 
-
     /**
      * Retrieve query string arguments.
      *
@@ -237,7 +230,6 @@ trait ServerRequestProxyTrait
     {
         return $this->getOriginalRequest()->getQueryParams();
     }
-
 
     /**
      * Retrieve normalized file upload data.
@@ -256,7 +248,6 @@ trait ServerRequestProxyTrait
         return $this->getOriginalRequest()->getUploadedFiles();
     }
 
-
     /**
      * Retrieve any parameters provided in the request body.
      *
@@ -269,14 +260,13 @@ trait ServerRequestProxyTrait
      * potential types MUST be arrays or objects only. A null value indicates
      * the absence of body content.
      *
-     * @return null|array|object The deserialized body parameters, if any.
+     * @return array|object|null The deserialized body parameters, if any.
      *     These will typically be an array or object.
      */
     public function getParsedBody()
     {
         return $this->getOriginalRequest()->getParsedBody();
     }
-
 
     /**
      * Retrieve attributes derived from the request.
@@ -388,7 +378,6 @@ trait ServerRequestProxyTrait
     public function withoutHeader($name): ServerRequestInterface
     {
         return $this->copy()->setOriginalRequest($this->getOriginalRequest()->withoutHeader($name));
-
     }
 
     /**
@@ -421,7 +410,7 @@ trait ServerRequestProxyTrait
      * immutability of the message, and MUST return an instance that has the
      * changed request target.
      *
-     * @link http://tools.ietf.org/html/rfc7230#section-5.3 (for the various
+     * @see http://tools.ietf.org/html/rfc7230#section-5.3 (for the various
      *     request-target forms allowed in request messages)
      * @param mixed $requestTarget
      * @return ServerRequestInterface
@@ -476,7 +465,7 @@ trait ServerRequestProxyTrait
      * immutability of the message, and MUST return an instance that has the
      * new UriInterface instance.
      *
-     * @link http://tools.ietf.org/html/rfc3986#section-4.3
+     * @see http://tools.ietf.org/html/rfc3986#section-4.3
      * @param UriInterface $uri          New request URI to use.
      * @param bool         $preserveHost Preserve the original state of the Host header.
      * @return ServerRequestInterface
@@ -573,7 +562,7 @@ trait ServerRequestProxyTrait
      * immutability of the message, and MUST return an instance that has the
      * updated body parameters.
      *
-     * @param null|array|object $data The deserialized body data. This will
+     * @param array|object|null $data The deserialized body data. This will
      *                                typically be in an array or object.
      * @return ServerRequestInterface
      * @throws \InvalidArgumentException if an unsupported argument type is

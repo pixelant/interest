@@ -15,7 +15,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class FileUploadHandler implements HandlerInterface
 {
-
     /**
      * @var ObjectManagerInterface
      */
@@ -32,6 +31,7 @@ class FileUploadHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
+     * @throws FileHandlingException
      * @return ResponseInterface
      */
     public function uploadFile(InterestRequestInterface $request): ResponseInterface
@@ -41,7 +41,7 @@ class FileUploadHandler implements HandlerInterface
         $fileDenyValidator = $this->objectManager->get(FileNameValidator::class);
 
         // Check for unacceptable file formats.
-        if (!$fileDenyValidator->isValid($data['data']['name'])){
+        if (!$fileDenyValidator->isValid($data['data']['name'])) {
             return $responseFactory->createErrorResponse(
                 ['error' => 'Unable to load file with this format'],
                 403,
@@ -53,38 +53,38 @@ class FileUploadHandler implements HandlerInterface
         $httpClient = $this->objectManager->get(Client::class);
         $fileBaseName = basename($data['data']['url']);
         $storagePath = $configuration['persistence']['fileUploadFolderPath'];
-        list($storageId,$subFolderPath) = explode(':', $storagePath);
+        [$storageId, $subFolderPath] = explode(':', $storagePath);
         $storage = $this->objectManager->get(StorageRepository::class)->findByUid((int)$storageId);
 
-        if ($data['data']['fileData']){
+        if ($data['data']['fileData']) {
             $fileBaseName = $data['data']['name'];
-            $stream = fopen('fileadmin/'.$fileBaseName,'w');
-            stream_filter_append($stream, 'convert.base64-decode',STREAM_FILTER_WRITE);
+            $stream = fopen('fileadmin/' . $fileBaseName, 'w');
+            stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
             fwrite($stream, $data['data']['fileData']);
             fclose($stream);
         } else {
             $response = $httpClient->get($data['data']['url']);
-            GeneralUtility::writeFile('fileadmin/'.$fileBaseName, $response->getBody());
+            GeneralUtility::writeFile('fileadmin/' . $fileBaseName, $response->getBody());
         }
 
         $file = $storage->addFile(
-            'fileadmin/'.$fileBaseName,
+            'fileadmin/' . $fileBaseName,
             $storage->getFolder($subFolderPath),
             $fileBaseName
         );
 
-        if ($file){
+        if ($file) {
             return $responseFactory->createSuccessResponse(
                 ['status' => 'success'],
                 200,
                 $request
             );
-        } else {
-            throw new FileHandlingException(
-                'File was not uploaded.',
-                $request
-            );
         }
+
+        throw new FileHandlingException(
+            'File was not uploaded.',
+            $request
+        );
     }
 
     /**
@@ -94,10 +94,11 @@ class FileUploadHandler implements HandlerInterface
     private function createArrayFromJson(string $json): array
     {
         $stdClass = json_decode($json);
+
         return json_decode(json_encode($stdClass), true);
     }
 
-    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request)
+    public function configureRoutes(RouterInterface $router, InterestRequestInterface $request): void
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'uploadFile']));
