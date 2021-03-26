@@ -31,4 +31,14 @@ CREATE TABLE tx_interest_pending_relations (
     KEY remote_id (remote_id)
 );
 
+CREATE TABLE tx_interest_log (
+	uid int(11) DEFAULT '0' NOT NULL auto_increment,
+	timestamp int(11) DEFAULT '0' NOT NULL,
+	execution_time int(11) DEFAULT '0' NOT NULL,
+	request_headers text DEFAULT '' NOT NULL,
+	request_body mediumtext DEFAULT '' NOT NULL,
+	response_headers text DEFAULT '' NOT NULL,
+	response_body mediumtext DEFAULT '' NOT NULL,
 
+	PRIMARY KEY (uid)
+);

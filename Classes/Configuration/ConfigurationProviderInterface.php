@@ -19,6 +19,48 @@ interface ConfigurationProviderInterface
 
     /**
      * Returns the setting with the given key.
+     * @return array
+     */
+    public function getExtensionConfiguration(): array;
+
+    /**
+     * Returns true if logging is enabled.
+     *
+     * @return bool
+     */
+    public function isLoggingEnabled(): bool;
+
+    /**
+     * Returns true if logging (of execution time) should be done in response headers.
+     *
+     * @return bool
+     */
+    public function isHeaderLoggingEnabled(): bool;
+
+    /**
+     * Returns true if logging (of execution time, request, and response data) should be done in database.
+     *
+     * @return bool
+     */
+    public function isDatabaseLoggingEnabled(): bool;
+
+    /**
+     * Returns the lower limit in execution time above which logging is enabled.
+     *
+     * @return int The number of milliseconds
+     */
+    public function getLoggingMinimumExecutionTime(): int;
+
+    /**
+     * Returns true if logging is enabled and the supplied $milliseconds is higher or equal to the execution time limit.
+     *
+     * @param int $milliseconds
+     * @return bool
+     */
+    public function isLoggingEnabledForExecutionTime(int $milliseconds): bool;
+
+    /**
+     * Returns the setting with the given key.
      *
      * @param string $keyPath
      * @param mixed  $defaultValue
