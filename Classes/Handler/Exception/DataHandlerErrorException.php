@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler\Exception;
 
-use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use Psr\Http\Message\RequestInterface;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 
