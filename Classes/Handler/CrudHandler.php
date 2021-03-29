@@ -204,7 +204,6 @@ class CrudHandler implements HandlerInterface
             $this->pendingRelationsRepository->removeRemote($remoteId);
         }
 
-
         $this->persistPendingRelations();
 
         if ($isNewRecord) {
@@ -289,7 +288,7 @@ class CrudHandler implements HandlerInterface
 
             $tcaConfiguration = $GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config'];
 
-            if ($tcaConfiguration['type'] == 'inline'){
+            if ($tcaConfiguration['type'] === 'inline') {
                 $importData[$fieldName] = CsvUtility::csvValues($importData[$fieldName], ',', '');
             }
         }
