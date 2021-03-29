@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
@@ -69,6 +70,7 @@ class BootstrapDispatcher
     {
         if (!$this->isInitialized) {
             Bootstrap::initializeBackendUser();
+            ExtensionManagementUtility::loadExtTables();
             Bootstrap::initializeLanguageObject();
             $this->initializeObjectManager();
 
