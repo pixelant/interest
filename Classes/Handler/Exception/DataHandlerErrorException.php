@@ -16,7 +16,7 @@ class DataHandlerErrorException extends AbstractRequestHandlerException
 {
     protected const RESPONSE_CODE = 400;
 
-    public function __construct(DataHandler $dataHandler, RequestInterface $request, GuzzleRequestException $previous)
+    public function __construct(DataHandler $dataHandler, RequestInterface $request)
     {
         if (count($dataHandler->errorLog) === 0) {
             throw new \UnexpectedValueException(
@@ -27,6 +27,6 @@ class DataHandlerErrorException extends AbstractRequestHandlerException
 
         $message = 'Error occured during the data handling: ' . implode(', ', $dataHandler->errorLog) . ')';
 
-        parent::__construct($message, $request);
+        parent::__construct($message, $request, null);
     }
 }
