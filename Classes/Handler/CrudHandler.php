@@ -284,6 +284,12 @@ class CrudHandler implements HandlerInterface
                     $this->pendingRelations[$remoteId][$fieldName][] = $remoteIdRelation;
                 }
             }
+
+            $tcaConfiguration = $GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config'];
+
+            if ($tcaConfiguration['type'] === 'inline') {
+                $importData[$fieldName] = implode(',', $importData[$fieldName]);
+            }
         }
 
         return $importData;
