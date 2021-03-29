@@ -20,7 +20,6 @@ use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\CsvUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -289,7 +288,7 @@ class CrudHandler implements HandlerInterface
             $tcaConfiguration = $GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config'];
 
             if ($tcaConfiguration['type'] === 'inline') {
-                $importData[$fieldName] = CsvUtility::csvValues($importData[$fieldName], ',', '');
+                $importData[$fieldName] = implode(',', $importData[$fieldName]);
             }
         }
 
