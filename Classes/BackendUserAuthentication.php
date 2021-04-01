@@ -9,7 +9,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
 {
-    const CACHE_TABLE = 'tx_interest_api_token';
+    public const CACHE_TABLE = 'tx_interest_api_token';
 
     /**
      * @param string $identifier
@@ -28,6 +28,5 @@ class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\BackendUs
                 $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($identifier))
             )
             ->execute();
-
     }
 }
