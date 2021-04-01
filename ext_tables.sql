@@ -8,6 +8,7 @@ CREATE TABLE tx_interest_api_token (
      be_user varchar(255) DEFAULT '' NOT NULL,
      password varchar(255) DEFAULT '' NOT NULL,
      expires_in bigint(20) DEFAULT '0' NOT NULL,
+     cached_data mediumblob,
 
      PRIMARY KEY (uid)
 );
