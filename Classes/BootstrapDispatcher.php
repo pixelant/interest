@@ -164,7 +164,6 @@ class BootstrapDispatcher
                 $password = $userCredentials[0]['password'];
                 $token = $userCredentials[0]['token'];
                 $cachedData = $userCredentials[0]['cached_data'];
-
             } else {
                 // @codingStandardsIgnoreStart
                 [$username, $password] = explode(':', base64_decode(substr($serverParams['HTTP_AUTHORIZATION'], 6), true));
@@ -172,9 +171,10 @@ class BootstrapDispatcher
             }
         }
 
-        if ($cachedData !== null && $cachedData !== ''){
+        if ($cachedData !== null && $cachedData !== '') {
             $beUser = unserialize($cachedData);
             $GLOBALS['BE_USER'] = unserialize($beUser);
+
             return;
         }
 

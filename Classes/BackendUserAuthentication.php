@@ -14,7 +14,8 @@ class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\BackendUs
      * @param string $identifier
      * @throws \TYPO3\CMS\Core\Cache\Exception\DuplicateIdentifierException
      */
-    public function cacheUser(string $identifier){
+    public function cacheUser(string $identifier): void
+    {
         $backendCache = GeneralUtility::makeInstance(Typo3DatabaseBackend::class, 'BE');
         $frontendCache = GeneralUtility::makeInstance(VariableFrontend::class, $identifier, $backendCache);
         $user = serialize($this);

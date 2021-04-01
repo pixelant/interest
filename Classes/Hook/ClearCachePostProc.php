@@ -9,9 +9,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ClearCachePostProc
 {
-    const CACHE_TABLE = 'tx_interest_api_token';
+    public const CACHE_TABLE = 'tx_interest_api_token';
 
-    public function clearCachePostProc(&$params, &$pObj){
+    public function clearCachePostProc(&$params, &$pObj): void
+    {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getQueryBuilderForTable(self::CACHE_TABLE);
 

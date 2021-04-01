@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Cache;
 
-use TYPO3\CMS\Core\Cache\Exception;
 use TYPO3\CMS\Core\Cache\Exception\InvalidDataException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -12,11 +11,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Typo3DatabaseBackend extends \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend
 {
-
     /**
      * @param FrontendInterface $cache
      */
-    public function setCache(FrontendInterface $cache)
+    public function setCache(FrontendInterface $cache): void
     {
         parent::setCache($cache);
         $this->cacheTable = 'tx_interest_api_token';
@@ -29,10 +27,9 @@ class Typo3DatabaseBackend extends \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBa
      * @param string $data The data to be stored
      * @param array $tags Tags to associate with this cache entry
      * @param int $lifetime Lifetime of this cache entry in seconds. If NULL is specified, the default lifetime is used. "0" means unlimited lifetime.
-     * @throws Exception if no cache frontend has been set.
      * @throws InvalidDataException if the data to be stored is not a string.
      */
-    public function set($entryIdentifier, $data, array $tags = [], $lifetime = null)
+    public function set($entryIdentifier, $data, array $tags = [], $lifetime = null): void
     {
         $this->throwExceptionIfFrontendDoesNotExist();
         if (!is_string($data)) {
