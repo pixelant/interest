@@ -69,7 +69,7 @@ class BootstrapDispatcher
     private function bootstrap(ServerRequestInterface $request): void
     {
         if (!$this->isInitialized) {
-            Bootstrap::initializeBackendUser();
+            Bootstrap::initializeBackendUser(BackendUserAuthentication::class);
             ExtensionManagementUtility::loadExtTables();
             Bootstrap::initializeLanguageObject();
             $this->initializeObjectManager();
@@ -135,6 +135,8 @@ class BootstrapDispatcher
         $serverParams = $request->getServerParams();
         $username = null;
         $password = null;
+        $token = null;
+        $cachedData = null;
 
         if ($serverParams['HTTP_AUTHORIZATION']) {
             $queryBuilder = $this->objectManager->getQueryBuilder('tx_interest_api_token');
@@ -150,7 +152,7 @@ class BootstrapDispatcher
 
             if ($tokenCount > 0) {
                 $userCredentials = $queryBuilder
-                    ->select('be_user', 'password')
+                    ->select('be_user', 'password', 'cached_data', 'token')
                     ->from('tx_interest_api_token')
                     ->where(
                         $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHORIZATION'] . "'")
@@ -160,11 +162,20 @@ class BootstrapDispatcher
 
                 $username = $userCredentials[0]['be_user'];
                 $password = $userCredentials[0]['password'];
+                $token = $userCredentials[0]['token'];
+                $cachedData = $userCredentials[0]['cached_data'];
             } else {
                 // @codingStandardsIgnoreStart
                 [$username, $password] = explode(':', base64_decode(substr($serverParams['HTTP_AUTHORIZATION'], 6), true));
                 // @codingStandardsIgnoreEnd
             }
+        }
+
+        if ($cachedData !== null && $cachedData !== '') {
+            $beUser = unserialize($cachedData);
+            $GLOBALS['BE_USER'] = unserialize($beUser);
+
+            return;
         }
 
         $queryBuilder = $this->objectManager->getQueryBuilder('be_users');
@@ -188,6 +199,8 @@ class BootstrapDispatcher
         if ($isMatch) {
             $GLOBALS['BE_USER']->user = $user[0];
             Bootstrap::initializeBackendAuthentication();
+
+            $GLOBALS['BE_USER']->cacheUser($token);
         }
     }
 }
