@@ -4,21 +4,30 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest;
 
-use Pixelant\Interest\Cache\Typo3DatabaseBackend;
-use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
 {
+    const CACHE_TABLE = 'tx_interest_api_token';
+
     /**
      * @param string $identifier
      * @throws \TYPO3\CMS\Core\Cache\Exception\DuplicateIdentifierException
      */
     public function cacheUser(string $identifier): void
     {
-        $backendCache = GeneralUtility::makeInstance(Typo3DatabaseBackend::class, 'BE');
-        $frontendCache = GeneralUtility::makeInstance(VariableFrontend::class, $identifier, $backendCache);
         $user = serialize($this);
-        $frontendCache->set($identifier, $user);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::CACHE_TABLE);
+
+        $queryBuilder
+            ->update(self::CACHE_TABLE)
+            ->set('cached_data', $user)
+            ->where(
+                $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($identifier))
+            )
+            ->execute();
+
     }
 }

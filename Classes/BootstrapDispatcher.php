@@ -173,7 +173,7 @@ class BootstrapDispatcher
 
         if ($cachedData !== null && $cachedData !== '') {
             $beUser = unserialize($cachedData);
-            $GLOBALS['BE_USER'] = unserialize($beUser);
+            $GLOBALS['BE_USER'] = $beUser;
 
             return;
         }
