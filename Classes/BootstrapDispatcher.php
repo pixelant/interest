@@ -200,7 +200,9 @@ class BootstrapDispatcher
             $GLOBALS['BE_USER']->user = $user[0];
             Bootstrap::initializeBackendAuthentication();
 
-            $GLOBALS['BE_USER']->cacheUser($token);
+            if ($token !== null) {
+                $GLOBALS['BE_USER']->cacheUser($token);
+            }
         }
     }
 }
