@@ -169,7 +169,6 @@ class CrudHandler implements HandlerInterface
         array $recordData
     ): int {
         $data = [];
-
         $isNewRecord = strpos($localId, 'NEW') === 0;
 
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
@@ -184,7 +183,6 @@ class CrudHandler implements HandlerInterface
         }
 
         $data[$tableName][$localId] = $recordData;
-
         if ($isNewRecord) {
             $this->resolvePendingRelations($tableName, $remoteId, $localId, $data);
         }
@@ -289,6 +287,17 @@ class CrudHandler implements HandlerInterface
 
             if ($tcaConfiguration['type'] === 'inline') {
                 $importData[$fieldName] = implode(',', $importData[$fieldName]);
+            }
+        }
+
+        // Transform single values array into $key => $value pair to prevent Data Handler error.
+        foreach ($importData as $fieldName => $fieldValue) {
+            if (is_array($fieldValue)) {
+                if (count($fieldValue) === 1) {
+                    $value = $fieldValue[array_key_first($fieldValue)];
+                    unset($importData[$fieldName]);
+                    $importData[$fieldName] = $value;
+                }
             }
         }
 
