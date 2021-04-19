@@ -9,7 +9,6 @@ use Pixelant\Interest\Authentication\UserProviderInterface;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
 use Pixelant\Interest\Controller\AccessControllerInterface;
-use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Handler\HandlerInterface;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\Router\RouterInterface;
