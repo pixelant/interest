@@ -84,41 +84,45 @@ class FileUploadHandler implements HandlerInterface
             );
         }
 
-        $httpClient = $this->objectManager->get(Client::class);
-        $fileBaseName = basename($data['data']['url']);
+        $fileBaseName = $data['data']['name'];
+
+        if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
+            if (!$data['overwrite']) {
+                return $responseFactory->createErrorResponse(
+                    ['status' => 'failure', 'message' => 'File already exists, no overwrite access given.'],
+                    401,
+                    $request
+                );
+            }
+            $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
+        } else {
+            $file = $downloadFolder->createFile($fileBaseName);
+        }
 
         if ($data['data']['fileData']) {
-            $fileBaseName = $data['data']['name'];
-            $downloadFolder->createFile($fileBaseName);
-
-            if ($downloadFolder->hasFile($fileBaseName)) {
-                $stream = fopen($downloadFolder->getPublicUrl() . $fileBaseName, 'w');
-                stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
-                fwrite($stream, $data['data']['fileData']);
-                fclose($stream);
-            }
+            $stream = fopen('php://temp', 'rw');
+            stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
+            $length = fwrite($stream, $data['data']['fileData']);
+            rewind($stream);
+            $file->setContents(fread($stream, $length));
+            fclose($stream);
         } else {
+            $httpClient = $this->objectManager->get(Client::class);
             $response = $httpClient->get($data['data']['url']);
-            $file = $downloadFolder->createFile($fileBaseName);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new FileHandlingException(
+                    'Request to given url failed. Reason phrase:' . $response->getReasonPhrase(),
+                    $request
+                );
+            }
+
             $file->setContents($response->getBody()->getContents());
         }
 
-        $file = $storage->addFile(
-            $downloadFolder->getPublicUrl() . $fileBaseName,
-            $downloadFolder,
-            $fileBaseName
-        );
-
-        if ($file) {
-            return $responseFactory->createSuccessResponse(
-                ['status' => 'success'],
-                200,
-                $request
-            );
-        }
-
-        throw new FileHandlingException(
-            'File was not uploaded.',
+        return $responseFactory->createSuccessResponse(
+            ['status' => 'success'],
+            200,
             $request
         );
     }
@@ -130,6 +134,9 @@ class FileUploadHandler implements HandlerInterface
      */
     public function createFileReference(InterestRequestInterface $request): ResponseInterface
     {
+        // TODO: This function is too Product-Manager oriented.
+        // TODO: Must be rewritten: https://github.com/pixelant/interest/pull/29#discussion_r615805790
+
         $data = $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
