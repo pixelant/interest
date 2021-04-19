@@ -95,7 +95,6 @@ class ObjectManager implements ObjectManagerInterface
     {
         $objectManager = $this->get(ObjectManagerInterface::class);
         $dataHandler = $this->get(DataHandler::class);
-        $mappingRepository = $this->get(RemoteIdMappingRepository::class);
         $resourceType = $request->getResourceType()->__toString();
         $configurationProvider = $this->getConfigurationProvider();
         $configuration = $configurationProvider->getSettings();
