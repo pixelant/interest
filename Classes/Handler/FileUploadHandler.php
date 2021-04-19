@@ -15,7 +15,6 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
 class FileUploadHandler implements HandlerInterface
@@ -90,17 +89,22 @@ class FileUploadHandler implements HandlerInterface
 
         if ($data['data']['fileData']) {
             $fileBaseName = $data['data']['name'];
-            $stream = fopen('fileadmin/' . $fileBaseName, 'w');
-            stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
-            fwrite($stream, $data['data']['fileData']);
-            fclose($stream);
+            $downloadFolder->createFile($fileBaseName);
+
+            if ($downloadFolder->hasFile($fileBaseName)) {
+                $stream = fopen($downloadFolder->getPublicUrl() . $fileBaseName, 'w');
+                stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
+                fwrite($stream, $data['data']['fileData']);
+                fclose($stream);
+            }
         } else {
             $response = $httpClient->get($data['data']['url']);
-            GeneralUtility::writeFile('fileadmin/' . $fileBaseName, $response->getBody());
+            $file = $downloadFolder->createFile($fileBaseName);
+            $file->setContents($response->getBody()->getContents());
         }
 
         $file = $storage->addFile(
-            'fileadmin/' . $fileBaseName,
+            $downloadFolder->getPublicUrl() . $fileBaseName,
             $downloadFolder,
             $fileBaseName
         );
