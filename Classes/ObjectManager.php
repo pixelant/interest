@@ -104,7 +104,7 @@ class ObjectManager implements ObjectManagerInterface
         foreach ($configuration['paths'] as $path => $value) {
             if ($path === $resourceType) {
                 $handlerClass = trim($value['handlerClass'], '\\');
-                $handler = $this->get($handlerClass, $objectManager, $dataHandler, $mappingRepository);
+                $handler = $this->get($handlerClass, $objectManager, $dataHandler);
             }
         }
 

@@ -12,8 +12,8 @@ use Pixelant\Interest\Router\RouterInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
-use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -40,6 +40,11 @@ class FileUploadHandler implements HandlerInterface
     protected DataHandler $dataHandler;
 
     /**
+     * @var ResourceFactory
+     */
+    protected ResourceFactory $resourceFactory;
+
+    /**
      * FileUploadHandler constructor.
      * @param ObjectManagerInterface $objectManager
      * @param RemoteIdMappingRepository $mappingRepository
@@ -47,11 +52,13 @@ class FileUploadHandler implements HandlerInterface
     public function __construct(
         ObjectManagerInterface $objectManager,
         DataHandler $dataHandler,
-        RemoteIdMappingRepository $mappingRepository
+        RemoteIdMappingRepository $mappingRepository,
+        ResourceFactory $resourceFactory
     ) {
         $this->objectManager = $objectManager;
         $this->dataHandler = $dataHandler;
         $this->mappingRepository = $mappingRepository;
+        $this->resourceFactory = $resourceFactory;
     }
 
     /**
@@ -66,25 +73,8 @@ class FileUploadHandler implements HandlerInterface
         $fileDenyValidator = $this->objectManager->get(FileNameValidator::class);
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $storagePath = $configuration['persistence']['fileUploadFolderPath'];
-        [$storageId, $subFolderPath] = explode(':', $storagePath);
-        $storage = $this->objectManager->get(StorageRepository::class)->findByUid((int)$storageId);
-        $imageFolder = $storage->getFolder($subFolderPath);
-
-        if ($storage->hasFileInFolder($data['data']['name'], $imageFolder)) {
-            if ($this->createFileReference($data, $storage->getFileInFolder($data['data']['name'], $imageFolder))) {
-                return $responseFactory->createSuccessResponse(
-                    ['status' => 'success'],
-                    200,
-                    $request
-                );
-            }
-
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Error occured during creating file reference process'],
-                400,
-                $request
-            );
-        }
+        $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
 
         // Check for unacceptable file formats.
         if (!$fileDenyValidator->isValid($data['data']['name'])) {
@@ -111,22 +101,14 @@ class FileUploadHandler implements HandlerInterface
 
         $file = $storage->addFile(
             'fileadmin/' . $fileBaseName,
-            $storage->getFolder($subFolderPath),
+            $downloadFolder,
             $fileBaseName
         );
 
         if ($file) {
-            if ($this->createFileReference($data, $file)) {
-                return $responseFactory->createSuccessResponse(
-                    ['status' => 'success'],
-                    200,
-                    $request
-                );
-            }
-
-            return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Error occured during creating file reference process'],
-                400,
+            return $responseFactory->createSuccessResponse(
+                ['status' => 'success'],
+                200,
                 $request
             );
         }
@@ -138,16 +120,31 @@ class FileUploadHandler implements HandlerInterface
     }
 
     /**
-     * @param array $data
-     * @param File $file
-     * @return bool
+     * @param InterestRequestInterface $request
+     * @return ResponseInterface
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    private function createFileReference(array $data, File $file): bool
+    public function createFileReference(InterestRequestInterface $request): ResponseInterface
     {
+        $data = $this->createArrayFromJson($request->getBody()->getContents());
+        $responseFactory = $this->objectManager->getResponseFactory();
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $storagePath = $configuration['persistence']['fileUploadFolderPath'];
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
+        $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         ExtensionManagementUtility::allowTableOnStandardPages(self::REFERENCE_TABLE);
         $productId = null;
+
+        if ($storage->hasFileInFolder($data['data']['name'], $downloadFolder)) {
+            $file = $storage->getFileInFolder($data['data']['name'], $downloadFolder);
+        } else {
+            return $responseFactory->createErrorResponse(
+                ['status' => 'failure', 'message' => 'Given file are not exists.'],
+                404,
+                $request
+            );
+        }
 
         if ($this->mappingRepository->exists($data['data']['productRemoteId'])) {
             $productId = $this->mappingRepository->get($data['data']['productRemoteId']);
@@ -172,10 +169,18 @@ class FileUploadHandler implements HandlerInterface
         $this->dataHandler->process_datamap();
 
         if (count($this->dataHandler->errorLog) === 0) {
-            return true;
+            return $responseFactory->createSuccessResponse(
+                ['status' => 'success'],
+                200,
+                $request
+            );
         }
 
-        return false;
+        return $responseFactory->createErrorResponse(
+            ['status' => 'failure', 'message' => 'Error occured during data handling process'],
+            400,
+            $request
+        );
     }
 
     /**
@@ -193,5 +198,6 @@ class FileUploadHandler implements HandlerInterface
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'uploadFile']));
+        $router->add(Route::post($resourceType . '/createReference', [$this, 'createFileReference']));
     }
 }
