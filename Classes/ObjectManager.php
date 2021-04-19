@@ -9,6 +9,7 @@ use Pixelant\Interest\Authentication\UserProviderInterface;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Configuration\TypoScriptConfigurationProvider;
 use Pixelant\Interest\Controller\AccessControllerInterface;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Handler\HandlerInterface;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\Router\RouterInterface;
@@ -94,6 +95,7 @@ class ObjectManager implements ObjectManagerInterface
     {
         $objectManager = $this->get(ObjectManagerInterface::class);
         $dataHandler = $this->get(DataHandler::class);
+        $mappingRepository = $this->get(RemoteIdMappingRepository::class);
         $resourceType = $request->getResourceType()->__toString();
         $configurationProvider = $this->getConfigurationProvider();
         $configuration = $configurationProvider->getSettings();
@@ -102,7 +104,7 @@ class ObjectManager implements ObjectManagerInterface
         foreach ($configuration['paths'] as $path => $value) {
             if ($path === $resourceType) {
                 $handlerClass = trim($value['handlerClass'], '\\');
-                $handler = $this->get($handlerClass, $objectManager, $dataHandler);
+                $handler = $this->get($handlerClass, $objectManager, $dataHandler, $mappingRepository);
             }
         }
 
