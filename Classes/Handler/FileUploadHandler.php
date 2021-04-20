@@ -151,8 +151,8 @@ class FileUploadHandler implements HandlerInterface
             $file = $storage->getFileInFolder($data['data']['name'], $downloadFolder);
         } else {
             return $responseFactory->createErrorResponse(
-                ['status' => 'failure', 'message' => 'Given file are not exists.'],
-                404,
+                ['status' => 'Not exists', 'message' => 'Given file are not exists.'],
+                201,
                 $request
             );
         }
