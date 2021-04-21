@@ -23,6 +23,8 @@ class FileUploadHandler implements HandlerInterface
 
     public const REFERENCE_TABLE = 'sys_file_reference';
 
+    public const FILES_TABLE = 'sys_file';
+
     /**
      * @var ObjectManagerInterface
      */
@@ -87,17 +89,29 @@ class FileUploadHandler implements HandlerInterface
         $fileBaseName = $data['data']['name'];
 
         if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
-            if (!$data['overwrite']) {
-                return $responseFactory->createErrorResponse(
-                    ['status' => 'failure', 'message' => 'File already exists, no overwrite access given.'],
-                    401,
+            if ($data['data']['overwriteFlag'] === 'use') {
+                $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
+
+                $this->mappingRepository->add(
+                    $data['remoteId'],
+                    self::FILES_TABLE,
+                    $file->getUid()
+                );
+
+                return $responseFactory->createSuccessResponse(
+                    ['status' => 'success'],
+                    200,
                     $request
                 );
             }
-            $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
-        } else {
-            $file = $downloadFolder->createFile($fileBaseName);
+
+            return $responseFactory->createErrorResponse(
+                ['status' => 'error', 'message' => 'File already exists, no overwrite access given.'],
+                400,
+                $request
+            );
         }
+        $file = $downloadFolder->createFile($fileBaseName);
 
         if ($data['data']['fileData']) {
             $stream = fopen('php://temp', 'rw');
@@ -195,6 +209,39 @@ class FileUploadHandler implements HandlerInterface
     }
 
     /**
+     * @param InterestRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function getProductImages(InterestRequestInterface $request): ResponseInterface
+    {
+        $responseFactory = $this->objectManager->getResponseFactory();
+        $serverParams = $request->getServerParams();
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $storagePath = $configuration['persistence']['fileUploadFolderPath'];
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
+        $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+        $files = $storage->getFilesInFolder($downloadFolder);
+
+        $data = [];
+        if (count($files) > 0) {
+            foreach ($files as $file) {
+                $url = $serverParams['REQUEST_SCHEME'] . '://' . $serverParams['HTTP_HOST'] . '/' . $file->getPublicUrl();
+
+                $data[] = [
+                    'remoteId' => $file->getName(),
+                    'data' => [
+                        'url' => $url,
+                        'name' => $file->getName(),
+                        'overwriteFlag' => 'use',
+                    ],
+                ];
+            }
+        }
+
+        return $responseFactory->createSuccessResponse($data, 200, $request);
+    }
+
+    /**
      * @param string $json
      * @return array
      */
@@ -210,5 +257,6 @@ class FileUploadHandler implements HandlerInterface
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'uploadFile']));
         $router->add(Route::post($resourceType . '/createReference', [$this, 'createFileReference']));
+        $router->add(Route::get($resourceType, [$this, 'getProductImages']));
     }
 }
