@@ -168,11 +168,13 @@ class FileUploadHandler implements HandlerInterface
             $file->setContents($response->getBody()->getContents());
         }
 
-        $this->mappingRepository->add(
-            $file->getName(),
-            self::FILES_TABLE,
-            $file->getUid()
-        );
+        if (!$this->mappingRepository->exists($file->getName())) {
+            $this->mappingRepository->add(
+                $file->getName(),
+                self::FILES_TABLE,
+                $file->getUid()
+            );
+        }
 
         return $responseFactory->createSuccessResponse(
             ['status' => 'success'],
