@@ -89,62 +89,70 @@ class FileUploadHandler implements HandlerInterface
         $fileBaseName = $data['data']['name'];
 
         if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
-            switch ($data['data']['overwriteFlag']) {
-                case 'use':
-                    $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
+            throw new FileHandlingException(
+                'File already exists.',
+                $request
+            );
+        }
+        $file = $downloadFolder->createFile($fileBaseName);
 
-                    if (!$this->mappingRepository->exists($data['remoteId'])) {
-                        $this->mappingRepository->add(
-                            $data['remoteId'],
-                            self::FILES_TABLE,
-                            $file->getUid()
-                        );
-                    }
-
-                    return $responseFactory->createSuccessResponse(
-                        ['status' => 'success'],
-                        200,
-                        $request
-                    );
-
-                case 'overwrite':
-                    $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
-
-                    break;
-                case 'fail':
-                    throw new FileHandlingException(
-                        'File already exists.',
-                        $request
-                    );
-
-                case 'rename':
-                    $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
-                    $name = $file->getNameWithoutExtension();
-
-                    // Infinite loop to proceed all possible matches.
-                    for ($i = 1; $i > 0; $i++) {
-                        $newName = $name . '-' . $i;
-
-                        if ($storage->hasFileInFolder($newName . '.' . $file->getExtension(), $downloadFolder)) {
-                            continue;
-                        }
-                        $name = $newName . '.' . $file->getExtension();
-
-                        break;
-                    }
-
-                    $file = $downloadFolder->createFile($name);
-
-                    break;
-                default:
-                    return $responseFactory->createErrorResponse(
-                        ['status' => 'error', 'message' => 'File already exists and no overwrite flag given.'],
-                        400,
-                        $request
-                    );
-            }
+        if ($data['data']['fileData']) {
+            $stream = fopen('php://temp', 'rw');
+            stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
+            $length = fwrite($stream, $data['data']['fileData']);
+            rewind($stream);
+            $file->setContents(fread($stream, $length));
+            fclose($stream);
         } else {
-            $file = $downloadFolder->createFile($fileBaseName);
+            $httpClient = $this->objectManager->get(Client::class);
+            $response = $httpClient->get($data['data']['url']);
+
+            if ($response->getStatusCode() >= 400) {
+                throw new FileHandlingException(
+                    'Request to given url failed. Reason phrase:' . $response->getReasonPhrase(),
+                    $request
+                );
+            }
+
+            $file->setContents($response->getBody()->getContents());
+        }
+
+        if (!$this->mappingRepository->exists($data['remoteId'])) {
+            $this->mappingRepository->add(
+                $data['remoteId'],
+                self::FILES_TABLE,
+                $file->getUid()
+            );
+        }
+
+        return $responseFactory->createSuccessResponse(
+            ['status' => 'success', 'uid' => $file->getUid()],
+            200,
+            $request
+        );
+    }
+
+    /**
+     * @param InterestRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function updateFile(InterestRequestInterface $request): ResponseInterface
+    {
+        $data = $this->createArrayFromJson($request->getBody()->getContents());
+        $responseFactory = $this->objectManager->getResponseFactory();
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $storagePath = $configuration['persistence']['fileUploadFolderPath'];
+        $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
+        $fileBaseName = $data['data']['name'];
+
+        if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
+            $file = $storage->getFileInFolder($fileBaseName, $downloadFolder);
+        } else {
+            throw new FileHandlingException(
+                'File are not exists.',
+                $request
+            );
         }
 
         if ($data['data']['fileData']) {
@@ -168,19 +176,42 @@ class FileUploadHandler implements HandlerInterface
             $file->setContents($response->getBody()->getContents());
         }
 
-        if (!$this->mappingRepository->exists($file->getName())) {
+        if (!$this->mappingRepository->exists($data['remoteId'])) {
             $this->mappingRepository->add(
-                $file->getName(),
+                $data['remoteId'],
                 self::FILES_TABLE,
                 $file->getUid()
             );
         }
 
         return $responseFactory->createSuccessResponse(
-            ['status' => 'success'],
+            ['status' => 'success', 'uid' => $file->getUid()],
             200,
             $request
         );
+    }
+
+    /**
+     * @param InterestRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function uploadOrUpdateFile(InterestRequestInterface $request): ResponseInterface
+    {
+        $data = $this->createArrayFromJson($request->getBody()->getContents());
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $storagePath = $configuration['persistence']['fileUploadFolderPath'];
+        $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
+        $fileBaseName = $data['data']['name'];
+
+        // Seek to the beginning of the stream.
+        $request->getBody()->rewind();
+
+        if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
+            return $this->updateFile($request);
+        }
+
+        return $this->uploadFile($request);
     }
 
     /**
@@ -268,13 +299,13 @@ class FileUploadHandler implements HandlerInterface
         if (count($files) > 0) {
             foreach ($files as $file) {
                 $url = $serverParams['REQUEST_SCHEME'] . '://' . $serverParams['HTTP_HOST'] . '/' . $file->getPublicUrl();
+                $remoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
 
                 $data[] = [
-                    'remoteId' => $file->getName(),
+                    'remoteId' => $remoteId ?? $file->getName(),
                     'data' => [
                         'url' => $url,
                         'name' => $file->getName(),
-                        'overwriteFlag' => 'use',
                     ],
                 ];
             }
@@ -300,5 +331,7 @@ class FileUploadHandler implements HandlerInterface
         $router->add(Route::post($resourceType, [$this, 'uploadFile']));
         $router->add(Route::post($resourceType . '/createReference', [$this, 'createFileReference']));
         $router->add(Route::get($resourceType, [$this, 'getFilesFromStorage']));
+        $router->add(Route::patch($resourceType, [$this, 'updateFile']));
+        $router->add(Route::put($resourceType, [$this, 'uploadOrUpdateFile']));
     }
 }
