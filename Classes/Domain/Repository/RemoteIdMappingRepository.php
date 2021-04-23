@@ -152,7 +152,7 @@ class RemoteIdMappingRepository extends AbstractRepository
         $queryBuilder = $this->getQueryBuilder();
 
         return $queryBuilder
-            ->select('remoteId')
+            ->select('remote_id')
             ->from(self::TABLE_NAME)
             ->where(
                 $queryBuilder->expr()->andX(
