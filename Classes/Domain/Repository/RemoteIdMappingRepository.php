@@ -145,9 +145,9 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $table
      * @param int $uid
-     * @return ?string
+     * @return string|bool
      */
-    public function getRemoteId(string $table, int $uid): ?string
+    public function getRemoteId(string $table, int $uid)
     {
         $queryBuilder = $this->getQueryBuilder();
 

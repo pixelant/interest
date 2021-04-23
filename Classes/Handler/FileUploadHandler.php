@@ -302,7 +302,7 @@ class FileUploadHandler implements HandlerInterface
                 $remoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
 
                 $data[] = [
-                    'remoteId' => $remoteId ?? $file->getName(),
+                    'remoteId' => (!$remoteId) ? $file->getName() : $remoteId,
                     'data' => [
                         'url' => $url,
                         'name' => $file->getName(),
