@@ -634,7 +634,7 @@ class CrudHandler implements HandlerInterface
                                     $recordId = $data[$fieldName][0];
                                 }
 
-                                if ($recordId === $value) {
+                                if ($recordId === (int)$value) {
                                     return true;
                                 }
                             } else {
