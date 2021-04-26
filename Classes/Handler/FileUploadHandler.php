@@ -304,7 +304,7 @@ class FileUploadHandler implements HandlerInterface
                 $data[] = [
                     'remoteId' => (!$remoteId) ? $file->getName() : $remoteId,
                     'url' => $url,
-                    'name' => $file->getName()
+                    'name' => $file->getName(),
                 ];
             }
         }
