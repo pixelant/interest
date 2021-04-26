@@ -266,7 +266,9 @@ class CrudHandler implements HandlerInterface
     protected function prepareRelations(string $tableName, string $remoteId, array $importData): array
     {
         foreach ($importData as $fieldName => $fieldValue) {
-            if ($this->isRelationField($tableName, $fieldName, $remoteId, $importData)) {
+            $relationContext = $this->getRelationContext($fieldName, $tableName, $remoteId, $importData);
+
+            if ($this->isRelationField($tableName, $fieldName, $remoteId, $importData, $relationContext)) {
                 if (!is_array($fieldValue)) {
                     $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
                 }
@@ -531,17 +533,15 @@ class CrudHandler implements HandlerInterface
      * @param array $data
      * @return bool
      */
-    protected function isRelationField(string $table, string $field, string $remoteId, array $data): bool
-    {
-        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
-        $fieldsConfigurationTS = $configuration['fieldsConfiguration'];
-
-        if (array_key_exists($table, $fieldsConfigurationTS)) {
-            if (array_key_exists($field, $fieldsConfigurationTS[$table])) {
-                if ($fieldsConfigurationTS[$table][$field]['isRelationField'] === '1') {
-                    return true;
-                }
-            }
+    protected function isRelationField(
+        string $table,
+        string $field,
+        string $remoteId,
+        array $data,
+        bool $relationContext = false
+    ): bool {
+        if ($relationContext) {
+            return true;
         }
 
         $typeField = (string)$GLOBALS['TCA'][$table]['ctrl']['type'];
@@ -602,6 +602,62 @@ class CrudHandler implements HandlerInterface
         ) ?? '0';
 
         return $this->getTypeValueCache[$table . '_' . $remoteId];
+    }
+
+    /**
+     * Specifies if field must be processed as relational or not.
+     *
+     * @param string $field
+     * @param string $table
+     * @param string $remoteId
+     * @param array $data
+     * @return bool
+     */
+    protected function getRelationContext(string $field, string $table, string $remoteId, array $data): bool
+    {
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $queryBuilder = $this->objectManager->getQueryBuilder($table);
+
+        $fieldsConfigurationTS = $configuration['fieldsConfiguration'];
+
+        if (array_key_exists($table, $fieldsConfigurationTS)) {
+            if (array_key_exists($field, $fieldsConfigurationTS[$table])) {
+                if (array_key_exists('relationContextTrue', $fieldsConfigurationTS[$table][$field])) {
+                    $relationContextTrue = $fieldsConfigurationTS[$table][$field]['relationContextTrue'];
+
+                    if (is_array($relationContextTrue)) {
+                        foreach ($relationContextTrue as $fieldName => $value) {
+                            if (array_key_exists($fieldName, $data)) {
+                                if ($data[$fieldName] === $value) {
+                                    return true;
+                                }
+                            } else {
+                                if ($this->mappingRepository->exists($remoteId)) {
+                                    $recordId = $this->mappingRepository->get($remoteId);
+
+                                    $fieldValue = $queryBuilder
+                                        ->select($fieldName)
+                                        ->from($table)
+                                        ->where(
+                                            $queryBuilder
+                                                ->expr()
+                                                ->eq('uid', $queryBuilder->createNamedParameter($recordId))
+                                        )
+                                        ->execute()
+                                        ->fetchOne();
+
+                                    if ($fieldValue === $value) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
