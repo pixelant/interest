@@ -536,9 +536,9 @@ class CrudHandler implements HandlerInterface
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $fieldsConfigurationTS = $configuration['fieldsConfiguration'];
 
-        if (array_key_exists($table, $fieldsConfigurationTS)){
-            if (array_key_exists($field, $fieldsConfigurationTS[$table])){
-                if ($fieldsConfigurationTS[$table][$field]['isRelationField'] == '1'){
+        if (array_key_exists($table, $fieldsConfigurationTS)) {
+            if (array_key_exists($field, $fieldsConfigurationTS[$table])) {
+                if ($fieldsConfigurationTS[$table][$field]['isRelationField'] === '1') {
                     return true;
                 }
             }
