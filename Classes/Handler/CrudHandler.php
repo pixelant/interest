@@ -533,6 +533,17 @@ class CrudHandler implements HandlerInterface
      */
     protected function isRelationField(string $table, string $field, string $remoteId, array $data): bool
     {
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+        $fieldsConfigurationTS = $configuration['fieldsConfiguration'];
+
+        if (array_key_exists($table, $fieldsConfigurationTS)){
+            if (array_key_exists($field, $fieldsConfigurationTS[$table])){
+                if ($fieldsConfigurationTS[$table][$field]['isRelationField'] == '1'){
+                    return true;
+                }
+            }
+        }
+
         $typeField = (string)$GLOBALS['TCA'][$table]['ctrl']['type'];
 
         $fieldTcaConfiguration = BackendUtility::getTcaFieldConfiguration($table, $field);
