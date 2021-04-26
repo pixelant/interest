@@ -628,7 +628,13 @@ class CrudHandler implements HandlerInterface
                     if (is_array($relationContextTrue)) {
                         foreach ($relationContextTrue as $fieldName => $value) {
                             if (array_key_exists($fieldName, $data)) {
-                                if ($data[$fieldName] === $value) {
+                                if ($this->mappingRepository->exists($data[$fieldName][0])) {
+                                    $recordId = $this->mappingRepository->get($data[$fieldName][0]);
+                                } else {
+                                    $recordId = $data[$fieldName][0];
+                                }
+
+                                if ($recordId === $value) {
                                     return true;
                                 }
                             } else {
