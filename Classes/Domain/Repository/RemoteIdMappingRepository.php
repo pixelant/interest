@@ -139,4 +139,28 @@ class RemoteIdMappingRepository extends AbstractRepository
             ))
             ->execute();
     }
+
+    /**
+     * Getting mapped remoteId.
+     *
+     * @param string $table
+     * @param int $uid
+     * @return string|bool
+     */
+    public function getRemoteId(string $table, int $uid)
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        return $queryBuilder
+            ->select('remote_id')
+            ->from(self::TABLE_NAME)
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table)),
+                    $queryBuilder->expr()->eq('uid_local', $queryBuilder->createNamedParameter($uid))
+                )
+            )
+            ->execute()
+            ->fetchOne();
+    }
 }
