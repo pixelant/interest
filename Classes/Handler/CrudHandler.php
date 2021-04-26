@@ -652,7 +652,7 @@ class CrudHandler implements HandlerInterface
                                         ->execute()
                                         ->fetchOne();
 
-                                    if ($fieldValue === $value) {
+                                    if ($fieldValue === (int)$value) {
                                         return true;
                                     }
                                 }
