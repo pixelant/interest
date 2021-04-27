@@ -16,7 +16,6 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\StringUtility;
 
 class FileUploadHandler extends CrudHandler
 {
@@ -264,33 +263,33 @@ class FileUploadHandler extends CrudHandler
                 'tablenames' => self::PRODUCT_TABLE,
                 'uid_foreign' => [$data['data']['productRemoteId']],
                 'fieldname' => 'images',
-            ]
+            ],
         ];
 
         // Seek to the beginning of the stream.
         $request->getBody()->rewind();
 
-        if ($this->mappingRepository->exists($data['remoteId'])){
+        if ($this->mappingRepository->exists($data['remoteId'])) {
             $referenceResponse = $this->updateRecord($request, $data, self::REFERENCE_TABLE);
         } else {
             $referenceResponse = $this->createRecord($request, $data, self::REFERENCE_TABLE);
         }
 
-        if ($referenceResponse->getStatusCode() == 200){
+        if ($referenceResponse->getStatusCode() === 200) {
             $data = [
                 'remoteId' => $data['data']['productRemoteId'],
                 'data' => [
-                    'images' => [$data['remoteId']]
-                ]
+                    'images' => [$data['remoteId']],
+                ],
             ];
 
             return $this->updateRecord($request, $data, self::PRODUCT_TABLE);
-        } else {
-            throw new FileHandlingException(
-                'Error occured during reference creating process,',
-                $request
-            );
         }
+
+        throw new FileHandlingException(
+            'Error occured during reference creating process,',
+            $request
+        );
     }
 
     /**
