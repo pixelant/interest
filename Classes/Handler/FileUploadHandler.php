@@ -277,7 +277,7 @@ class FileUploadHandler extends CrudHandler
 
         if ($referenceResponse->getStatusCode() === 200) {
             $data = [
-                'remoteId' => $data['data']['productRemoteId'],
+                'remoteId' => $data['data']['uid_foreign'][0][0],
                 'data' => [
                     'images' => [$data['remoteId']],
                 ],
