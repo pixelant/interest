@@ -3,6 +3,7 @@
 namespace Pixelant\Interest\Handler;
 
 use GuzzleHttp\Client;
+use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Handler\Exception\FileHandlingException;
 use Pixelant\Interest\Http\InterestRequestInterface;
@@ -17,7 +18,7 @@ use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
-class FileUploadHandler implements HandlerInterface
+class FileUploadHandler extends CrudHandler
 {
     public const PRODUCT_TABLE = 'tx_pxaproductmanager_domain_model_product';
 
@@ -36,6 +37,11 @@ class FileUploadHandler implements HandlerInterface
     protected RemoteIdMappingRepository $mappingRepository;
 
     /**
+     * @var PendingRelationsRepository
+     */
+    protected PendingRelationsRepository $pendingRelationsRepository;
+
+    /**
      * @var DataHandler
      */
     protected DataHandler $dataHandler;
@@ -48,16 +54,21 @@ class FileUploadHandler implements HandlerInterface
     /**
      * FileUploadHandler constructor.
      * @param ObjectManagerInterface $objectManager
+     * @param DataHandler $dataHandler
+     * @param PendingRelationsRepository $pendingRelationsRepository
      * @param RemoteIdMappingRepository $mappingRepository
+     * @param ResourceFactory $resourceFactory
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
         DataHandler $dataHandler,
+        PendingRelationsRepository $pendingRelationsRepository,
         RemoteIdMappingRepository $mappingRepository,
         ResourceFactory $resourceFactory
     ) {
+        parent::__construct($objectManager, $dataHandler, $mappingRepository, $pendingRelationsRepository);
         $this->objectManager = $objectManager;
-        $this->dataHandler = $dataHandler;
+        $this->pendingRelationsRepository = $pendingRelationsRepository;
         $this->mappingRepository = $mappingRepository;
         $this->resourceFactory = $resourceFactory;
     }
@@ -236,6 +247,7 @@ class FileUploadHandler implements HandlerInterface
 
         if ($storage->hasFileInFolder($data['data']['name'], $downloadFolder)) {
             $file = $storage->getFileInFolder($data['data']['name'], $downloadFolder);
+            $fileRemoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
         } else {
             return $responseFactory->createErrorResponse(
                 ['status' => 'Not exists', 'message' => 'Given file are not exists.'],
@@ -244,46 +256,47 @@ class FileUploadHandler implements HandlerInterface
             );
         }
 
-        if ($this->mappingRepository->exists($data['data']['productRemoteId'])) {
-            $productId = $this->mappingRepository->get($data['data']['productRemoteId']);
+        $data = [
+            'remoteId' => $data['remoteId'],
+            'data' => [
+                'table_local' => self::FILES_TABLE,
+                'uid_local' => [$fileRemoteId],
+                'tablenames' => self::PRODUCT_TABLE,
+                'uid_foreign' => [$data['data']['productRemoteId']],
+                'fieldname' => 'images',
+            ]
+        ];
+
+        // Seek to the beginning of the stream.
+        $request->getBody()->rewind();
+
+        if ($this->mappingRepository->exists($data['remoteId'])){
+            $referenceResponse = $this->updateRecord($request, $data, self::REFERENCE_TABLE);
+        } else {
+            $referenceResponse = $this->createRecord($request, $data, self::REFERENCE_TABLE);
         }
 
-        $placeholderId = StringUtility::getUniqueId('NEW');
+        if ($referenceResponse->getStatusCode() == 200){
+            $data = [
+                'remoteId' => $data['data']['productRemoteId'],
+                'data' => [
+                    'images' => [$data['remoteId']]
+                ]
+            ];
 
-        $referenceData[self::REFERENCE_TABLE][$placeholderId] = [
-            'table_local' => 'sys_file',
-            'uid_local' => $file->getUid(),
-            'tablenames' => self::PRODUCT_TABLE,
-            'uid_foreign' => $productId,
-            'fieldname' => 'images',
-            'pid' => (int)$configuration['persistence']['storagePid'],
-        ];
-
-        $referenceData[self::PRODUCT_TABLE][$productId] = [
-            'images' => $placeholderId,
-        ];
-
-        $this->dataHandler->start($referenceData, []);
-        $this->dataHandler->process_datamap();
-
-        if (count($this->dataHandler->errorLog) === 0) {
-            return $responseFactory->createSuccessResponse(
-                ['status' => 'success'],
-                200,
+            return $this->updateRecord($request, $data, self::PRODUCT_TABLE);
+        } else {
+            throw new FileHandlingException(
+                'Error occured during reference creating process,',
                 $request
             );
         }
-
-        return $responseFactory->createErrorResponse(
-            ['status' => 'failure', 'message' => 'Error occured during data handling process'],
-            400,
-            $request
-        );
     }
 
     /**
      * @param InterestRequestInterface $request
      * @return ResponseInterface
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException
      */
     public function getFilesFromStorage(InterestRequestInterface $request): ResponseInterface
     {
@@ -312,22 +325,11 @@ class FileUploadHandler implements HandlerInterface
         return $responseFactory->createSuccessResponse($data, 200, $request);
     }
 
-    /**
-     * @param string $json
-     * @return array
-     */
-    private function createArrayFromJson(string $json): array
-    {
-        $stdClass = json_decode($json);
-
-        return json_decode(json_encode($stdClass), true);
-    }
-
     public function configureRoutes(RouterInterface $router, InterestRequestInterface $request): void
     {
         $resourceType = $request->getResourceType()->__toString();
         $router->add(Route::post($resourceType, [$this, 'uploadFile']));
-        $router->add(Route::post($resourceType . '/createReference', [$this, 'createFileReference']));
+        $router->add(Route::put($resourceType . '/createReference', [$this, 'createFileReference']));
         $router->add(Route::get($resourceType, [$this, 'getFilesFromStorage']));
         $router->add(Route::patch($resourceType, [$this, 'updateFile']));
         $router->add(Route::put($resourceType, [$this, 'uploadOrUpdateFile']));
