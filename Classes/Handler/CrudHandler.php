@@ -13,6 +13,7 @@ use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
+use Pixelant\PxaDealers\Utility\TcaUtility;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -595,11 +596,13 @@ class CrudHandler implements HandlerInterface
             return '0';
         }
 
-        $this->getTypeValueCache[$table . '_' . $remoteId] = (string)BackendUtility::getRecord(
+        $this->getTypeValueCache[$table . '_' . $remoteId] = BackendUtility::getTCAtypeValue(
             $table,
-            $this->mappingRepository->get($remoteId),
-            $GLOBALS['TCA'][$table]['ctrl']['type']
-        ) ?? '0';
+            BackendUtility::getRecord(
+                $table,
+                $this->mappingRepository->get($remoteId)
+            )
+        );
 
         return $this->getTypeValueCache[$table . '_' . $remoteId];
     }
