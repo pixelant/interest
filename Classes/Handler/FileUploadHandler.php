@@ -251,7 +251,7 @@ class FileUploadHandler extends CrudHandler
             $file = $storage->getFileInFolder($data['data']['name'], $downloadFolder);
             $fileRemoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
 
-            if (!$fileRemoteId) {
+            if ($fileRemoteId === false) {
                 $this->mappingRepository->add(
                     $file->getName(),
                     self::FILES_TABLE,
