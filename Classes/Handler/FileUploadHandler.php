@@ -244,9 +244,22 @@ class FileUploadHandler extends CrudHandler
         ExtensionManagementUtility::allowTableOnStandardPages(self::REFERENCE_TABLE);
         $productId = null;
 
+        // Seek to the beginning of the stream.
+        $request->getBody()->rewind();
+
         if ($storage->hasFileInFolder($data['data']['name'], $downloadFolder)) {
             $file = $storage->getFileInFolder($data['data']['name'], $downloadFolder);
             $fileRemoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
+
+            if (!$fileRemoteId) {
+                $this->mappingRepository->add(
+                    $file->getName(),
+                    self::FILES_TABLE,
+                    $file->getUid()
+                );
+
+                $fileRemoteId = $this->mappingRepository->getRemoteId(self::FILES_TABLE, $file->getUid());
+            }
         } else {
             return $responseFactory->createErrorResponse(
                 ['status' => 'Not exists', 'message' => 'Given file are not exists.'],
@@ -265,9 +278,6 @@ class FileUploadHandler extends CrudHandler
                 'fieldname' => 'images',
             ],
         ];
-
-        // Seek to the beginning of the stream.
-        $request->getBody()->rewind();
 
         if ($this->mappingRepository->exists($data['remoteId'])) {
             $referenceResponse = $this->updateRecord($request, $data, self::REFERENCE_TABLE);
