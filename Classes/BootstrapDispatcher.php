@@ -137,15 +137,14 @@ class BootstrapDispatcher
         $password = null;
         $token = null;
         $cachedData = null;
-
-        if ($serverParams['HTTP_AUTHORIZATION']) {
+        if ($serverParams['HTTP_AUTHENTICATION']) {
             $queryBuilder = $this->objectManager->getQueryBuilder('tx_interest_api_token');
 
             $tokenCount = $queryBuilder
                 ->count('uid')
                 ->from('tx_interest_api_token')
                 ->where(
-                    $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHORIZATION'] . "'")
+                    $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHENTICATION'] . "'")
                 )
                 ->execute()
                 ->fetchOne();
@@ -155,7 +154,7 @@ class BootstrapDispatcher
                     ->select('be_user', 'password', 'cached_data', 'token')
                     ->from('tx_interest_api_token')
                     ->where(
-                        $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHORIZATION'] . "'")
+                        $queryBuilder->expr()->eq('token', "'" . $serverParams['HTTP_AUTHENTICATION'] . "'")
                     )
                     ->execute()
                     ->fetchAllAssociative();
@@ -166,7 +165,7 @@ class BootstrapDispatcher
                 $cachedData = $userCredentials[0]['cached_data'];
             } else {
                 // @codingStandardsIgnoreStart
-                [$username, $password] = explode(':', base64_decode(substr($serverParams['HTTP_AUTHORIZATION'], 6), true));
+                [$username, $password] = explode(':', base64_decode(substr($serverParams['HTTP_AUTHENTICATION'], 6), true));
                 // @codingStandardsIgnoreEnd
             }
         }
@@ -189,6 +188,7 @@ class BootstrapDispatcher
             ->fetchAllAssociative();
 
         $passwordHashFactory = $this->objectManager->get(PasswordHashFactory::class);
+
         $hashClassForGivenPassword = $passwordHashFactory->get(
             $user[0]['password'],
             $GLOBALS['BE_USER']->loginType
