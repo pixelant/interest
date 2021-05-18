@@ -85,7 +85,7 @@ class AuthenticationHandler implements HandlerInterface
             ->select('token', 'expires_in')
             ->from(self::TOKEN_TABLE)
             ->where(
-                $queryBuilder->expr()->eq('token', "'" . $token . "'")
+                $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($token))
             )
             ->execute()
             ->fetchAllAssociative();

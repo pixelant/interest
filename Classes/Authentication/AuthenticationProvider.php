@@ -54,7 +54,7 @@ class AuthenticationProvider extends AbstractAuthenticationProvider
             ->select('token', 'expires_in')
             ->from(self::TOKEN_TABLE)
             ->where(
-                $queryBuilder->expr()->eq('token', "'" . $token . "'")
+                $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($token))
             )
             ->execute()
             ->fetchAllAssociative();
@@ -69,7 +69,7 @@ class AuthenticationProvider extends AbstractAuthenticationProvider
             $queryBuilder
                 ->delete(self::TOKEN_TABLE)
                 ->where(
-                    $queryBuilder->expr()->eq('token', "'" . $tokenData['token'] . "'")
+                    $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($tokenData['token']))
                 )
                 ->execute();
 
