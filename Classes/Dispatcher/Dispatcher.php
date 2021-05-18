@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Dispatcher;
 
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
+use Pixelant\Interest\Handler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\RequestFactoryInterface;
@@ -132,14 +133,15 @@ class Dispatcher implements DispatcherInterface
 
         $access = $this->objectManager->getAccessController()->getAccess($request);
 
-        // @codingStandardsIgnoreStart
         switch ($access) {
             case true:
                 return $this->callHandler($request);
-            default:
-                return $this->responseFactory->createErrorResponse('Unauthorized, please check if your token is valid', 401, $request);
         }
-        // @codingStandardsIgnoreEnd
+
+        throw new UnauthorizedAccessException(
+            'Unauthorized, please check if your token is valid',
+            $request
+        );
     }
 
     /**
