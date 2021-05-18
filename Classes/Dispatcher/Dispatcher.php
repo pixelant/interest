@@ -137,7 +137,7 @@ class Dispatcher implements DispatcherInterface
             case true:
                 return $this->callHandler($request);
             default:
-                return $this->responseFactory->createErrorResponse('Unauthorized, please check if your token is valid', 401, $request);
+                return $this->responseFactory->createErrorResponse(['Unauthorized, please check if your token is valid'], 401, $request);
         }
         // @codingStandardsIgnoreEnd
     }

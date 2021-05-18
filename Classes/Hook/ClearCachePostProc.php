@@ -13,12 +13,14 @@ class ClearCachePostProc
 
     public function clearCachePostProc(&$params, &$pObj): void
     {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getQueryBuilderForTable(self::CACHE_TABLE);
+        if ($params['cacheCmd'] === 'all') {
+            $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+                ->getQueryBuilderForTable(self::CACHE_TABLE);
 
-        $queryBuilder
-            ->update(self::CACHE_TABLE)
-            ->set('cached_data', '')
-            ->execute();
+            $queryBuilder
+                ->update(self::CACHE_TABLE)
+                ->set('cached_data', '')
+                ->execute();
+        }
     }
 }

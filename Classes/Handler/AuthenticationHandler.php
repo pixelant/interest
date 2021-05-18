@@ -28,9 +28,9 @@ class AuthenticationHandler implements HandlerInterface
         $userProvider = $objectManager->getUserProvider();
         $responseFactory = $objectManager->getResponseFactory();
 
-        if (isset($_SERVER['HTTP_AUTHENTICATION'])) {
-            if (str_starts_with(strtolower($_SERVER['HTTP_AUTHENTICATION']), 'basic')) {
-                [$username, $password] = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHENTICATION'], 6), true));
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            if (str_starts_with(strtolower($_SERVER['HTTP_AUTHORIZATION']), 'basic')) {
+                [$username, $password] = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6), true));
             }
         } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             if (str_starts_with(strtolower($_SERVER['REDIRECT_HTTP_AUTHORIZATION']), 'basic')) {
