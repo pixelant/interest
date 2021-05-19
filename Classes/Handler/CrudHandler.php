@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Handler;
 
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Event\BeforeDataHandlingEvent;
 use Pixelant\Interest\Handler\Exception\ConflictException;
 use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
 use Pixelant\Interest\Handler\Exception\NotFoundException;
@@ -18,6 +19,7 @@ use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -51,6 +53,11 @@ class CrudHandler implements HandlerInterface
     protected PendingRelationsRepository $pendingRelationsRepository;
 
     /**
+     * @var EventDispatcher
+     */
+    protected EventDispatcher $eventDispatcher;
+
+    /**
      * @var InterestRequestInterface
      */
     protected RequestInterface $currentRequest;
@@ -81,12 +88,14 @@ class CrudHandler implements HandlerInterface
         ObjectManagerInterface $objectManager,
         DataHandler $dataHandler,
         RemoteIdMappingRepository $mappingRepository,
-        PendingRelationsRepository $pendingRelationsRepository
+        PendingRelationsRepository $pendingRelationsRepository,
+        EventDispatcher $eventDispatcher
     ) {
         $this->objectManager = $objectManager;
         $this->dataHandler = $dataHandler;
         $this->mappingRepository = $mappingRepository;
         $this->pendingRelationsRepository = $pendingRelationsRepository;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function setCurrentRequest(InterestRequestInterface $request): void
@@ -335,6 +344,9 @@ class CrudHandler implements HandlerInterface
      */
     private function dataHandling(array $data = [], array $cmd = [])
     {
+        $event = $this->eventDispatcher->dispatch(GeneralUtility::makeInstance(BeforeDataHandlingEvent::class, $data));
+        $data = $event->getData();
+
         if (!empty($data)) {
             $this->dataHandler->start($data, []);
             $this->dataHandler->process_datamap();
