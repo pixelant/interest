@@ -474,7 +474,7 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $cmd[$this->mappingRepository->get($deleteRecordData['remoteId'])]['delete'] = 1;
+        $cmd[$tableName][$this->mappingRepository->get($deleteRecordData['remoteId'])]['delete'] = 1;
 
         if (!$this->dataHandling([], $cmd)) {
             return $responseFactory->createErrorResponse(
