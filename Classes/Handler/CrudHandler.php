@@ -488,9 +488,6 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        $this->mappingRepository->remove($deleteRecordData['remoteId']);
-        $this->pendingRelationsRepository->removeRemote($deleteRecordData['remoteId']);
-
         return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
     }
 
