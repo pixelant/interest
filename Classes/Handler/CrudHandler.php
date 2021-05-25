@@ -467,6 +467,10 @@ class CrudHandler implements HandlerInterface
             = (!empty($recordData)) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
         $responseFactory = $this->objectManager->getResponseFactory();
 
+        if ($deleteRecordData['remoteId'] === null) {
+            return $responseFactory->createSuccessResponse(['status' => 'success'], 200, $request);
+        }
+
         if (!$this->mappingRepository->exists($deleteRecordData['remoteId'])) {
             throw new NotFoundException(
                 'The remoteId "' . $deleteRecordData['remoteId'] . '" doesn\'t exist',
