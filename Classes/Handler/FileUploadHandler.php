@@ -12,7 +12,7 @@ use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
-use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -41,6 +41,11 @@ class FileUploadHandler extends CrudHandler
     protected PendingRelationsRepository $pendingRelationsRepository;
 
     /**
+     * @var EventDispatcher
+     */
+    protected EventDispatcher $eventDispatcher;
+
+    /**
      * @var DataHandler
      */
     protected DataHandler $dataHandler;
@@ -55,7 +60,8 @@ class FileUploadHandler extends CrudHandler
      * @param ObjectManagerInterface $objectManager
      * @param DataHandler $dataHandler
      * @param PendingRelationsRepository $pendingRelationsRepository
-     * @param RemoteIdMappingRepository $mappingRepository
+     * @param RemoteIdMappingRepository $mappingRepository ,
+     * @param EventDispatcher $eventDispatcher
      * @param ResourceFactory $resourceFactory
      */
     public function __construct(
@@ -63,9 +69,10 @@ class FileUploadHandler extends CrudHandler
         DataHandler $dataHandler,
         PendingRelationsRepository $pendingRelationsRepository,
         RemoteIdMappingRepository $mappingRepository,
+        EventDispatcher $eventDispatcher,
         ResourceFactory $resourceFactory
     ) {
-        parent::__construct($objectManager, $dataHandler, $mappingRepository, $pendingRelationsRepository);
+        parent::__construct($objectManager, $dataHandler, $mappingRepository, $pendingRelationsRepository, $eventDispatcher);
         $this->objectManager = $objectManager;
         $this->pendingRelationsRepository = $pendingRelationsRepository;
         $this->mappingRepository = $mappingRepository;
