@@ -25,6 +25,7 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Extbase\Mvc\Exception\InvalidArgumentValueException;
 
 class CrudHandler implements HandlerInterface
 {
@@ -137,12 +138,16 @@ class CrudHandler implements HandlerInterface
             );
         }
 
+        $this->resolveStoragePid($importData);
+
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
-            throw new ConflictException(
-                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-                $request
-            );
+            if (count($fieldsNotInTca) === 1 && !array_key_exists('pid', $fieldsNotInTca)) {
+                throw new ConflictException(
+                    'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
+                    $request
+                );
+            }
         }
 
         $placeholderId = StringUtility::getUniqueId('NEW');
@@ -183,13 +188,6 @@ class CrudHandler implements HandlerInterface
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
         $recordData = $this->prepareRelations($tableName, $remoteId, $recordData);
-
-        if (!$recordData['pid']) {
-            // TODO: Use UserTS for this.
-
-            $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
-            $recordData['pid'] = $configuration['persistence']['storagePid'];
-        }
 
         $data[$tableName][$localId] = $recordData;
         if ($isNewRecord) {
@@ -401,12 +399,16 @@ class CrudHandler implements HandlerInterface
             );
         }
 
+        $this->resolveStoragePid($importData);
+
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
         if (count($fieldsNotInTca) > 0) {
-            throw new ConflictException(
-                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-                $request
-            );
+            if (count($fieldsNotInTca) === 1 && !array_key_exists('pid', $fieldsNotInTca)) {
+                throw new ConflictException(
+                    'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
+                    $request
+                );
+            }
         }
 
         $this->executeDataInsertOrUpdate(
@@ -700,5 +702,33 @@ class CrudHandler implements HandlerInterface
         }
 
         return $tcaFieldConf;
+    }
+
+    /**
+     * Check storage pid configuration, if multiple storages is set looking for country code.
+     *
+     * @param array $importData
+     * @throws InvalidArgumentValueException
+     */
+    protected function resolveStoragePid(array &$importData): void
+    {
+        $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
+
+        if (is_array($configuration['persistence']['storagePid'])) {
+            if ($importData['CountryCode'] && array_key_exists($importData['CountryCode'], $configuration['persistence']['storagePid'])) {
+                $importData['pid'] = $configuration['persistence']['storagePid'][$importData['CountryCode']];
+            } else {
+                throw new InvalidArgumentValueException(
+                    'Country code is not set or wrong configuration given',
+                    400
+                );
+            }
+        } else {
+            $importData['pid'] = $configuration['persistence']['storagePid'];
+        }
+
+        if ($importData['CountryCode']) {
+            unset($importData['CountryCode']);
+        }
     }
 }
