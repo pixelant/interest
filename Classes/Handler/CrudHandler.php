@@ -142,7 +142,7 @@ class CrudHandler implements HandlerInterface
         $this->resolveStoragePid($importData);
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
-        if (count($fieldsNotInTca) > 0 && (count($fieldsNotInTca == 1) && !array_key_exists('pid', $fieldsNotInTca))) {
+        if (count($fieldsNotInTca) > 0 && (count($fieldsNotInTca === 1) && !array_key_exists('pid', $fieldsNotInTca))) {
             throw new ConflictException(
                 'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
                 $request
