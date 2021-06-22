@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
 
+use MissingArgumentsException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Event\BeforeDataHandlingEvent;
@@ -141,13 +142,11 @@ class CrudHandler implements HandlerInterface
         $this->resolveStoragePid($importData);
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
-        if (count($fieldsNotInTca) > 0) {
-            if (count($fieldsNotInTca) === 1 && !array_key_exists('pid', $fieldsNotInTca)) {
-                throw new ConflictException(
-                    'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-                    $request
-                );
-            }
+        if (count($fieldsNotInTca) > 0 && (count($fieldsNotInTca == 1) && !array_key_exists('pid', $fieldsNotInTca))) {
+            throw new ConflictException(
+                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
+                $request
+            );
         }
 
         $placeholderId = StringUtility::getUniqueId('NEW');
@@ -715,20 +714,20 @@ class CrudHandler implements HandlerInterface
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
 
         if (is_array($configuration['persistence']['storagePid'])) {
-            if ($importData['CountryCode'] && array_key_exists($importData['CountryCode'], $configuration['persistence']['storagePid'])) {
-                $importData['pid'] = $configuration['persistence']['storagePid'][$importData['CountryCode']];
+            if ($importData['countryCode'] && array_key_exists($importData['countryCode'], $configuration['persistence']['storagePid'])) {
+                $importData['pid'] = $configuration['persistence']['storagePid'][$importData['countryCode']];
             } else {
-                throw new InvalidArgumentValueException(
+                throw new MissingArgumentsException(
                     'Country code is not set or wrong configuration given',
-                    400
+                    $this->currentRequest
                 );
             }
         } else {
             $importData['pid'] = $configuration['persistence']['storagePid'];
         }
 
-        if ($importData['CountryCode']) {
-            unset($importData['CountryCode']);
+        if ($importData['countryCode']) {
+            unset($importData['countryCode']);
         }
     }
 }
