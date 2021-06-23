@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Pixelant\Interest\Handler\Exception\AbstractRequestHandlerException;
+namespace Pixelant\Interest\Handler\Exception;
 
 class MissingArgumentsException extends AbstractRequestHandlerException
 {

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Handler;
 
-use MissingArgumentsException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Event\BeforeDataHandlingEvent;
 use Pixelant\Interest\Handler\Exception\ConflictException;
 use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
+use Pixelant\Interest\Handler\Exception\MissingArgumentsException;
 use Pixelant\Interest\Handler\Exception\NotFoundException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
@@ -107,23 +107,23 @@ class CrudHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
-     * @param array $recordData
-     * @param string|null $tableName
+     * @param bool $isUpdate
      * @return ResponseInterface
-     * @throws NotFoundException
-     * @throws ConflictException
+     * @throws InvalidArgumentValueException
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    public function createRecord(InterestRequestInterface $request, array $recordData = [], ?string $tableName = null)
+    public function createRecord(InterestRequestInterface $request, bool $isUpdate = false)
     {
+        $request->getBody()->rewind();
         $this->setCurrentRequest($request);
 
         [
             'remoteId' => $remoteId,
             'data' => $importData
-        ] = !empty($recordData) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
+        ] = $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
-        $tableName = $tableName ?? $request->getResourceType()->__toString();
+        $tableName = $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
             throw new NotFoundException(
@@ -132,32 +132,60 @@ class CrudHandler implements HandlerInterface
             );
         }
 
-        if ($this->mappingRepository->exists($remoteId)) {
-            throw new ConflictException(
-                'Remote ID "' . $remoteId . '" already exists.',
-                $request
-            );
+        if (!$isUpdate) {
+            if ($this->mappingRepository->exists($remoteId)) {
+                throw new ConflictException(
+                    'Remote ID "' . $remoteId . '" already exists.',
+                    $request
+                );
+            }
+        } else {
+            if (!$this->mappingRepository->exists($remoteId)) {
+                throw new ConflictException(
+                    'Remote ID "' . $remoteId . '" are not exists.',
+                    $request
+                );
+            }
         }
 
         $this->resolveStoragePid($importData);
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
-        if (count($fieldsNotInTca) > 0 && (count($fieldsNotInTca === 1) && !array_key_exists('pid', $fieldsNotInTca))) {
+        if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
             throw new ConflictException(
                 'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
                 $request
             );
         }
 
-        $placeholderId = StringUtility::getUniqueId('NEW');
+        if (!$isUpdate) {
+            $placeholderId = StringUtility::getUniqueId('NEW');
 
-        $localId = $this->executeDataInsertOrUpdate($tableName, $placeholderId, $remoteId, $importData);
+            $localId = $this->executeDataInsertOrUpdate($tableName, $placeholderId, $remoteId, $importData);
+
+            return $responseFactory->createSuccessResponse(
+                [
+                    'status' => 'success',
+                    'data' => [
+                        'uid' => $localId,
+                    ],
+                ],
+                200,
+                $request
+            );
+        }
+        $this->executeDataInsertOrUpdate(
+            $tableName,
+            (string)$this->mappingRepository->get($remoteId),
+            $remoteId,
+            $importData
+        );
 
         return $responseFactory->createSuccessResponse(
             [
                 'status' => 'success',
                 'data' => [
-                    'uid' => $localId,
+                    'uid' => $this->mappingRepository->get($remoteId),
                 ],
             ],
             200,
@@ -372,79 +400,32 @@ class CrudHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
-     * @param array $recordData
-     * @param string|null $tableName
      * @return ResponseInterface
      * @throws NotFoundException
      * @throws ConflictException
      */
-    public function updateRecord(
-        InterestRequestInterface $request,
-        array $recordData = [],
-        ?string $tableName = null
-    ): ResponseInterface {
-        [
-            'remoteId' => $remoteId,
-            'data' => $importData
-        ] = !empty($recordData) ? $recordData : $this->createArrayFromJson($request->getBody()->getContents());
-
-        $responseFactory = $this->objectManager->getResponseFactory();
-        $tableName = $tableName ?? $request->getResourceType()->__toString();
-
-        if (!$this->mappingRepository->exists($remoteId)) {
-            throw new NotFoundException(
-                'Remote ID "' . $remoteId . '" does not exist.',
-                $request
-            );
-        }
-
-        $this->resolveStoragePid($importData);
-
-        $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
-        if (count($fieldsNotInTca) > 0) {
-            if (count($fieldsNotInTca) === 1 && !array_key_exists('pid', $fieldsNotInTca)) {
-                throw new ConflictException(
-                    'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-                    $request
-                );
-            }
-        }
-
-        $this->executeDataInsertOrUpdate(
-            $tableName,
-            (string)$this->mappingRepository->get($remoteId),
-            $remoteId,
-            $importData
-        );
-
-        return $responseFactory->createSuccessResponse(
-            [
-                'status' => 'success',
-                'data' => [
-                    'uid' => $this->mappingRepository->get($remoteId),
-                ],
-            ],
-            200,
-            $request
-        );
+    public function updateRecord(InterestRequestInterface $request): ResponseInterface
+    {
+        return $this->createRecord($request, true);
     }
 
     /**
      * @param InterestRequestInterface $request
+     * @param bool $isUpdate
      * @return ResponseInterface
+     * @throws InvalidArgumentValueException
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     public function createOrUpdateRecord(InterestRequestInterface $request): ResponseInterface
     {
+        $request->getBody()->rewind();
         $recordData = $this->createArrayFromJson($request->getBody()->getContents());
 
-        // Passing record data as second argument because can't get request body from createRecord and updateRecord
-        // TODO: What the reason?
         if (!$this->mappingRepository->exists($recordData['remoteId'])) {
-            return $this->createRecord($request, $recordData);
+            return $this->createRecord($request);
         }
 
-        return $this->updateRecord($request, $recordData);
+        return $this->updateRecord($request);
     }
 
     /**
