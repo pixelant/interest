@@ -9,7 +9,7 @@ use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Event\BeforeDataHandlingEvent;
 use Pixelant\Interest\Handler\Exception\ConflictException;
 use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
-use Pixelant\Interest\Handler\Exception\MissingArgumentsException;
+use Pixelant\Interest\Handler\Exception\MissingArgumentException;
 use Pixelant\Interest\Handler\Exception\NotFoundException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
@@ -141,8 +141,8 @@ class CrudHandler implements HandlerInterface
             }
         } else {
             if (!$this->mappingRepository->exists($remoteId)) {
-                throw new ConflictException(
-                    'Remote ID "' . $remoteId . '" are not exists.',
+                throw new NotFoundException(
+                    'Remote ID "' . $remoteId . '" does not exists.',
                     $request
                 );
             }
@@ -698,7 +698,7 @@ class CrudHandler implements HandlerInterface
             if ($importData['countryCode'] && array_key_exists($importData['countryCode'], $configuration['persistence']['storagePid'])) {
                 $importData['pid'] = $configuration['persistence']['storagePid'][$importData['countryCode']];
             } else {
-                throw new MissingArgumentsException(
+                throw new MissingArgumentException(
                     'Country code is not set or wrong configuration given',
                     $this->currentRequest
                 );
