@@ -289,7 +289,7 @@ class FileUploadHandler extends CrudHandler
         if ($this->mappingRepository->exists($data['remoteId'])) {
             $referenceResponse = $this->updateRecord($request, $data, self::REFERENCE_TABLE);
         } else {
-            $referenceResponse = $this->createRecord($request, $data, self::REFERENCE_TABLE);
+            $referenceResponse = $this->createRecord($request, false, $data, self::REFERENCE_TABLE);
         }
 
         if ($referenceResponse->getStatusCode() === 200) {
