@@ -108,22 +108,28 @@ class CrudHandler implements HandlerInterface
     /**
      * @param InterestRequestInterface $request
      * @param bool $isUpdate
+     * @param array|null $importData
+     * @param null $tableName
      * @return ResponseInterface
      * @throws InvalidArgumentValueException
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    public function createRecord(InterestRequestInterface $request, bool $isUpdate = false)
-    {
+    public function createRecord(
+        InterestRequestInterface $request,
+        bool $isUpdate = false,
+        array $importData = null,
+        string $tableName = ''
+    ): ResponseInterface {
         $request->getBody()->rewind();
         $this->setCurrentRequest($request);
 
         [
             'remoteId' => $remoteId,
             'data' => $importData
-        ] = $this->createArrayFromJson($request->getBody()->getContents());
+        ] = $importData ?? $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
-        $tableName = $request->getResourceType()->__toString();
+        $tableName = (!empty($tableName)) ? $tableName : $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
             throw new NotFoundException(
@@ -400,13 +406,17 @@ class CrudHandler implements HandlerInterface
 
     /**
      * @param InterestRequestInterface $request
+     * @param array|null $importData
      * @return ResponseInterface
-     * @throws NotFoundException
-     * @throws ConflictException
+     * @throws InvalidArgumentValueException
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    public function updateRecord(InterestRequestInterface $request): ResponseInterface
-    {
-        return $this->createRecord($request, true);
+    public function updateRecord(
+        InterestRequestInterface $request,
+        array $importData = null,
+        string $tableName = ''
+    ): ResponseInterface {
+        return $this->createRecord($request, true, $importData, $tableName);
     }
 
     /**

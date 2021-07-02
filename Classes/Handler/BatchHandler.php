@@ -106,7 +106,7 @@ class BatchHandler extends CrudHandler
                 if ($this->mappingRepository->exists($importItem['remoteId'])) {
                     $response = $this->updateRecord($request, $importItem, $tableName);
                 } else {
-                    $response = $this->createRecord($request, $importItem, $tableName);
+                    $response = $this->createRecord($request, false, $importItem, $tableName);
                 }
 
                 // Set stream pointer to the beginning of the stream.
