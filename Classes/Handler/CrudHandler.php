@@ -611,7 +611,7 @@ class CrudHandler implements HandlerInterface
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
         $queryBuilder = $this->objectManager->getQueryBuilder($table);
 
-        $fieldsConfigurationTS = $configuration['fieldsConfiguration'];
+        $fieldsConfigurationTS = $configuration['fieldsConfiguration'] ?? [];
 
         if (array_key_exists($table, $fieldsConfigurationTS)) {
             if (array_key_exists($field, $fieldsConfigurationTS[$table])) {
