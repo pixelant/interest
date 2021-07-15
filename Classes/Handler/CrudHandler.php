@@ -184,7 +184,7 @@ class CrudHandler implements HandlerInterface
 
         $isMatchingHash = $this->checkHash($importData, $remoteId);
 
-        if ($isMatchingHash){
+        if ($isMatchingHash) {
             return $responseFactory->createSuccessResponse(
                 [
                     'status' => 'success',
@@ -761,8 +761,8 @@ class CrudHandler implements HandlerInterface
             ->execute()
             ->fetchOne();
 
-        if ($recordHash !== ''){
-            if ($recordHash === $hashedData){
+        if ($recordHash !== '') {
+            if ($recordHash === $hashedData) {
                 return true;
             }
         }
