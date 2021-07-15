@@ -185,7 +185,7 @@ class CrudHandler implements HandlerInterface
         $event = $this->eventDispatcher->dispatch(GeneralUtility::makeInstance(BeforeDataImportingEvent::class, $importData));
         $importData = $event->getImportData();
 
-        if (array_key_exists('return', $importData) && $importData['return'] === true) {
+        if (array_key_exists('returnSuccessResponse', $importData) && $importData['returnSuccessResponse'] === true) {
             return $responseFactory->createSuccessResponse(
                 [
                     'status' => 'success',
