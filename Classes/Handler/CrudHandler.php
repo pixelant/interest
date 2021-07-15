@@ -155,22 +155,6 @@ class CrudHandler implements HandlerInterface
             }
         }
 
-        $event = $this->eventDispatcher->dispatch(GeneralUtility::makeInstance(BeforeDataImportingEvent::class, $importData));
-        $importData = $event->getImportData();
-
-        if (array_key_exists('return', $importData) && $importData['return'] === true) {
-            return $responseFactory->createSuccessResponse(
-                [
-                    'status' => 'success',
-                    'data' => [
-                        'uid' => $this->mappingRepository->get($remoteId),
-                    ],
-                ],
-                200,
-                $request
-            );
-        }
-
         $this->resolveStoragePid($importData);
 
         $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
@@ -197,6 +181,23 @@ class CrudHandler implements HandlerInterface
                 $request
             );
         }
+
+        $event = $this->eventDispatcher->dispatch(GeneralUtility::makeInstance(BeforeDataImportingEvent::class, $importData));
+        $importData = $event->getImportData();
+
+        if (array_key_exists('return', $importData) && $importData['return'] === true) {
+            return $responseFactory->createSuccessResponse(
+                [
+                    'status' => 'success',
+                    'data' => [
+                        'uid' => $this->mappingRepository->get($remoteId),
+                    ],
+                ],
+                200,
+                $request
+            );
+        }
+
         $this->executeDataInsertOrUpdate(
             $tableName,
             (string)$this->mappingRepository->get($remoteId),
