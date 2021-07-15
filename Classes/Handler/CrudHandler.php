@@ -7,6 +7,7 @@ namespace Pixelant\Interest\Handler;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Event\BeforeDataHandlingEvent;
+use Pixelant\Interest\Event\BeforeDataImportingEvent;
 use Pixelant\Interest\Handler\Exception\ConflictException;
 use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
 use Pixelant\Interest\Handler\Exception\MissingArgumentException;
@@ -152,6 +153,22 @@ class CrudHandler implements HandlerInterface
                     $request
                 );
             }
+        }
+
+        $event = $this->eventDispatcher->dispatch(GeneralUtility::makeInstance(BeforeDataImportingEvent::class, $importData));
+        $importData = $event->getImportData();
+
+        if (array_key_exists('return', $importData) && $importData['return'] === true){
+            return $responseFactory->createSuccessResponse(
+                [
+                    'status' => 'success',
+                    'data' => [
+                        'uid' => $this->mappingRepository->get($remoteId),
+                    ],
+                ],
+                200,
+                $request
+            );
         }
 
         $this->resolveStoragePid($importData);
