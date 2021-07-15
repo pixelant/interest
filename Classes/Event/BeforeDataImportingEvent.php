@@ -35,5 +35,4 @@ class BeforeDataImportingEvent
     {
         $this->importData = $importData;
     }
-
 }
