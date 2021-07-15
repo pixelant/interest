@@ -17,6 +17,11 @@ class BeforeDataImportingEvent
     protected string $remoteId;
 
     /**
+     * @var string
+     */
+    protected string $tableName;
+
+    /**
      * BeforeDataImportingEvent constructor.
      * @param array $importData
      */
@@ -56,5 +61,21 @@ class BeforeDataImportingEvent
     public function setRemoteId(string $remoteId): void
     {
         $this->remoteId = $remoteId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTableName(): string
+    {
+        return $this->tableName;
+    }
+
+    /**
+     * @param string $tableName
+     */
+    public function setTableName(string $tableName): void
+    {
+        $this->tableName = $tableName;
     }
 }
