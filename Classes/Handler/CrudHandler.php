@@ -18,6 +18,7 @@ use Pixelant\Interest\Router\RouterInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
@@ -180,6 +181,22 @@ class CrudHandler implements HandlerInterface
                 $request
             );
         }
+
+        $isMatchingHash = $this->checkHash($importData, $remoteId);
+
+        if ($isMatchingHash) {
+            return $responseFactory->createSuccessResponse(
+                [
+                    'status' => 'success',
+                    'data' => [
+                        'uid' => $this->mappingRepository->get($remoteId),
+                    ],
+                ],
+                200,
+                $request
+            );
+        }
+
         $this->executeDataInsertOrUpdate(
             $tableName,
             (string)$this->mappingRepository->get($remoteId),
@@ -220,6 +237,7 @@ class CrudHandler implements HandlerInterface
 
         ExtensionManagementUtility::allowTableOnStandardPages($tableName);
 
+        $importData = $recordData;
         $recordData = $this->prepareRelations($tableName, $remoteId, $recordData);
 
         $data[$tableName][$localId] = $recordData;
@@ -241,6 +259,7 @@ class CrudHandler implements HandlerInterface
             $this->pendingRelationsRepository->removeRemote($remoteId);
         }
 
+        $this->setRecordHash($importData, $remoteId);
         $this->persistPendingRelations();
 
         if ($isNewRecord) {
@@ -720,5 +739,53 @@ class CrudHandler implements HandlerInterface
         if ($importData['countryCode']) {
             unset($importData['countryCode']);
         }
+    }
+
+    /**
+     * @param array $data
+     * @param string $remoteId
+     * @return bool
+     */
+    protected function checkHash(array $data, string $remoteId): bool
+    {
+        $hashedData = md5(serialize($data));
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::REMOTE_ID_MAPPING_TABLE);
+
+        $recordHash = $queryBuilder
+            ->select('record_hash')
+            ->from(self::REMOTE_ID_MAPPING_TABLE)
+            ->where(
+                $queryBuilder->expr()->eq('remote_id', $queryBuilder->createNamedParameter($remoteId))
+            )
+            ->execute()
+            ->fetchOne();
+
+        if ($recordHash !== '') {
+            if ($recordHash === $hashedData) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $data
+     * @param string $remoteId
+     */
+    private function setRecordHash(array $data, string $remoteId): void
+    {
+        $hashedData = md5(serialize($data));
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::REMOTE_ID_MAPPING_TABLE);
+
+        $queryBuilder
+            ->update(self::REMOTE_ID_MAPPING_TABLE)
+            ->where(
+                $queryBuilder->expr()->eq('remote_id', $queryBuilder->createNamedParameter($remoteId))
+            )
+            ->set('record_hash', $hashedData)
+            ->execute();
     }
 }
