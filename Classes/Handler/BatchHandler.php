@@ -25,7 +25,7 @@ class BatchHandler extends CrudHandler
 
         foreach ($standardizedArray as $tableName => $importData) {
             foreach ($importData as $importItem) {
-                $response = $this->createRecord($request, $importItem, $tableName);
+                $response = $this->createRecord($request, false, $importItem, $tableName);
 
                 // Set stream pointer to the beginning of the stream.
                 $response->getBody()->rewind();
