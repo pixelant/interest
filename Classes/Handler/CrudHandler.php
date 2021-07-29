@@ -564,6 +564,10 @@ class CrudHandler implements HandlerInterface
             return true;
         }
 
+        if ($field === 'sys_language_uid') {
+            return false;
+        }
+
         $typeField = (string)$GLOBALS['TCA'][$table]['ctrl']['type'];
 
         $fieldTcaConfiguration = BackendUtility::getTcaFieldConfiguration($table, $field);
@@ -680,6 +684,8 @@ class CrudHandler implements HandlerInterface
                                 }
                             }
                         }
+                    } elseif ((int)$relationContextTrue === 1) {
+                        return true;
                     }
                 }
             }
