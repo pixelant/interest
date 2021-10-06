@@ -16,10 +16,10 @@
 		}
 	],
 	"require": {
-		"typo3/cms-core": " ^10.4.6",
-		"typo3/cms-extbase": "^10.4.6",
-		"typo3/cms-fluid": "^10.4.6",
-		"typo3/cms-frontend": "^10.4.6"
+		"typo3/cms-core": "^9.5.8 || ^10.4.6",
+		"typo3/cms-extbase": "^9.5.8 || ^10.4.6",
+		"typo3/cms-fluid": "^9.5.8 || ^10.4.6",
+		"typo3/cms-frontend": "^9.5.8 || ^10.4.6"
 	},
 	"replace": {
 		"typo3-ter/tea": "self.version"
