@@ -1,5 +1,5 @@
 {
-	"name": "pixelant/inteREST",
+	"name": "pixelant/interest",
 	"type": "typo3-cms-extension",
 	"description": "REST API for read/write access to database",
 	"keywords": [
