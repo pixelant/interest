@@ -1,7 +1,7 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'REST API for Integrations',
-    'description' => 'Integrate external data with TYPO3. Data is handled as a backend user. Logging, access permissions, and validity checks are the same as when a real user is editing/viewing data in the backend.',
+    'title' => 'Integration REST API',
+    'description' => 'REST API for read/write access to database',
     'version' => '1.0.0-alpha',
     'category' => 'plugin',
     'constraints' => [
