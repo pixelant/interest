@@ -110,7 +110,7 @@ class CrudHandler implements HandlerInterface
      * @param InterestRequestInterface $request
      * @param bool $isUpdate
      * @param array|null $importData
-     * @param null $tableName
+     * @param string $tableName
      * @return ResponseInterface
      * @throws InvalidArgumentValueException
      * @throws \TYPO3\CMS\Extbase\Object\Exception
