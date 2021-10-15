@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Command;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -37,14 +39,29 @@ class CreateCommandController extends AbstractReceiveCommandController
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        new CreateRecordOperation(
-            $input->getOption('data'),
-            $input->getArgument('endpoint'),
-            $input->getArgument('remoteId'),
-            $input->getArgument('language'),
-            $input->getArgument('workspace'),
-            $input->getOption('metaData')
-        );
+        try {
+            new CreateRecordOperation(
+                $input->getOption('data'),
+                $input->getArgument('endpoint'),
+                $input->getArgument('remoteId'),
+                $input->getArgument('language'),
+                $input->getArgument('workspace'),
+                $input->getOption('metaData')
+            );
+        } catch (IdentityConflictException $exception) {
+            if (!$input->getOption('update')) {
+                throw $exception;
+            }
+
+            new UpdateRecordOperation(
+                $input->getOption('data'),
+                $input->getArgument('endpoint'),
+                $input->getArgument('remoteId'),
+                $input->getArgument('language'),
+                $input->getArgument('workspace'),
+                $input->getOption('metaData')
+            );
+        }
 
         return 0;
     }
