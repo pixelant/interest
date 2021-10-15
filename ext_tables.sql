@@ -14,12 +14,18 @@ CREATE TABLE tx_interest_api_token (
 );
 
 CREATE TABLE tx_interest_remote_id_mapping (
+		uid int(11) DEFAULT '0' NOT NULL auto_increment,
+		tstamp int(11) DEFAULT '0' NOT NULL,
+		crdate int(11) DEFAULT '0' NOT NULL,
+		cruser_id int(11) DEFAULT '0' NOT NULL,
     remote_id varchar(255) DEFAULT '' NOT NULL,
     table varchar(255) DEFAULT '0' NOT NULL,
     uid_local int(11) DEFAULT '0' NOT NULL,
     record_hash varchar(255) DEFAULT '0' NOT NULL,
+    manual smallint (3) DEFAULT '0' NOT NULL,
 
-    PRIMARY KEY (remote_id),
+		PRIMARY KEY (uid),
+    KEY remote_id (remote_id),
     KEY local_side (table, uid_local)
 );
 

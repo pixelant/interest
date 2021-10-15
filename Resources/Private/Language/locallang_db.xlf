@@ -3,20 +3,23 @@
 	<file source-language="en" datatype="plaintext" original="messages">
 		<header/>
 		<body>
-			<trans-unit id="tx_tea_domain_model_product_tea">
-				<source>Tea</source>
+			<trans-unit id="tx_interest_remote_id_mapping">
+				<source>Remote ID mapping</source>
 			</trans-unit>
-			<trans-unit id="tx_tea_domain_model_product_tea.title">
-				<source>Title</source>
+			<trans-unit id="tx_interest_remote_id_mapping.remote_id">
+				<source>Remote ID</source>
 			</trans-unit>
-			<trans-unit id="tx_tea_domain_model_product_tea.description">
-				<source>Description</source>
+			<trans-unit id="tx_interest_remote_id_mapping.table">
+				<source>Table name</source>
 			</trans-unit>
-			<trans-unit id="tx_tea_domain_model_product_tea.image">
-				<source>Image</source>
+			<trans-unit id="tx_interest_remote_id_mapping.local_uid">
+				<source>Local UID</source>
 			</trans-unit>
-			<trans-unit id="token">
-				<source>Token generation</source>
+			<trans-unit id="tx_interest_remote_id_mapping.manual">
+				<source>Manual mapping</source>
+			</trans-unit>
+			<trans-unit id="tx_interest_remote_id_mapping.manual.description">
+				<source>If enabled, this mapping is manually created and maintained through the TYPO3 backend.</source>
 			</trans-unit>
 		</body>
 	</file>
