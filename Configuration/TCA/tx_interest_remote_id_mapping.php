@@ -10,12 +10,8 @@ return [
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
         'cruser_id' => 'cruser_id',
-//        'languageField' => 'sys_language_uid',
-//        'transOrigPointerField' => 'l10n_parent',
-//        'transOrigDiffSourceField' => 'l10n_diffsource',
-//        'translationSource' => 'l10n_source',
+        'rootLevel' => -1,
         'default_sortby' => 'ORDER BY title',
-//        'delete' => 'deleted',
         'enablecolumns' => [],
         'typeicon_classes' => [
             '0' => 'ext-interest-mapping',
@@ -24,6 +20,12 @@ return [
         'searchFields' => 'remote_id',
     ],
     'columns' => [
+        'pid' => [
+            'label' => 'pid',
+            'config' => [
+                'type' => 'passthrough'
+            ]
+        ],
         'crdate' => [
             'label' => 'crdate',
             'config' => [

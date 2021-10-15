@@ -15,6 +15,7 @@ CREATE TABLE tx_interest_api_token (
 
 CREATE TABLE tx_interest_remote_id_mapping (
 		uid int(11) DEFAULT '0' NOT NULL auto_increment,
+		pid int(11) DEFAULT '0' NOT NULL,
 		tstamp int(11) DEFAULT '0' NOT NULL,
 		crdate int(11) DEFAULT '0' NOT NULL,
 		cruser_id int(11) DEFAULT '0' NOT NULL,
