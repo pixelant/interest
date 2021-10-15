@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
  * Handle a record creation operation.
@@ -22,7 +23,9 @@ class CreateRecordOperation extends AbstractRecordOperation
     ) {
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
+        $temporaryUid = StringUtility::getUniqueId('NEW');
 
+        $this->dataHandler->datamap[$table][$temporaryUid] = $this->getData();
     }
 
 }

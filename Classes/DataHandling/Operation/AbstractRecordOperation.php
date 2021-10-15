@@ -8,6 +8,7 @@ namespace Pixelant\Interest\DataHandling\Operation;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
+use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
@@ -15,6 +16,7 @@ use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -93,6 +95,11 @@ abstract class AbstractRecordOperation
     protected array $pendingRelations = [];
 
     /**
+     * @var DataHandler
+     */
+    protected DataHandler $dataHandler;
+
+    /**
      * @param array $data
      * @param string $table
      * @param string $remoteId
@@ -139,6 +146,34 @@ abstract class AbstractRecordOperation
         $this->applyFieldDataTransformations();
 
         $this->prepareRelations();
+
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
+        $this->dataHandler->start([], []);
+
+        $this->data['pid'] = $this->storagePid;
+    }
+
+    public function __destruct()
+    {
+        if (count($this->dataHandler->datamap) > 0) {
+            $this->dataHandler->process_datamap();
+        }
+
+        if (count($this->dataHandler->cmdmap) > 0) {
+            $this->dataHandler->process_cmdmap();
+        }
+
+        if (!empty($this->dataHandler->errorLog)) {
+            throw new DataHandlerErrorException(
+                'Error occured during the data handling: ' . implode(', ', $this->dataHandler->errorLog)
+                . ' Datamap: ' . json_encode($this->dataHandler->datamap)
+                . ' Cmdmap: ' . json_encode($this->dataHandler->cmdmap),
+                1634296039450
+            );
+        }
+
+        $this->persistPendingRelations();
     }
 
     /**
@@ -168,6 +203,10 @@ abstract class AbstractRecordOperation
      */
     private function resolveStoragePid(): int
     {
+        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] === 1) {
+            return 0;
+        }
+
         if (isset($this->getData()['pid'])) {
             if(!$this->mappingRepository->exists((string)$this->getData()['pid']))  {
                 throw new NotFoundException(
@@ -229,6 +268,10 @@ abstract class AbstractRecordOperation
         }
 
         if ($site !== null) {
+            if (empty($language)) {
+                return $site->getDefaultLanguage();
+            }
+
             $siteLanguages = $site->getAllLanguages();
         }
 
@@ -342,17 +385,19 @@ abstract class AbstractRecordOperation
 
             $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
 
-            if ($tcaConfiguration['type'] === 'inline') {
+            if (is_array($this->data[$fieldName]) && $tcaConfiguration['type'] === 'inline') {
                 $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
             }
         }
 
-        // Transform single values array into $key => $value pair to prevent Data Handler error.
+        // Transform single-value array into $key => $value pair to prevent Data Handler error.
         foreach ($this->data as $fieldName => $fieldValue) {
-            if (is_array($fieldValue)) {
-                if (count($fieldValue) === 1) {
-                    $value = $fieldValue[array_key_first($fieldValue)];
-                    $this->data[$fieldName] = $value;
+            if (is_array($fieldValue) && count($fieldValue) <= 1) {
+                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
+
+                // Unset empty single-relation fields (1:n) in new records.
+                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === null) {
+                    unset($this->data[$fieldName]);
                 }
             }
         }
@@ -449,13 +494,30 @@ abstract class AbstractRecordOperation
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
         return (
-                $tca['config']['type'] === 'group'
-                && $tca['config']['internal_type'] === 'db'
+                $tca['type'] === 'group'
+                && $tca['internal_type'] === 'db'
             )
             || (
-                in_array($tca['config']['type'], ['inline', 'select'], true)
-                && isset($tca['config']['foreign_table'])
+                in_array($tca['type'], ['inline', 'select'], true)
+                && isset($tca['foreign_table'])
             );
+    }
+
+    /**
+     * Returns true if the field contains a single n:1 relation without an MM table.
+     *
+     * @param string $field
+     * @return bool
+     */
+    protected function isSingleRelationField(string $field): bool
+    {
+        if (!$this->isRelationalField($field)) {
+            return false;
+        }
+
+        $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
+
+        return $tca['maxitems'] === 1 && empty($tca['foreign_table']);
     }
 
     /**
