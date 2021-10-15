@@ -59,7 +59,8 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
 
             if (!is_array($data)) {
                 throw new InvalidOptionException(
-                    'Could not parse JSON data. Please ensure the option "data" is valid JSON.',
+                    'Could not parse JSON data. Please ensure the option "data" is valid JSON. '
+                    . 'Received: "' . $input->getOption('data') . '"',
                     1634238071534
                 );
             }
@@ -72,7 +73,8 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
 
             if (!is_array($data)) {
                 throw new InvalidOptionException(
-                    'Could not parse JSON data. Please ensure the option "metaData" is valid JSON.',
+                    'Could not parse JSON data. Please ensure the option "metaData" is valid JSON.'
+                    . 'Received: "' . $input->getOption('data') . '"',
                     1634238294734
                 );
             }
