@@ -127,11 +127,14 @@ abstract class AbstractRecordOperation
 
         $this->resolveUid = $this->resolveUid();
 
-        $this->storagePid = $this->resolveStoragePid();
-
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
+        $this->storagePid = $this->resolveStoragePid();
+
         $this->language = $this->resolveLanguage((string)$language);
+
+        $this->contentObjectRenderer->data['language'] =
+            $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
 
         $this->applyFieldDataTransformations();
 
@@ -280,7 +283,7 @@ abstract class AbstractRecordOperation
         $contentObjectRenderer->data = [
             'table' => $this->getTable(),
             'remoteId' => $this->getRemoteId(),
-            'language' => $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang(),
+            'language' => null,
             'workspace' => null,
             'metaData' => $this->getMetaData(),
             'data' => $this->getData()
