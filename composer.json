@@ -19,8 +19,9 @@
 		"typo3/cms-core": "^9.5.8 || ^10.4.6",
 		"typo3/cms-extbase": "^9.5.8 || ^10.4.6",
 		"typo3/cms-fluid": "^9.5.8 || ^10.4.6",
-		"typo3/cms-frontend": "^9.5.8 || ^10.4.6"
-	},
+		"typo3/cms-frontend": "^9.5.8 || ^10.4.6",
+      "ext-json": "*"
+    },
 	"replace": {
 		"typo3-ter/tea": "self.version"
 	},

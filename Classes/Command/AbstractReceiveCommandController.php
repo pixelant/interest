@@ -7,6 +7,7 @@ namespace Pixelant\Interest\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StreamableInputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
@@ -33,6 +34,16 @@ abstract class AbstractReceiveCommandController extends AbstractRecordCommandCon
                 'remoteId',
                 InputArgument::REQUIRED,
                 'The remote ID for the data.'
+            )
+            ->addArgument(
+                'language',
+                InputArgument::OPTIONAL,
+                'RFC 1766/3066 string, e.g. "nb" or "sv-SE".'
+            )
+            ->addArgument(
+                'workspace',
+                InputArgument::OPTIONAL,
+                'Not yet implemented.'
             );
     }
 
