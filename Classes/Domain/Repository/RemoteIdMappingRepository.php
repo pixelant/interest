@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 
@@ -81,9 +82,10 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param string $remoteId
      * @param string $tableName
      * @param int $uid
+     * @param AbstractRecordOperation $recordOperation
      * @throws UniqueConstraintViolationException
      */
-    public function add(string $remoteId, string $tableName, int $uid): void
+    public function add(string $remoteId, string $tableName, int $uid, AbstractRecordOperation $recordOperation): void
     {
         if ($this->exists($remoteId)) {
             throw new UniqueConstraintViolationException(
@@ -100,6 +102,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'remote_id' => $remoteId,
                 'table' => $tableName,
                 'uid_local' => $uid,
+                'record_hash' => $this->hashRecordOperation($recordOperation)
             ])
             ->execute();
 
@@ -162,5 +165,65 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute()
             ->fetchOne();
+    }
+
+    /**
+     * Updates the status hash of a remote ID so we can optimize and avoid duplicate updates.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     */
+    public function update(AbstractRecordOperation $recordOperation)
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->update(self::TABLE_NAME)
+            ->values([
+                'record_hash' => $this->hashRecordOperation($recordOperation)
+            ])
+            ->where($queryBuilder->expr()->eq(
+                'remote_id',
+                $queryBuilder->createNamedParameter($recordOperation->getRemoteId())
+            ))
+            ->execute();
+    }
+
+    /**
+     * Returns true if the $recordOperation is the same as last time we updated this remote ID.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     * @return bool
+     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     */
+    public function isSameAsPrevious(AbstractRecordOperation $recordOperation): bool
+    {
+        if (!$this->exists($recordOperation->getRemoteId())) {
+            return false;
+        }
+
+        $queryBuilder = $this->getQueryBuilder();
+
+        return (bool)$queryBuilder
+            ->count('remote_id')
+            ->from(self::TABLE_NAME)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'record_hash',
+                    $queryBuilder->createNamedParameter($this->hashRecordOperation($recordOperation))
+                )
+            )
+            ->execute()
+            ->fetchOne();
+    }
+
+    /**
+     * Returns and MD5 hash of a record operation.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     * @return string
+     */
+    protected function hashRecordOperation(AbstractRecordOperation $recordOperation): string
+    {
+        return md5(get_class($recordOperation) . serialize($recordOperation->getArguments()));
     }
 }

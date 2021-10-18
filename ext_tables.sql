@@ -22,7 +22,7 @@ CREATE TABLE tx_interest_remote_id_mapping (
     remote_id varchar(255) DEFAULT '' NOT NULL,
     table varchar(255) DEFAULT '0' NOT NULL,
     uid_local int(11) DEFAULT '0' NOT NULL,
-    record_hash varchar(255) DEFAULT '0' NOT NULL,
+    record_hash varchar(32) DEFAULT '0' NOT NULL,
     manual smallint (3) DEFAULT '0' NOT NULL,
 
 		PRIMARY KEY (uid),

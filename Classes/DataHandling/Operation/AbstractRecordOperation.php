@@ -201,10 +201,13 @@ abstract class AbstractRecordOperation
                 $this->getRemoteId(),
                 $this->getTable(),
                 // This assumes we have only done a single operation and there is only one NEW key
-                $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)]
+                $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
+                $this
             );
 
             $this->setUid($this->mappingRepository->get($this->remoteId));
+        } else {
+            $this->mappingRepository->update($this);
         }
 
         $this->persistPendingRelations();

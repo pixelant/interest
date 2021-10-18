@@ -7,6 +7,12 @@ services:
   Pixelant\Interest\:
     resource: '../Classes/*'
 
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation:
+    tags:
+      - name: event.listener
+        identifier: stopIfRepeatingPreviousRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
   Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileRecordOperationEventHandler:
     tags:
       - name: event.listener
