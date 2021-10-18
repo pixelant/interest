@@ -46,9 +46,9 @@ abstract class AbstractRecordOperation
     private array $data;
 
     /**
-     * @var int|null
+     * @var int
      */
-    private ?int $uid;
+    private int $uid = 0;
 
     /**
      * @var int
@@ -132,7 +132,7 @@ abstract class AbstractRecordOperation
         /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->resolveUid = $this->resolveUid();
+        $this->uid = $this->resolveUid();
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
@@ -171,6 +171,17 @@ abstract class AbstractRecordOperation
                 . ' Cmdmap: ' . json_encode($this->dataHandler->cmdmap),
                 1634296039450
             );
+        }
+
+        if ($this->getUid() === 0) {
+            $this->mappingRepository->add(
+                $this->getRemoteId(),
+                $this->getTable(),
+                // This assumes we have only done a single operation and there is only one NEW key
+                $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)]
+            );
+
+            $this->setUid($this->mappingRepository->get($this->remoteId));
         }
 
         $this->persistPendingRelations();
@@ -299,7 +310,7 @@ abstract class AbstractRecordOperation
      * @return int|null
      * @throws ConflictException
      */
-    private function resolveUid(): ?int
+    private function resolveUid(): int
     {
         if (
             $this->mappingRepository->exists($this->getRemoteId())
@@ -396,9 +407,13 @@ abstract class AbstractRecordOperation
                 $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
 
                 // Unset empty single-relation fields (1:n) in new records.
-                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === null) {
+                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
                     unset($this->data[$fieldName]);
                 }
+            }
+
+            if ($this->data[$fieldName] === null) {
+                unset($this->data[$fieldName]);
             }
         }
     }
@@ -580,17 +595,17 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getUid(): ?int
+    public function getUid(): int
     {
         return $this->uid;
     }
 
     /**
-     * @param int|null $uid
+     * @param int $uid
      */
-    public function setUid(?int $uid)
+    public function setUid(int $uid)
     {
         $this->uid = $uid;
     }
