@@ -7,6 +7,9 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\DeferRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
@@ -14,6 +17,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -100,6 +104,13 @@ abstract class AbstractRecordOperation
     protected DataHandler $dataHandler;
 
     /**
+     * Set to true if a DeferRecordOperationException is thrown. Means __destruct() will end early.
+     *
+     * @var bool
+     */
+    protected bool $operationDeferred = false;
+
+    /**
      * @param array $data
      * @param string $table
      * @param string $remoteId
@@ -140,6 +151,14 @@ abstract class AbstractRecordOperation
 
         $this->language = $this->resolveLanguage((string)$language);
 
+        try {
+            CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
+        } catch (DeferRecordOperationException $exception) {
+            $this->operationDeferred = true;
+
+            throw $exception;
+        }
+
         $this->contentObjectRenderer->data['language'] =
             $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
 
@@ -156,6 +175,10 @@ abstract class AbstractRecordOperation
 
     public function __destruct()
     {
+        if ($this->operationDeferred) {
+            return;
+        }
+
         if (count($this->dataHandler->datamap) > 0) {
             $this->dataHandler->process_datamap();
         }
@@ -185,6 +208,25 @@ abstract class AbstractRecordOperation
         }
 
         $this->persistPendingRelations();
+
+        CompatibilityUtility::dispatchEvent(new AfterRecordOperationEvent($this));
+    }
+
+    /**
+     * Returns the arguments as they would have been supplied to the constructor.
+     *
+     * @return array
+     */
+    public function getArguments(): array
+    {
+        return [
+            $this->getData(),
+            $this->getTable(),
+            $this->getRemoteId(),
+            $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang(),
+            null,
+            $this->getMetaData()
+        ];
     }
 
     /**

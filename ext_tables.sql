@@ -54,3 +54,15 @@ CREATE TABLE tx_interest_log (
 
 	PRIMARY KEY (uid)
 );
+
+CREATE TABLE tx_interest_deferred_operation (
+	uid int(11) DEFAULT '0' NOT NULL auto_increment,
+	crdate int(11) DEFAULT '0' NOT NULL,
+	dependent_remote_id varchar(255) DEFAULT '' NOT NULL,
+	class varchar(255) DEFAULT '' NOT NULL,
+	arguments mediumtext DEFAULT '' NOT NULL,
+
+  PRIMARY KEY (uid),
+	KEY dependent_remote_id (dependent_remote_id),
+	KEY crdate (crdate),
+);
