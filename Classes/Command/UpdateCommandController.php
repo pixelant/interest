@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Command;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\Exception\DeferRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,7 +49,7 @@ class UpdateCommandController extends AbstractReceiveCommandController
                 $input->getArgument('workspace'),
                 $input->getOption('metaData')
             );
-        } catch (DeferRecordOperationException $exception) {
+        } catch (StopRecordOperationException $exception) {
             $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
 
             return 0;

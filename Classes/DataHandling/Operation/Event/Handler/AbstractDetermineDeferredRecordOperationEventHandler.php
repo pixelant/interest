@@ -7,7 +7,7 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
-use Pixelant\Interest\DataHandling\Operation\Event\Exception\DeferRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -64,7 +64,7 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler
 
         $deferredOperationRepository->add($dependentRemoteId, $this->getEvent()->getRecordOperation());
 
-        throw new DeferRecordOperationException(
+        throw new StopRecordOperationException(
             'Deferred record operation on remote ID "' . $this->getEvent()->getRecordOperation()->getRemoteId() . '. '
             . ' Waiting for remote ID "' . $dependentRemoteId . '".',
             1634553398351

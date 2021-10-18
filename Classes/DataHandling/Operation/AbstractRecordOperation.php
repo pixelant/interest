@@ -9,7 +9,7 @@ use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\Exception\DeferRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
@@ -153,7 +153,7 @@ abstract class AbstractRecordOperation
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
-        } catch (DeferRecordOperationException $exception) {
+        } catch (StopRecordOperationException $exception) {
             $this->operationDeferred = true;
 
             throw $exception;
