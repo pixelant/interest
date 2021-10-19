@@ -11,7 +11,7 @@ return [
         'crdate' => 'crdate',
         'cruser_id' => 'cruser_id',
         'rootLevel' => -1,
-        'default_sortby' => 'ORDER BY title',
+        'default_sortby' => 'ORDER BY uid',
         'enablecolumns' => [],
         'typeicon_classes' => [
             '0' => 'ext-interest-mapping',
