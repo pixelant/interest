@@ -109,7 +109,7 @@ abstract class AbstractRecordOperation
      *
      * @var bool
      */
-    protected bool $operationDeferred = false;
+    protected bool $operationStopped = false;
 
     /**
      * @param array $data
@@ -133,8 +133,6 @@ abstract class AbstractRecordOperation
         $this->data = $data;
         $this->metaData = $metaData ?? [];
 
-        $this->validateFieldNames();
-
         /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
@@ -157,10 +155,12 @@ abstract class AbstractRecordOperation
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
         } catch (StopRecordOperationException $exception) {
-            $this->operationDeferred = true;
+            $this->operationStopped = true;
 
             throw $exception;
         }
+
+        $this->validateFieldNames();
 
         $this->contentObjectRenderer->data['language'] =
             $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
@@ -178,7 +178,7 @@ abstract class AbstractRecordOperation
 
     public function __destruct()
     {
-        if ($this->operationDeferred) {
+        if ($this->operationStopped) {
             return;
         }
 
@@ -678,6 +678,14 @@ abstract class AbstractRecordOperation
     }
 
     /**
+     * @param array $data
+     */
+    public function setData(array $data)
+    {
+        $this->data = $data;
+    }
+
+    /**
      * @return int
      */
     public function getUid(): int
@@ -715,5 +723,13 @@ abstract class AbstractRecordOperation
     public function getMetaData(): array
     {
         return $this->metaData;
+    }
+
+    /**
+     * @return ContentObjectRenderer
+     */
+    public function getContentObjectRenderer(): ContentObjectRenderer
+    {
+        return $this->contentObjectRenderer;
     }
 }

@@ -13,10 +13,10 @@ services:
         identifier: stopIfRepeatingPreviousRecord
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
 
-  Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileRecordOperationEventHandler:
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler:
     tags:
       - name: event.listener
-        identifier: deferSysFileRecordOperation
+        identifier: persistFileDataEventHandler
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileReferenceRecordOperationEventHandler:

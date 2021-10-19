@@ -1,0 +1,5 @@
+tx_interest {
+  persistence {
+    fileUploadFolderPath = 1:tx_interest
+  }
+}

@@ -1,7 +1,9 @@
-<?php
+<?php /** @noinspection ALL */
 
 namespace Pixelant\Interest\Utility;
 
+use Pixelant\Interest\Compatibility\Resource\Security\FileNameValidator as InterestFileNameValidator;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -146,5 +148,17 @@ class CompatibilityUtility
         $explodedFqcn = explode('\\', $className);
 
         return lcfirst(array_pop($explodedFqcn));
+    }
+
+    /**
+     * @return InterestFileNameValidator|FileNameValidator
+     */
+    public static function getFileNameValidator(): object
+    {
+        if (self::typo3VersionIsLessThan('10.4')) {
+            return GeneralUtility::makeInstance(InterestFileNameValidator::class);
+        }
+
+        return GeneralUtility::makeInstance(FileNameValidator::class);
     }
 }
