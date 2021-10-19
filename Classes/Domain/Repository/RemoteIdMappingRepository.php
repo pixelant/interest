@@ -6,7 +6,10 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
 /**
  * Repository for interaction with the database table tx_interest_remote_id_mapping.
@@ -14,6 +17,8 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 class RemoteIdMappingRepository extends AbstractRepository
 {
     public const TABLE_NAME = 'tx_interest_remote_id_mapping';
+
+    public const LANGUAGE_ASPECT_PREFIX = '|||L';
 
     /**
      * @var array Cache of remoteId (key) to localId (value) mapping
@@ -29,10 +34,13 @@ class RemoteIdMappingRepository extends AbstractRepository
      * Get the local ID equivalent for $remoteId.
      *
      * @param string $remoteId
+     * @param SiteLanguage|null $language
      * @return int Local ID. Zero if it doesn't exist.
      */
-    public function get(string $remoteId): int
+    public function get(string $remoteId, ?AbstractRecordOperation $recordOperation = null): int
     {
+        $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
+
         if (isset(self::$remoteToLocalIdCache[$remoteId])) {
             return (int)self::$remoteToLocalIdCache[$remoteId];
         }
@@ -67,8 +75,10 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param string $remoteId
      * @return string|null
      */
-    public function table(string $remoteId): ?string
+    public function table(string $remoteId, ?AbstractRecordOperation $recordOperation = null): ?string
     {
+        $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
+
         if (isset(self::$remoteIdToTableCache[$remoteId])) {
             return self::$remoteIdToTableCache[$remoteId];
         }
@@ -87,8 +97,10 @@ class RemoteIdMappingRepository extends AbstractRepository
      */
     public function add(string $remoteId, string $tableName, int $uid, AbstractRecordOperation $recordOperation): void
     {
+        $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
+
         if ($this->exists($remoteId)) {
-            throw new UniqueConstraintViolationException(
+            throw new IdentityConflictException(
                 'The remote ID "' . $remoteId . '" is already mapped.',
                 1616582391
             );
@@ -127,8 +139,10 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      */
-    public function remove(string $remoteId): void
+    public function remove(string $remoteId, ?AbstractRecordOperation $recordOperation = null): void
     {
+        $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
+
         self::$remoteToLocalIdCache[$remoteId] = 0;
         self::$remoteIdToTableCache[$remoteId] = '';
 
@@ -147,7 +161,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      * Getting mapped remoteId.
      *
      * @param string $table
-     * @param int $uid
+     * @param int $uid Must be base language UID (language UID equals zero).
      * @return string|bool
      */
     public function getRemoteId(string $table, int $uid)
@@ -223,5 +237,48 @@ class RemoteIdMappingRepository extends AbstractRepository
     protected function hashRecordOperation(AbstractRecordOperation $recordOperation): string
     {
         return md5(get_class($recordOperation) . serialize($recordOperation->getArguments()));
+    }
+
+    /**
+     * Adds aspects, such as language and workspace ID to a remote ID based on the $recordOperation. If the
+     * $recordOperation is null, language null or language ID zero  , the $remoteId is removed unchanged.
+     *
+     * @param string $remoteId
+     * @param AbstractRecordOperation|null $recordOperation
+     * @return string
+     */
+    public function addAspectsToRemoteId(string $remoteId, ?AbstractRecordOperation $recordOperation): string
+    {
+        if (
+            $recordOperation === null
+            || !TcaUtility::isLocalizable($recordOperation->getTable())
+            || $recordOperation->getLanguage() === null
+            || $recordOperation->getLanguage()->getLanguageId() === 0
+        ) {
+            return $remoteId;
+        }
+
+        $languageAspect = self::LANGUAGE_ASPECT_PREFIX . $recordOperation->getLanguage()->getLanguageId();
+
+        if (strpos($remoteId, $languageAspect) !== false) {
+            return $remoteId;
+        }
+
+        $remoteId = $this->removeAspectsFromRemoteId($remoteId);
+
+        return $remoteId . $languageAspect;
+    }
+
+    /**
+     * @param string $remoteId
+     * @return string
+     */
+    public function removeAspectsFromRemoteId(string $remoteId): string
+    {
+        if (strpos($remoteId, self::LANGUAGE_ASPECT_PREFIX) === false) {
+            return $remoteId;
+        }
+
+        return substr($remoteId, 0, strpos($remoteId, self::LANGUAGE_ASPECT_PREFIX));
     }
 }

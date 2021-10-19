@@ -18,6 +18,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -143,13 +144,15 @@ abstract class AbstractRecordOperation
         /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
+        $this->language = $this->resolveLanguage((string)$language);
+
+        $this->createTranslationFields();
+
         $this->uid = $this->resolveUid();
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
         $this->storagePid = $this->resolveStoragePid();
-
-        $this->language = $this->resolveLanguage((string)$language);
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
@@ -300,36 +303,34 @@ abstract class AbstractRecordOperation
      */
     private function resolveLanguage(?string $language): ?SiteLanguage
     {
+        if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
+            return null;
+        }
+
         /** @var SiteFinder $siteFinder */
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
 
-        try {
-            $site = $siteFinder->getSiteByPageId($this->getStoragePid());
-        } catch (SiteNotFoundException $siteNotFoundException) {
-            if (empty($language)) {
-                return null;
-            }
+        $sites = $siteFinder->getAllSites();
 
-            $sites = $siteFinder->getAllSites();
+        $siteLanguages = [];
 
-            $siteLanguages = [];
-
-            foreach ($sites as $site) {
-                $siteLanguages = array_merge($siteLanguages, $site->getAllLanguages());
-            }
-
-            $siteLanguages = array_unique($siteLanguages);
-
-            $site = null;
+        foreach ($sites as $site) {
+            $siteLanguages = array_merge($siteLanguages, $site->getAllLanguages());
         }
 
-        if ($site !== null) {
-            if (empty($language)) {
-                return $site->getDefaultLanguage();
+        // This is the equivalent of running array_unique, but supports objects.
+        $siteLanguages = array_reduce($siteLanguages, function (array $uniqueSiteLanguages, SiteLanguage $item) {
+            /** @var SiteLanguage $siteLanguage */
+            foreach ($uniqueSiteLanguages as $siteLanguage) {
+                if ($siteLanguage->getLanguageId() === $item->getLanguageId()) {
+                    return $uniqueSiteLanguages;
+                }
             }
 
-            $siteLanguages = $site->getAllLanguages();
-        }
+            $uniqueSiteLanguages[] = $item;
+
+            return $uniqueSiteLanguages;
+        }, []);
 
         foreach ($siteLanguages as $siteLanguage) {
             $hreflang = $siteLanguage->getHreflang();
@@ -551,6 +552,13 @@ abstract class AbstractRecordOperation
      */
     protected function isRelationalField(string $field): bool
     {
+        if (
+            $field === TcaUtility::getTranslationSourceField($this->getTable())
+            || $field === TcaUtility::getTransOrigPointerField($this->getTable())
+        ) {
+            return true;
+        }
+
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
         return (
@@ -613,6 +621,36 @@ abstract class AbstractRecordOperation
         }
 
         return $tcaFieldConf;
+    }
+
+    /**
+     * Create the translation fields if the table is translatable, language is set and nonzero, and the language field
+     * hasn't already been set.
+     */
+    protected function createTranslationFields()
+    {
+        if (
+            $this->getLanguage() !== null
+            && $this->getLanguage()->getLanguageId() !== 0
+            && TcaUtility::isLocalizable($this->getTable())
+            && !isset($this->data[TcaUtility::getLanguageField($this->getTable())])
+        ) {
+            $baseLanguageRemoteId = $this->mappingRepository->removeAspectsFromRemoteId($this->getRemoteId());
+
+            $this->remoteId = $this->mappingRepository->addAspectsToRemoteId($this->getRemoteId(), $this);
+
+            $this->data[TcaUtility::getLanguageField($this->getTable())] = $this->getLanguage()->getLanguageId();
+
+            $transOrigPointerField = TcaUtility::getTransOrigPointerField($this->getTable());
+            if (!empty($transOrigPointerField) && !isset($this->data[$transOrigPointerField])) {
+                $this->data[$transOrigPointerField] = $baseLanguageRemoteId;
+            }
+
+            $translationSourceField = TcaUtility::getTranslationSourceField($this->getTable());
+            if (!empty($translationSourceField) && !isset($this->data[$translationSourceField])) {
+                $this->data[$translationSourceField] = $baseLanguageRemoteId;
+            }
+        }
     }
 
     /**
