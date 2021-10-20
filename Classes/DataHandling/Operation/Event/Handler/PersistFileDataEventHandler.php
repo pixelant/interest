@@ -87,7 +87,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             for ($i = 0; $i < $hashedSubfolders; $i++) {
                 $subfolderName = substr($fileNameHash, $i, 1);
 
-                if ($downloadFolder->getSubfolder($subfolderName)) {
+                if ($downloadFolder->hasFolder($subfolderName)) {
                     $downloadFolder = $downloadFolder->getSubfolder($subfolderName);
 
                     continue;
