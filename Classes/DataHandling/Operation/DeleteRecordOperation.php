@@ -20,7 +20,9 @@ class DeleteRecordOperation extends AbstractRecordOperation
     ) {
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
-        // TODO: Implement delete.
+        $this->dataHandler->cmdmap[$table][$this->getUid()]['delete'] = 1;
+
+        $this->mappingRepository->remove($remoteId);
     }
 
 }
