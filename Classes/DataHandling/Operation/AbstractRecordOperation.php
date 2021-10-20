@@ -559,6 +559,12 @@ abstract class AbstractRecordOperation
             return true;
         }
 
+        $settings = $this->configurationProvider->getSettings();
+
+        if (isset($settings['relationOverrides.'][$this->getTable() . '.'][$field])) {
+            return (bool)$settings['relationOverrides.'][$this->getTable() . '.'][$field];
+        }
+
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
         return (
