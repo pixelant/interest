@@ -5,6 +5,9 @@ tx_interest {
 
     # stdWrap-able upload path
     fileUploadFolderPath = 1:tx_interest
+
+    # stdWrap-able number of layers of subfolders based on file name hash
+    hashedSubfolders = 0
   }
 
   # Override TCA's relation definition by explicitly setting a field as being a relation or not.
