@@ -283,7 +283,7 @@ class FileUploadHandler extends CrudHandler
                 'tablenames' => self::PRODUCT_TABLE,
                 'uid_foreign' => [$data['data']['productRemoteId']],
                 'fieldname' => 'images',
-                'countryCode' => $data['data']['countryCode'],
+                'storage' => $data['data']['storage'],
             ],
         ];
 
@@ -298,7 +298,7 @@ class FileUploadHandler extends CrudHandler
                 'remoteId' => $data['data']['uid_foreign'][0][0],
                 'data' => [
                     'images' => [$data['remoteId']],
-                    'countryCode' => $data['data']['countryCode'],
+                    'storage' => $data['data']['storage'],
                 ],
             ];
 
