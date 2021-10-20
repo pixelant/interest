@@ -78,7 +78,7 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
                 );
             }
 
-            $input->setOption('data', $data);
+            $input->setOption('metaData', $data);
         }
     }
 

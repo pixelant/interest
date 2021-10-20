@@ -7,6 +7,7 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
@@ -118,15 +119,18 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     1634667221986
                 );
             } elseif (!empty($url)) {
+                /** @var Client $httpClient */
                 $httpClient = GeneralUtility::makeInstance(Client::class);
 
-                $response = $httpClient->get($url);
-
-                if ($response->getStatusCode() >= 400) {
-                    throw new NotFoundException(
-                        'Request failed. URL: "' . $url . '" Reason phrase: "' . $response->getReasonPhrase() . '"',
-                        1634667759711
-                    );
+                try {
+                    $response = $httpClient->get($url);
+                } catch (ClientException $exception) {
+                    if ($exception->getCode() >= 400) {
+                        throw new NotFoundException(
+                            'Request failed. URL: "' . $url . '" Message: "' . $exception->getMessage() . '"',
+                            1634667759711
+                        );
+                    }
                 }
 
                 $fileContent = $response->getBody()->getContents();

@@ -29,6 +29,7 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Abstract class for handling record operations like create, delete, read, and update.
@@ -282,7 +283,7 @@ abstract class AbstractRecordOperation
 
         $pid = $this->contentObjectRenderer->stdWrap(
             $settings['persistence.']['storagePid'] ?? '',
-            $settings['persistence.']['storagePid'] ?? []
+            $settings['persistence.']['storagePid.'] ?? []
         );
 
         if (!MathUtility::canBeInterpretedAsInteger($pid)) {
@@ -379,7 +380,10 @@ abstract class AbstractRecordOperation
     private function createContentObjectRenderer(): ContentObjectRenderer
     {
         /** @var ContentObjectRenderer $contentObjectRenderer */
-        $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $contentObjectRenderer = GeneralUtility::makeInstance(
+            ContentObjectRenderer::class,
+            GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
+        );
 
         $contentObjectRenderer->data = [
             'table' => $this->getTable(),
