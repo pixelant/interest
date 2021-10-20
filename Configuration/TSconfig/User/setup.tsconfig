@@ -3,6 +3,7 @@ tx_interest {
     # stdWrap-able default PID
     storagePid =
 
+    # stdWrap-able upload path
     fileUploadFolderPath = 1:tx_interest
   }
 
