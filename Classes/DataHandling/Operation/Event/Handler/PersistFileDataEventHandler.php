@@ -164,10 +164,11 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $file->setContents($fileContent);
         }
 
-        unset(
-            $data['fileData'],
-            $data['url']
-        );
+        unset($data['fileData']);
+        unset($data['url']);
+        unset($data['name']);
+
+        $event->getRecordOperation()->setUid($file->getUid());
 
         $event->getRecordOperation()->setData($data);
     }

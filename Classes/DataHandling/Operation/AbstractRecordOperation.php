@@ -199,12 +199,13 @@ abstract class AbstractRecordOperation
             );
         }
 
-        if ($this->getUid() === 0) {
+        if ($this instanceof CreateRecordOperation) {
             $this->mappingRepository->add(
                 $this->getRemoteId(),
                 $this->getTable(),
-                // This assumes we have only done a single operation and there is only one NEW key
-                $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
+                // The UID might have been set by another operation already, even though this is CreateRecordOperation.
+                // This assumes we have only done a single operation and there is only one NEW key.
+                $this->getUid() ?: $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
                 $this
             );
 

@@ -23,9 +23,9 @@ class CreateRecordOperation extends AbstractRecordOperation
     ) {
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
-        $temporaryUid = StringUtility::getUniqueId('NEW');
+        $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
 
-        $this->dataHandler->datamap[$table][$temporaryUid] = $this->getData();
+        $this->dataHandler->datamap[$table][$uid] = $this->getData();
     }
 
 }
