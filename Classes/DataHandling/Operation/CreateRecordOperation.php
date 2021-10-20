@@ -27,5 +27,4 @@ class CreateRecordOperation extends AbstractRecordOperation
 
         $this->dataHandler->datamap[$table][$uid] = $this->getData();
     }
-
 }
