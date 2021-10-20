@@ -730,11 +730,11 @@ class CrudHandler implements HandlerInterface
         $configuration = $this->objectManager->getConfigurationProvider()->getSettings();
 
         if (is_array($configuration['persistence']['storagePid'])) {
-            if ($importData['countryCode'] && array_key_exists($importData['countryCode'], $configuration['persistence']['storagePid'])) {
-                $importData['pid'] = $configuration['persistence']['storagePid'][$importData['countryCode']];
+            if ($importData['storage'] && array_key_exists($importData['storage'], $configuration['persistence']['storagePid'])) {
+                $importData['pid'] = $configuration['persistence']['storagePid'][$importData['storage']];
             } else {
                 throw new MissingArgumentException(
-                    'Country code is not set or wrong configuration given',
+                    'Storage is not set or wrong configuration given',
                     $this->currentRequest
                 );
             }
@@ -742,8 +742,8 @@ class CrudHandler implements HandlerInterface
             $importData['pid'] = $configuration['persistence']['storagePid'];
         }
 
-        if ($importData['countryCode']) {
-            unset($importData['countryCode']);
+        if ($importData['storage']) {
+            unset($importData['storage']);
         }
     }
 
