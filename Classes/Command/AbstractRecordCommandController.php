@@ -67,7 +67,7 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
             $input->setOption('data', $data);
         }
 
-        if ($input->getOption('metaData') !== null) {
+        if ($input->getOption('metaData') !== null && !is_array($input->getOption('metaData'))) {
             $data = json_decode($input->getOption('metaData'), true);
 
             if (!is_array($data)) {
@@ -81,6 +81,4 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
             $input->setOption('metaData', $data);
         }
     }
-
-
 }
