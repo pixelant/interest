@@ -67,13 +67,13 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
             $input->setOption('data', $data);
         }
 
-        if ($input->getOption('metaData') !== null && !is_array($input->getOption('metaData'))) {
+        if ($input->getOption('metaData') !== null) {
             $data = json_decode($input->getOption('metaData'), true);
 
             if (!is_array($data)) {
                 throw new InvalidOptionException(
-                    'Could not parse JSON data. Please ensure the option "metaData" is valid JSON.'
-                    . 'Received: "' . $input->getOption('data') . '"',
+                    'Could not parse JSON data. Please ensure the option "metaData" is valid JSON. '
+                    . 'Received: "' . $input->getOption('metaData') . '"',
                     1634238294734
                 );
             }
