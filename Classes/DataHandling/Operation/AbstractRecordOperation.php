@@ -624,11 +624,18 @@ abstract class AbstractRecordOperation
 
         $recordType = BackendUtility::getTCAtypeValue($this->getTable(), $data);
 
-        $columnsOverridesConfigOfField
+        $columnOverrideConfigForField
             = $GLOBALS['TCA'][$this->getTable()]['types'][$recordType]['columnsOverrides'][$field]['config'] ?? null;
 
-        if ($columnsOverridesConfigOfField) {
-            ArrayUtility::mergeRecursiveWithOverrule($tcaFieldConf, $columnsOverridesConfigOfField);
+        if ($columnOverrideConfigForField !== null) {
+            ArrayUtility::mergeRecursiveWithOverrule($tcaFieldConf, $columnOverrideConfigForField);
+        }
+
+        if ($tcaFieldConf === null) {
+            throw new \UnexpectedValueException(
+                'No configuration for the field "' . $this->getTable() . '.' . $field . '".',
+                1634895616563
+            );
         }
 
         return $tcaFieldConf;
