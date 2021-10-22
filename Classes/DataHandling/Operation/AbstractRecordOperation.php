@@ -244,7 +244,7 @@ abstract class AbstractRecordOperation
      */
     private function validateFieldNames(): void
     {
-        $fieldsNotInTca = array_diff_key($this->getData(), $GLOBALS['TCA'][$this->getTable()]['columns']);
+        $fieldsNotInTca = array_diff_key($this->getData(), $GLOBALS['TCA'][$this->getTable()]['columns']) ?? [];
 
         if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
             throw new ConflictException(
