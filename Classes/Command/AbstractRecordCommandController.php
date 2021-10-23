@@ -33,6 +33,13 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
                 'm',
                 InputOption::VALUE_REQUIRED,
                 'JSON-encoded metadata. Not persisted, but used in processing.'
+            )
+            ->addOption(
+                'batch',
+                'b',
+                InputOption::VALUE_NONE,
+                'If set, <remoteId> is ignored and <data> is an array where each key is a remote ID and each '
+                . 'value field data. Each set of remote ID and field data will be processed.'
             );
     }
 
@@ -47,9 +54,14 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
             if (is_resource($stream)) {
                 stream_set_blocking($stream, false);
 
-                // We're not using rewind() on the stream because it has a high performance cost.
+                $rawData = '';
 
-                $input->setOption('data', stream_get_contents($stream));
+                // We're not using rewind() on the stream because it has a high performance cost.
+                while (!feof($stream)) {
+                    $rawData .= fread($stream, 1024);
+                }
+
+                $input->setOption('data', $rawData);
             }
         }
 
@@ -64,7 +76,11 @@ class AbstractRecordCommandController extends \Symfony\Component\Console\Command
                 );
             }
 
-            $input->setOption('data', $data);
+            if ($input->getOption('batch')) {
+                $input->setOption('data', $data);
+            } else {
+                $input->setOption('data', [$input->getArgument('remoteId') => $data]);
+            }
         }
 
         if ($input->getOption('metaData') !== null) {

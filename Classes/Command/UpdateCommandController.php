@@ -40,32 +40,46 @@ class UpdateCommandController extends AbstractReceiveCommandController
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        try {
-            new UpdateRecordOperation(
-                $input->getOption('data'),
-                $input->getArgument('endpoint'),
-                $input->getArgument('remoteId'),
-                $input->getArgument('language'),
-                $input->getArgument('workspace'),
-                $input->getOption('metaData')
-            );
-        } catch (StopRecordOperationException $exception) {
-            $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $exceptions = [];
 
-            return 0;
-        } catch (NotFoundException $exception) {
-            if (!$input->getOption('create')) {
-                throw $exception;
+        foreach ($input->getOption('data') as $remoteId => $data) {
+            try {
+                new UpdateRecordOperation(
+                    $data,
+                    $input->getArgument('endpoint'),
+                    $remoteId,
+                    $input->getArgument('language'),
+                    $input->getArgument('workspace'),
+                    $input->getOption('metaData')
+                );
+            } catch (StopRecordOperationException $exception) {
+                $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+                return 0;
+            } catch (NotFoundException $exception) {
+                if (!$input->getOption('create')) {
+                    throw $exception;
+                }
+
+                new CreateRecordOperation(
+                    $data,
+                    $input->getArgument('endpoint'),
+                    $remoteId,
+                    $input->getArgument('language'),
+                    $input->getArgument('workspace'),
+                    $input->getOption('metaData')
+                );
+            } catch (\Throwable $exception) {
+                $exceptions[] = $exception;
+            }
+        }
+
+        if (count($exceptions) > 0) {
+            foreach ($exceptions as $exception) {
+                $this->getApplication()->renderThrowable($exception, $output);
             }
 
-            new CreateRecordOperation(
-                $input->getOption('data'),
-                $input->getArgument('endpoint'),
-                $input->getArgument('remoteId'),
-                $input->getArgument('language'),
-                $input->getArgument('workspace'),
-                $input->getOption('metaData')
-            );
+            return 255;
         }
 
         return 0;
