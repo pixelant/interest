@@ -5,7 +5,11 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
+use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Handler\Exception\ConflictException;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
@@ -21,6 +25,13 @@ class UpdateRecordOperation extends AbstractRecordOperation
         ?string $workspace = null,
         ?array $metaData = []
     ) {
+        if (!GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
+            throw new NotFoundException(
+                'The remote ID "' . $remoteId . '" doesn\'t exist.',
+                1635780346047
+            );
+        }
+
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
         $this->dataHandler->datamap[$table][$this->getUid()] = $this->getData();

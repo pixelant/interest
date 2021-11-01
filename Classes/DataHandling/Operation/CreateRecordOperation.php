@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
@@ -21,6 +23,13 @@ class CreateRecordOperation extends AbstractRecordOperation
         ?string $workspace = null,
         ?array $metaData = []
     ) {
+        if (GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
+            throw new IdentityConflictException(
+                'The remote ID "' . $remoteId . '" already exists.',
+                1635780292790
+            );
+        }
+
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
         $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
