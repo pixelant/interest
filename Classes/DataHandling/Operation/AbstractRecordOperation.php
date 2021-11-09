@@ -486,39 +486,6 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * Finds pending relations for a $remoteId record that is being inserted into the database and adds DataHandler
-     * datamap array inserting any pending relations into the database as well.
-     *
-     * @param string $table The table $remoteId is being inserted into.
-     * @param string $remoteId The remote ID
-     * @param array $data DataHandler datamap array to insert data into. Passed by reference.
-     */
-    protected function resolvePendingRelations(string $table, string $remoteId, string $placeholderId, &$data): void
-    {
-        foreach ($this->pendingRelationsRepository->get($remoteId) as $pendingRelation) {
-            /** @var RelationHandler $relationHandler */
-            $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
-
-            $relationHandler->start(
-                '',
-                $table,
-                '',
-                $pendingRelation['record_uid'],
-                $pendingRelation['table'],
-                $this->getTcaFieldConfigurationAndRespectColumnsOverrides($pendingRelation['field'])
-            );
-
-            $existingRelations = array_column(
-                $relationHandler->getFromDB()[$pendingRelation['table']] ?? [],
-                'uid'
-            );
-
-            $data[$pendingRelation['table']][$pendingRelation['record_uid']][$pendingRelation['field']]
-                = implode(',', array_merge($existingRelations, [$placeholderId]));
-        }
-    }
-
-    /**
      * Returns the type value of the local record representing $remoteId.
      *
      * @param string $table
