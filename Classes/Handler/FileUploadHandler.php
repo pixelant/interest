@@ -17,7 +17,6 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 
-
 class FileUploadHandler extends CrudHandler
 {
     public const PRODUCT_TABLE = 'tx_pxaproductmanager_domain_model_product';
