@@ -20,11 +20,9 @@ use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -568,43 +566,16 @@ abstract class AbstractRecordOperation
     /**
      * Returns TCA configuration for a field with type-related overrides.
      *
-     * @param string $table
      * @param string $field
-     * @param array $row
      * @return array
      */
     protected function getTcaFieldConfigurationAndRespectColumnsOverrides(string $field): array {
-        $tcaFieldConf = $GLOBALS['TCA'][$this->getTable()]['columns'][$field]['config'];
-
-        $data = $this->getData();
-
-        if ($this->mappingRepository->exists($this->remoteId)) {
-            $data = array_merge(
-                BackendUtility::getRecord(
-                    $this->table,
-                    $this->mappingRepository->get($this->getRemoteId())
-                ),
-                $data
-            );
-        }
-
-        $recordType = BackendUtility::getTCAtypeValue($this->getTable(), $data);
-
-        $columnOverrideConfigForField
-            = $GLOBALS['TCA'][$this->getTable()]['types'][$recordType]['columnsOverrides'][$field]['config'] ?? null;
-
-        if ($columnOverrideConfigForField !== null) {
-            ArrayUtility::mergeRecursiveWithOverrule($tcaFieldConf, $columnOverrideConfigForField);
-        }
-
-        if ($tcaFieldConf === null) {
-            throw new \UnexpectedValueException(
-                'No configuration for the field "' . $this->getTable() . '.' . $field . '".',
-                1634895616563
-            );
-        }
-
-        return $tcaFieldConf;
+        return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $this->getTable(),
+            $field,
+            $this->getData(),
+            $this->getRemoteId()
+        );
     }
 
     /**

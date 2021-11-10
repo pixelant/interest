@@ -17,4 +17,8 @@ return [
         'class' => \Pixelant\Interest\Command\ReadCommandController::class,
         'schedulable' => false,
     ],
+    'interest:pendingrelations' => [
+        'class' => \Pixelant\Interest\Command\PendingRelationsCommandController::class,
+        'schedulable' => false,
+    ],
 ];
