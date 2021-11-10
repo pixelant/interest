@@ -197,12 +197,19 @@ abstract class AbstractRecordOperation
             );
         }
 
-        if ($this instanceof CreateRecordOperation) {
+        if (
+            $this instanceof CreateRecordOperation
+            || (
+                // The UID might have been set by another operation already (e.g. a file), but not added to mapping.
+                !$this->mappingRepository->exists($this->getRemoteId())
+                && $this->getUid() > 0
+            )
+        ) {
             $this->mappingRepository->add(
                 $this->getRemoteId(),
                 $this->getTable(),
-                // The UID might have been set by another operation already, even though this is CreateRecordOperation.
                 // This assumes we have only done a single operation and there is only one NEW key.
+                // The UID might have been set by another operation already, even though this is CreateRecordOperation.
                 $this->getUid() ?: $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
                 $this
             );
