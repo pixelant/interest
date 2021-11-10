@@ -84,7 +84,7 @@ class TcaUtility
             $row = array_merge(
                 BackendUtility::getRecord(
                     $table,
-                    $mappingRepository->get($remoteId())
+                    $mappingRepository->get($remoteId)
                 ),
                 $row
             );
