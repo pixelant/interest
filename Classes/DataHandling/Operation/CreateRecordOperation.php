@@ -7,6 +7,7 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Utility\RelationUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -36,6 +37,8 @@ class CreateRecordOperation extends AbstractRecordOperation
         $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
 
         $this->dataHandler->datamap[$table][$uid] = $this->getData();
+
+        $this->resolvePendingRelations($uid);
     }
 
     public function __destruct()
@@ -54,25 +57,12 @@ class CreateRecordOperation extends AbstractRecordOperation
     protected function resolvePendingRelations($uid): void
     {
         foreach ($this->pendingRelationsRepository->get($this->getRemoteId()) as $pendingRelation) {
-            /** @var RelationHandler $relationHandler */
-            $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
-
-            $relationHandler->start(
-                '',
+            RelationUtility::addResolvedPendingRelationToDataHandler(
+                $this->dataHandler,
+                $pendingRelation,
                 $this->getTable(),
-                '',
-                $pendingRelation['record_uid'],
-                $pendingRelation['table'],
-                $this->getTcaFieldConfigurationAndRespectColumnsOverrides($pendingRelation['field'])
+                $uid
             );
-
-            $existingRelations = array_column(
-                $relationHandler->getFromDB()[$pendingRelation['table']] ?? [],
-                'uid'
-            );
-
-            $this->dataHandler->datamap[$pendingRelation['table']][$pendingRelation['record_uid']][$pendingRelation['field']]
-                = implode(',', array_unique(array_merge($existingRelations, [$uid])));
         }
     }
 }
