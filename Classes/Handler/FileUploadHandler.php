@@ -17,6 +17,7 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 
+
 class FileUploadHandler extends CrudHandler
 {
     public const PRODUCT_TABLE = 'tx_pxaproductmanager_domain_model_product';
@@ -324,7 +325,7 @@ class FileUploadHandler extends CrudHandler
         $storagePath = $configuration['persistence']['fileUploadFolderPath'];
         $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
         $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
-        $files = $storage->getFilesInFolder($downloadFolder);
+        $files = $storage->getFilesInFolder($downloadFolder, 0, 0, true, true);
 
         $data = [];
         if (count($files) > 0) {
