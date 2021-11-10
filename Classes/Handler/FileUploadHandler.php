@@ -324,7 +324,7 @@ class FileUploadHandler extends CrudHandler
         $storagePath = $configuration['persistence']['fileUploadFolderPath'];
         $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
         $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
-        $files = $storage->getFilesInFolder($downloadFolder);
+        $files = $storage->getFilesInFolder($downloadFolder, 0, 0, true, true);
 
         $data = [];
         if (count($files) > 0) {
