@@ -79,12 +79,6 @@ class PendingRelationsCommandController extends Command
             ->execute()
             ->fetchColumn(0);
 
-        if ($counts['_total']['resolvable'] === 0) {
-            $output->writeln('<comment>' . $counts['_total']['count'] . ' pending relations found.</comment>');
-
-            return 0;
-        }
-
         $queryBuilder = $this->getQueryBuilder();
 
         $tables = array_column(
