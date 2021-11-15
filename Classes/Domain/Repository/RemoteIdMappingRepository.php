@@ -114,12 +114,35 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'remote_id' => $remoteId,
                 'table' => $tableName,
                 'uid_local' => $uid,
-                'record_hash' => $this->hashRecordOperation($recordOperation)
+                'record_hash' => $this->hashRecordOperation($recordOperation),
+                'crdate' => time(),
+                'tstamp' => time(),
+                'touched' => time(),
             ])
             ->execute();
 
         self::$remoteToLocalIdCache[$remoteId] = $uid;
         self::$remoteIdToTableCache[$remoteId] = $tableName;
+    }
+
+    /**
+     * Update the `touched` property timestamp. This timestamp indicates when a $remoteId's record changed or would have
+     * changed if the hash wasn't the same.
+     *
+     * @param string $remoteId
+     */
+    public function touch(string $remoteId): void
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->update(self::TABLE_NAME)
+            ->set('touched', time())
+            ->where($queryBuilder->expr()->eq(
+                'remote_id',
+                $queryBuilder->createNamedParameter($remoteId)
+            ))
+            ->execute();
     }
 
     /**
@@ -193,6 +216,8 @@ class RemoteIdMappingRepository extends AbstractRepository
         $queryBuilder
             ->update(self::TABLE_NAME)
             ->set('record_hash', $this->hashRecordOperation($recordOperation))
+            ->set('tstamp', time())
+            ->set('touched', time())
             ->where($queryBuilder->expr()->eq(
                 'remote_id',
                 $queryBuilder->createNamedParameter($recordOperation->getRemoteId())
@@ -212,6 +237,8 @@ class RemoteIdMappingRepository extends AbstractRepository
         if (!$this->exists($recordOperation->getRemoteId())) {
             return false;
         }
+
+        $this->touch($recordOperation->getRemoteId());
 
         $queryBuilder = $this->getQueryBuilder();
 

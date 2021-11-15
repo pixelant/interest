@@ -18,6 +18,7 @@ CREATE TABLE tx_interest_remote_id_mapping (
 		pid int(11) DEFAULT '0' NOT NULL,
 		tstamp int(11) DEFAULT '0' NOT NULL,
 		crdate int(11) DEFAULT '0' NOT NULL,
+		touched int(11) DEFAULT '0' NOT NULL,
 		cruser_id int(11) DEFAULT '0' NOT NULL,
     remote_id varchar(255) DEFAULT '' NOT NULL,
     table varchar(255) DEFAULT '0' NOT NULL,
