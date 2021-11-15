@@ -55,7 +55,7 @@ class UpdateCommandController extends AbstractReceiveCommandController
             } catch (StopRecordOperationException $exception) {
                 $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-                return 0;
+                continue;
             } catch (NotFoundException $exception) {
                 if (!$input->getOption('create')) {
                     throw $exception;
