@@ -118,6 +118,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'crdate' => time(),
                 'tstamp' => time(),
                 'touched' => time(),
+                'metadata' => json_encode([]),
             ])
             ->execute();
 
@@ -253,6 +254,76 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute()
             ->fetchOne();
+    }
+
+    /**
+     * Returns data from the `metadata` field, used to hold internal data used for data retrieval optimization etc.
+     *
+     * @param string $remoteId
+     * @return array
+     */
+    public function getMetaData(string $remoteId): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        $metaData = $queryBuilder
+            ->select('metadata')
+            ->from(self::TABLE_NAME)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                )
+            )
+            ->execute()
+            ->fetchOne();
+
+        $metaData = json_decode($metaData, true) ?? [];
+
+        if (!is_array($metaData)) {
+            return [];
+        }
+
+        return $metaData;
+    }
+
+    /**
+     * Retrieve a meta data value from the `metadata` field, used to hold internal data used for data retrieval
+     * optimization etc.
+     *
+     * @param string $remoteId
+     * @param string $key
+     * @return null|string|float|int|array Null if value wasn't found
+     */
+    public function getMetaDataValue(string $remoteId, string $key)
+    {
+        return $this->getMetaData($remoteId)[$key] ?? null;
+    }
+
+    /**
+     * Set a meta data value used to hold internal data used for data retrieval optimization etc.
+     *
+     * @param string $remoteId
+     * @param string $key
+     * @param null|string|float|int|array $value
+     */
+    public function setMetaDataValue(string $remoteId, string $key, $value)
+    {
+        $metaData = $this->getMetaData($remoteId);
+
+        $metaData[$key] = $value;
+
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->update(self::TABLE_NAME)
+            ->set('metadata', json_encode($metaData))
+            ->set('tstamp', time())
+            ->where($queryBuilder->expr()->eq(
+                'remote_id',
+                $queryBuilder->createNamedParameter($remoteId)
+            ))
+            ->execute();
     }
 
     /**

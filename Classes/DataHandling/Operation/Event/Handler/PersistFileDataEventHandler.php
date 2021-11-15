@@ -98,6 +98,9 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             }
         }
 
+        /** @var RemoteIdMappingRepository $mappingRepository */
+        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
         if (!empty($data['fileData'])) {
             $stream = fopen('php://temp', 'rw');
 
@@ -122,8 +125,23 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                 /** @var Client $httpClient */
                 $httpClient = GeneralUtility::makeInstance(Client::class);
 
+                $metaData = $mappingRepository->getMetaDataValue(
+                    $event->getRecordOperation()->getRemoteId(),
+                    self::class
+                ) ?? [];
+
+                $headers = [];
+
+                if (!empty($metaData['date'])) {
+                    $headers['If-Modified-Since'] = $metaData['date'];
+                }
+
+                if (!empty($metaData['etag'])) {
+                    $headers['If-None-Match'] = $metaData['etag'];
+                }
+
                 try {
-                    $response = $httpClient->get($url);
+                    $response = $httpClient->get($url, ['headers' => $headers]);
                 } catch (ClientException $exception) {
                     if ($exception->getCode() >= 400) {
                         throw new NotFoundException(
@@ -133,12 +151,31 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     }
                 }
 
+                if (
+                    $response->getStatusCode() === 304
+                    && get_class($event->getRecordOperation()) !== CreateRecordOperation::class
+                ) {
+                    unset($data['fileData']);
+                    unset($data['url']);
+                    unset($data['name']);
+
+                    $event->getRecordOperation()->setData($data);
+
+                    return;
+                }
+
+                $mappingRepository->setMetaDataValue(
+                    $event->getRecordOperation()->getRemoteId(),
+                    self::class,
+                    [
+                        'date' => $response->getHeader('Date'),
+                        'etag' => $response->getHeader('ETag'),
+                    ]
+                );
+
                 $fileContent = $response->getBody()->getContents();
             }
         }
-
-        /** @var RemoteIdMappingRepository $mappingRepository */
-        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         if (get_class($event->getRecordOperation()) === CreateRecordOperation::class) {
             $file = $downloadFolder->createFile($fileBaseName);

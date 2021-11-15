@@ -85,6 +85,12 @@ return [
                 ],
             ]
         ],
+        'metadata' => [
+            'label' => 'Meta dats',
+            'config' => [
+                'type' => 'passthrough'
+            ]
+        ],
     ],
     'types' => [
         '0' => [
