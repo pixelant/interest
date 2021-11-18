@@ -451,7 +451,13 @@ abstract class AbstractRecordOperation
 
             $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
 
-            if (is_array($this->data[$fieldName]) && $tcaConfiguration['type'] === 'inline') {
+            if (
+                is_array($this->data[$fieldName])
+                && $this->contentObjectRenderer->stdWrap(
+                    $tcaConfiguration['type'],
+                    $this->configurationProvider->getSettings()['tcaTypeOverride.'][$this->getTable() . '.'][$fieldName . '.'] ?? []
+                ) === 'inline'
+            ) {
                 $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
             }
         }

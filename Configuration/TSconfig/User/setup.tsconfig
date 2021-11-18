@@ -15,4 +15,17 @@ tx_interest {
   relationOverrides {
 
   }
+
+  # Override the TCA type of the field. E.g.: change "text" to "inline".
+  # The value is always set to the field's current type. It is passed through the stdWrap
+  # `relationOverrides.<table>.<field>` and can be modified. The returned value must be a valid relation field type.
+  relationTypeOverride {
+
+  }
+
+  # Use `isSingleRelation.<table>.<field>` to override whether a field supports 1:n or m:n relations. Should be set to
+  # true (1) if it is a 1:n relation and false (0) if it is a m:n relation. Supports stdWrap.
+  isSingleRelationOverrides {
+
+  }
 }
