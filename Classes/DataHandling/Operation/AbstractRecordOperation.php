@@ -571,6 +571,18 @@ abstract class AbstractRecordOperation
             return false;
         }
 
+        $settings = $this->configurationProvider->getSettings();
+
+        if (
+            isset($settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field])
+            || isset($settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field . '.'])
+        ) {
+            return (bool)$this->contentObjectRenderer->stdWrap(
+                $settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field] ?? '',
+                $settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field . '.'] ?? []
+            );
+        }
+
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
         return $tca['maxitems'] === 1 && empty($tca['foreign_table']);
