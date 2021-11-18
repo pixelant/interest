@@ -455,7 +455,7 @@ abstract class AbstractRecordOperation
                 is_array($this->data[$fieldName])
                 && $this->contentObjectRenderer->stdWrap(
                     $tcaConfiguration['type'],
-                    $this->configurationProvider->getSettings()['tcaTypeOverride.'][$this->getTable() . '.'][$fieldName . '.'] ?? []
+                    $this->configurationProvider->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.'] ?? []
                 ) === 'inline'
             ) {
                 $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
