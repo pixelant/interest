@@ -278,6 +278,10 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->execute()
             ->fetchOne();
 
+        if ($metaData === false) {
+            return [];
+        }
+
         $metaData = json_decode($metaData, true) ?? [];
 
         if (!is_array($metaData)) {
