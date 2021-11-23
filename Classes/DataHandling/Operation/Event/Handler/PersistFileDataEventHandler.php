@@ -20,6 +20,7 @@ use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
+use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -151,29 +152,18 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     }
                 }
 
-                if (
-                    $response->getStatusCode() === 304
-                    && get_class($event->getRecordOperation()) !== CreateRecordOperation::class
-                ) {
-                    unset($data['fileData']);
-                    unset($data['url']);
-                    unset($data['name']);
+                if ($response->getStatusCode() !== 304) {
+                    $fileContent = $response->getBody()->getContents();
 
-                    $event->getRecordOperation()->setData($data);
-
-                    return;
+                    $mappingRepository->setMetaDataValue(
+                        $event->getRecordOperation()->getRemoteId(),
+                        self::class,
+                        [
+                            'date' => $response->getHeader('Date'),
+                            'etag' => $response->getHeader('ETag'),
+                        ]
+                    );
                 }
-
-                $mappingRepository->setMetaDataValue(
-                    $event->getRecordOperation()->getRemoteId(),
-                    self::class,
-                    [
-                        'date' => $response->getHeader('Date'),
-                        'etag' => $response->getHeader('ETag'),
-                    ]
-                );
-
-                $fileContent = $response->getBody()->getContents();
             }
         }
 
@@ -199,6 +189,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     1634668857809
                 );
             }
+
+            $this->renameFile($file, $fileBaseName);
         }
 
         if (!empty($fileContent)) {
@@ -212,5 +204,19 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         $event->getRecordOperation()->setUid($file->getUid());
 
         $event->getRecordOperation()->setData($data);
+    }
+
+    /**
+     * Rename a file if the file name has changed.
+     *
+     * @param File $file
+     * @param string $fileName
+     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException
+     */
+    protected function renameFile(File $file, string $fileName)
+    {
+        if ($file->getStorage()->sanitizeFileName($fileName) !== $file->getName()) {
+            $file->rename($fileName);
+        }
     }
 }
