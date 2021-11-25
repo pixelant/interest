@@ -71,7 +71,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             $this->remove($remoteId);
         }
 
-        return (int)self::$remoteToLocalIdCache[$remoteId];
+        return self::$remoteToLocalIdCache[$remoteId];
     }
 
     /**
