@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Configuration;
 
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\SingletonInterface;
 
 /**
  * Class TypoScriptConfigurationProvider.
  */
-class TypoScriptConfigurationProvider extends AbstractConfigurationProvider
+class TypoScriptConfigurationProvider extends AbstractConfigurationProvider implements SingletonInterface
 {
     /**
      * Returns the settings read from UserTS.
