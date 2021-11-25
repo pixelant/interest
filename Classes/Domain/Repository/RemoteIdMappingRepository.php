@@ -64,9 +64,8 @@ class RemoteIdMappingRepository extends AbstractRepository
         self::$remoteIdToTableCache[$remoteId] = $row['table'];
 
         if (
-            $row['uid_local'] !== null
-            && (int)$row['uid_local'] > 0
-            && DatabaseUtility::getRecord($row['table'], (int)$row['uid_local']) === null
+            self::$remoteToLocalIdCache[$remoteId] > 0
+            && DatabaseUtility::getRecord($row['table'], self::$remoteToLocalIdCache[$remoteId]) === null
         ) {
             $this->remove($remoteId);
         }
