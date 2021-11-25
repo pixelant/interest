@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Extbase\Mvc\Exception\InvalidArgumentValueException;
 
 /**
  * Repository for interaction with the database table tx_interest_remote_id_mapping.
@@ -82,11 +83,12 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param string $tableName
      * @param int $uid
      * @throws UniqueConstraintViolationException
+     * @throws InvalidArgumentValueException
      */
     public function add(string $remoteId, string $tableName, int $uid): void
     {
         if ($this->exists($remoteId)) {
-            throw new UniqueConstraintViolationException(
+            throw new InvalidArgumentValueException(
                 'The remote ID "' . $remoteId . '" is already mapped.',
                 1616582391
             );
