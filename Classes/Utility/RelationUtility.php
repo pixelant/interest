@@ -40,7 +40,7 @@ class RelationUtility
             TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
                 $pendingRelation['table'],
                 $pendingRelation['field'],
-                BackendUtility::getRecord($pendingRelation['table'], $pendingRelation['record_uid'])
+                DatabaseUtility::getRecord($pendingRelation['table'], $pendingRelation['record_uid'])
             )
         );
 

@@ -18,6 +18,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -517,7 +518,7 @@ abstract class AbstractRecordOperation
 
         $this->getTypeValueCache[$table . '_' . $remoteId] = BackendUtility::getTCAtypeValue(
             $table,
-            BackendUtility::getRecord(
+            DatabaseUtility::getRecord(
                 $table,
                 $this->mappingRepository->get($remoteId)
             )

@@ -82,7 +82,7 @@ class TcaUtility
 
         if ($remoteId !== null && $mappingRepository->exists($remoteId)) {
             $row = array_merge(
-                BackendUtility::getRecord(
+                DatabaseUtility::getRecord(
                     $table,
                     $mappingRepository->get($remoteId)
                 ),
