@@ -7,6 +7,7 @@ namespace Pixelant\Interest\Domain\Repository;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
@@ -62,7 +63,11 @@ class RemoteIdMappingRepository extends AbstractRepository
         self::$remoteToLocalIdCache[$remoteId] = (int)$row['uid_local'];
         self::$remoteIdToTableCache[$remoteId] = $row['table'];
 
-        if (BackendUtility::getRecord($row['table'], $row['uid_local']) === null) {
+        if (
+            $row['uid_local'] !== null
+            && (int)$row['uid_local'] > 0
+            && DatabaseUtility::getRecord($row['table'], (int)$row['uid_local']) === null
+        ) {
             $this->remove($remoteId);
         }
 
