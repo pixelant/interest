@@ -5,12 +5,15 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Command;
 
+use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StreamableInputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Database\RelationHandler;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Abstract command for handling operations with entrypoint and remoteId.
@@ -41,6 +44,12 @@ abstract class AbstractRecordCommandController extends Command
                 InputOption::VALUE_NONE,
                 'If set, <remoteId> is ignored and <data> is an array where each key is a remote ID and each '
                 . 'value field data. Each set of remote ID and field data will be processed.'
+            )
+            ->addOption(
+                'disableReferenceIndex',
+                null,
+                InputOption::VALUE_NONE,
+                'If set, the reference index will not be updated.'
             );
     }
 
@@ -96,6 +105,12 @@ abstract class AbstractRecordCommandController extends Command
             }
 
             $input->setOption('metaData', $data);
+        }
+
+        if ($input->getOption('disableReferenceIndex')) {
+            $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
+                'className' => RelationHandlerWithoutReferenceIndex::class
+            ];
         }
     }
 }
