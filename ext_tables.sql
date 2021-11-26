@@ -29,7 +29,8 @@ CREATE TABLE tx_interest_remote_id_mapping (
 
 		PRIMARY KEY (uid),
     KEY remote_id (remote_id),
-    KEY local_side (table, uid_local)
+    KEY local_side (table, uid_local),
+    KEY record_hash (record_hash)
 );
 
 CREATE TABLE tx_interest_pending_relations (
