@@ -21,7 +21,7 @@ use Pixelant\Interest\Utility\CompatibilityUtility;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;

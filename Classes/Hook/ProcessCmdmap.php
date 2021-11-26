@@ -7,7 +7,7 @@ namespace Pixelant\Interest\Hook;
 
 
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**

@@ -11,7 +11,7 @@ use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
 use Pixelant\Interest\Router\RouterInterface;
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Security\FileNameValidator;

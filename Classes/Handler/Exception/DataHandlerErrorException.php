@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Handler\Exception;
 
 use Psr\Http\Message\RequestInterface;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\DataHandler;
 
 /**
  * Exception issued in cases where HTTP Authentication fails. Should not be used for TYPO3 backend user access
