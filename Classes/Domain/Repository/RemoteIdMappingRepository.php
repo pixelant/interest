@@ -252,6 +252,10 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->where(
                 $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($recordOperation->getRemoteId())
+                ),
+                $queryBuilder->expr()->eq(
                     'record_hash',
                     $queryBuilder->createNamedParameter($this->hashRecordOperation($recordOperation))
                 )
