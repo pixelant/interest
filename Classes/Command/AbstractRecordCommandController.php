@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Command;
 
+use Pixelant\Interest\Context;
 use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidOptionException;
@@ -107,7 +108,9 @@ abstract class AbstractRecordCommandController extends Command
             $input->setOption('metaData', $data);
         }
 
-        if ($input->getOption('disableReferenceIndex')) {
+        Context::setDisableReferenceIndex($input->getOption('disableReferenceIndex'));
+
+        if (Context::isDisableReferenceIndex()) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
                 'className' => RelationHandlerWithoutReferenceIndex::class
             ];
