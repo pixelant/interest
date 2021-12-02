@@ -24,14 +24,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ClearRecordHashCommandController extends Command
 {
-    /**
-     * @inheritDoc
-     */
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        Bootstrap::initializeBackendAuthentication();
-    }
-
     protected function configure()
     {
         parent::configure();
