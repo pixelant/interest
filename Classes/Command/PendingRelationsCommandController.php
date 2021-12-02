@@ -40,7 +40,7 @@ class PendingRelationsCommandController extends Command
             ->addOption(
                 'resolve',
                 'r',
-                InputOption::VALUE_NONE.
+                InputOption::VALUE_NONE,
                 'Attempt to resolve pending relations where both sides exist.'
             );
     }
