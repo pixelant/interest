@@ -21,4 +21,8 @@ return [
         'class' => \Pixelant\Interest\Command\PendingRelationsCommandController::class,
         'schedulable' => false,
     ],
+    'interest:clearhash' => [
+        'class' => \Pixelant\Interest\Command\ClearRecordHashCommandController::class,
+        'schedulable' => false,
+    ],
 ];
