@@ -60,7 +60,7 @@ return [
                 'eval' => 'required,alphanum_x,trim',
             ]
         ],
-        'local_uid' => [
+        'uid_local' => [
             'exclude' => false,
             'label' => $ll . 'tx_interest_remote_id_mapping.local_uid',
             'config' => [
@@ -94,7 +94,7 @@ return [
     ],
     'types' => [
         '0' => [
-            'showitem' => 'manual, remote_id, table, local_uid'
+            'showitem' => 'manual, remote_id, table, uid_local'
         ],
     ],
 ];
