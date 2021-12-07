@@ -69,3 +69,10 @@ CREATE TABLE tx_interest_deferred_operation (
 	KEY dependent_remote_id (dependent_remote_id),
 	KEY crdate (crdate),
 );
+
+#
+# Gives an extra boost to queries against the reference index.
+#
+CREATE TABLE `sys_refindex` (
+	KEY `table_rec_ws` (`tablename`,`recuid`,`workspace`)
+);
