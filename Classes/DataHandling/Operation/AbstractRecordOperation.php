@@ -19,6 +19,7 @@ use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
 use Pixelant\Interest\Utility\DatabaseUtility;
+use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use Pixelant\Interest\DataHandling\DataHandler;
@@ -637,6 +638,24 @@ abstract class AbstractRecordOperation
             if (!empty($translationSourceField) && !isset($this->data[$translationSourceField])) {
                 $this->data[$translationSourceField] = $baseLanguageRemoteId;
             }
+        }
+    }
+
+    /**
+     * Finds pending relations for a $remoteId record that is being inserted into the database and adds DataHandler
+     * datamap array inserting any pending relations into the database as well.
+     *
+     * @param string|int $uid Could be a newly inserted UID or a temporary ID (e.g. NEW1234abcd)
+     */
+    protected function resolvePendingRelations($uid): void
+    {
+        foreach ($this->pendingRelationsRepository->get($this->getRemoteId()) as $pendingRelation) {
+            RelationUtility::addResolvedPendingRelationToDataHandler(
+                $this->dataHandler,
+                $pendingRelation,
+                $this->getTable(),
+                $uid
+            );
         }
     }
 
