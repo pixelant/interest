@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException as OperationConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException as OperationInvalidArgumentException;
@@ -19,6 +20,7 @@ use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
 use Pixelant\Interest\Handler\Exception\InvalidArgumentException;
 use Pixelant\Interest\Handler\Exception\MissingArgumentException;
 use Pixelant\Interest\Handler\Exception\NotFoundException;
+use Pixelant\Interest\Handler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\Http\InterestRequestInterface;
 use Pixelant\Interest\ObjectManagerInterface;
 use Pixelant\Interest\Router\Route;
@@ -141,6 +143,7 @@ class CrudHandler implements HandlerInterface
         ] = $importData ?? $this->createArrayFromJson($request->getBody()->getContents());
 
         $responseFactory = $this->objectManager->getResponseFactory();
+
         $tableName = (!empty($tableName)) ? $tableName : $request->getResourceType()->__toString();
 
         if ($remoteId === null) {
@@ -160,92 +163,9 @@ class CrudHandler implements HandlerInterface
 
                 new UpdateRecordOperation($importData, $tableName, $remoteId, $language, $workspace, $metaData);
             }
-        } catch (OperationConflictException $exception) {
-            throw new ConflictException(
-                sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
-                $request
-            );
-        } catch (OperationNotFoundException $exception) {
-            throw new NotFoundException(
-                sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
-                $request
-            );
-        } catch (OperationInvalidArgumentException $exception) {
-            throw new InvalidArgumentException(
-                sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
-                $request
-            );
-        } catch (OperationMissingArgumentException $exception) {
-            throw new MissingArgumentException(
-                sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
-                $request
-            );
+        } catch (AbstractException $operationException) {
+            throw OperationToRequestHandlerExceptionConverter::convert($operationException, $request);
         }
-
-//        if (!$isUpdate) {
-//            if ($this->mappingRepository->exists($remoteId)) {
-//                throw new ConflictException(
-//                    'Remote ID "' . $remoteId . '" already exists.',
-//                    $request
-//                );
-//            }
-//        } else {
-//            if (!$this->mappingRepository->exists($remoteId)) {
-//                throw new NotFoundException(
-//                    'Remote ID "' . $remoteId . '" does not exists.',
-//                    $request
-//                );
-//            }
-//        }
-//
-//        $this->resolveStoragePid($importData);
-//
-//        $fieldsNotInTca = array_diff_key($importData, $GLOBALS['TCA'][$tableName]['columns']);
-//        if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
-//            throw new ConflictException(
-//                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-//                $request
-//            );
-//        }
-
-        if (!$isUpdate) {
-            $placeholderId = StringUtility::getUniqueId('NEW');
-
-            $localId = $this->executeDataInsertOrUpdate($tableName, $placeholderId, $remoteId, $importData);
-
-            return $responseFactory->createSuccessResponse(
-                [
-                    'status' => 'success',
-                    'data' => [
-                        'uid' => $localId,
-                    ],
-                ],
-                200,
-                $request
-            );
-        }
-
-        $isMatchingHash = $this->checkHash($importData, $remoteId);
-
-        if ($isMatchingHash) {
-            return $responseFactory->createSuccessResponse(
-                [
-                    'status' => 'success',
-                    'data' => [
-                        'uid' => $this->mappingRepository->get($remoteId),
-                    ],
-                ],
-                200,
-                $request
-            );
-        }
-
-        $this->executeDataInsertOrUpdate(
-            $tableName,
-            (string)$this->mappingRepository->get($remoteId),
-            $remoteId,
-            $importData
-        );
 
         return $responseFactory->createSuccessResponse(
             [
