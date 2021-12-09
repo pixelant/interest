@@ -5,9 +5,15 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
+use Pixelant\Interest\Configuration\ConfigurationProvider;
+use Pixelant\Interest\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -16,21 +22,42 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class DeleteRecordOperation extends AbstractRecordOperation
 {
     public function __construct(
-        array $data,
-        string $table,
         string $remoteId,
         ?string $language = null,
-        ?string $workspace = null,
-        ?array $metaData = []
+        ?string $workspace = null
     ) {
-        if (!GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
+        $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
+        if (!$this->mappingRepository->exists($remoteId)) {
             throw new NotFoundException(
                 'The remote ID "' . $remoteId . '" doesn\'t exist.',
-                1635780346047
+                1639057109294
             );
         }
 
-        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
+        $this->table = strtolower($table);
+        $this->remoteId = $remoteId;
+        $this->data = $data;
+        $this->metaData = $metaData ?? [];
+
+
+
+        $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
+
+        $this->language = $this->resolveLanguage((string)$language);
+
+        $this->uid = $this->resolveUid();
+
+        try {
+            CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
+        } catch (StopRecordOperationException $exception) {
+            $this->operationStopped = true;
+
+            throw $exception;
+        }
+
+        $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
+        $this->dataHandler->start([], []);
 
         $this->dataHandler->cmdmap[$table][$this->getUid()]['delete'] = 1;
 
