@@ -66,7 +66,7 @@ class ClearRecordHashCommandController extends Command
 
         $rows = (int)$queryBuilder
             ->update(RemoteIdMappingRepository::TABLE_NAME)
-            ->set('remote_id', '')
+            ->set('record_hash', '')
             ->execute();
 
         $output->writeln('Cleared hash in ' . $rows . ' rows.');
