@@ -9,7 +9,6 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
 /**
@@ -148,6 +147,63 @@ class RemoteIdMappingRepository extends AbstractRepository
                 $queryBuilder->createNamedParameter($remoteId)
             ))
             ->execute();
+    }
+
+    /**
+     * Returns the timestamp when the remote ID was last touched or zero if it hasn't been touched or doesn't exist.
+     *
+     * @param string $remoteId
+     * @return int timestamp
+     */
+    public function touched(string $remoteId): int
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        return (int)$queryBuilder
+            ->select('touched')
+            ->from(self::TABLE_NAME)
+            ->where($queryBuilder->expr()->eq(
+                'remote_id',
+                $queryBuilder->createNamedParameter($remoteId)
+            ))
+            ->execute()
+            ->fetchColumn();
+    }
+
+    /**
+     * Returns remote IDs that have not been touched since $timestamp.
+     *
+     * @param int $timestamp
+     * @return string[] Remote IDs
+     */
+    public function findAllUntouchedSince(int $timestamp): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        return $queryBuilder
+            ->select('remote_id')
+            ->from(self::TABLE_NAME)
+            ->where($queryBuilder->expr()->lt('touched', $timestamp))
+            ->execute()
+            ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
+    }
+
+    /**
+     * Returns remote IDs that have been touched since $timestamp.
+     *
+     * @param int $timestamp
+     * @return string[] Remote IDs
+     */
+    public function findAllTouchedSince(int $timestamp): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        return $queryBuilder
+            ->select('remote_id')
+            ->from(self::TABLE_NAME)
+            ->where($queryBuilder->expr()->gt('touched', $timestamp))
+            ->execute()
+            ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
     }
 
     /**
