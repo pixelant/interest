@@ -95,10 +95,15 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param string $remoteId
      * @param string $tableName
      * @param int $uid
-     * @param AbstractRecordOperation $recordOperation
+     * @param AbstractRecordOperation|null $recordOperation Must be set when called from within a record operation
      * @throws UniqueConstraintViolationException
      */
-    public function add(string $remoteId, string $tableName, int $uid, AbstractRecordOperation $recordOperation): void
+    public function add(
+        string $remoteId,
+        string $tableName,
+        int $uid,
+        ?AbstractRecordOperation $recordOperation = null
+    ): void
     {
         $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
 
@@ -117,7 +122,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'remote_id' => $remoteId,
                 'table' => $tableName,
                 'uid_local' => $uid,
-                'record_hash' => $this->hashRecordOperation($recordOperation),
+                'record_hash' => $recordOperation === null ? '' : $this->hashRecordOperation($recordOperation),
                 'crdate' => time(),
                 'tstamp' => time(),
                 'touched' => time(),
