@@ -434,24 +434,43 @@ abstract class AbstractRecordOperation
     protected function prepareRelations()
     {
         foreach ($this->data as $fieldName => $fieldValue) {
-            if ($this->isRelationalField($fieldName)) {
-                if (!is_array($fieldValue)) {
-                    $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
-                }
-
-                $this->data[$fieldName] = [];
-                foreach ($fieldValue as $remoteIdRelation) {
-                    if ($this->mappingRepository->exists($remoteIdRelation)) {
-                        $this->data[$fieldName][] = $this->mappingRepository->get($remoteIdRelation);
-
-                        continue;
-                    }
-
-                    $this->pendingRelations[$fieldName][] = $remoteIdRelation;
-                }
+            if (!$this->isRelationalField($fieldName)) {
+                continue;
             }
 
             $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+
+            if (!is_array($fieldValue)) {
+                $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
+            }
+
+            $prefixWithTable = false;
+            if (
+                $tcaConfiguration['type'] === 'group'
+                && (
+                    $tcaConfiguration['allowed'] === '*'
+                    || strpos(',', $tcaConfiguration['allowed']) !== false
+                )
+            ) {
+                $prefixWithTable = true;
+            }
+
+            $this->data[$fieldName] = [];
+            foreach ($fieldValue as $remoteIdRelation) {
+                if ($this->mappingRepository->exists($remoteIdRelation)) {
+                    $uid = $this->mappingRepository->get($remoteIdRelation);
+
+                    if ($prefixWithTable) {
+                        $uid = $this->mappingRepository->table($remoteIdRelation) . '_' . $uid;
+                    }
+
+                    $this->data[$fieldName][] = $uid;
+
+                    continue;
+                }
+
+                $this->pendingRelations[$fieldName][] = $remoteIdRelation;
+            }
 
             if (
                 is_array($this->data[$fieldName])
