@@ -29,16 +29,22 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerInterface
 {
+    protected RemoteIdMappingRepository $mappingRepository;
+
+    protected BeforeRecordOperationEvent $event;
+
     /**
      * @inheritDoc
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
-        if ($event->getRecordOperation()->getTable() !== 'sys_file') {
+        $this->event = $event;
+
+        if ($this->event->getRecordOperation()->getTable() !== 'sys_file') {
             return;
         }
 
-        $data = $event->getRecordOperation()->getData();
+        $data = $this->event->getRecordOperation()->getData();
 
         $fileBaseName = $data['name'];
 
@@ -51,7 +57,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $settings = GeneralUtility::makeInstance(ConfigurationProvider::class)->getSettings();
 
-        $storagePath = $event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
+        $storagePath = $this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
             $settings['persistence.']['fileUploadFolderPath'],
             $settings['persistence.']['fileUploadFolderPath.'] ?? []
         );
@@ -69,7 +75,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $downloadFolder = $storage->createFolder($folderPath);
         }
 
-        if (get_class($event->getRecordOperation()) === CreateRecordOperation::class) {
+        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
             if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
                 throw new IdentityConflictException(
                     'File "' . $fileBaseName . '" already exists in "' . $storagePath . '".',
@@ -78,7 +84,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             }
         }
 
-        $hashedSubfolders = (int)$event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
+        $hashedSubfolders = (int)$this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
             $settings['persistence.']['hashedSubfolders'],
             $settings['persistence.']['hashedSubfolders.'] ?? []
         );
@@ -99,93 +105,40 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             }
         }
 
-        /** @var RemoteIdMappingRepository $mappingRepository */
-        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+        $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         if (!empty($data['fileData'])) {
-            $stream = fopen('php://temp', 'rw');
-
-            stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
-
-            $length = fwrite($stream, $data['fileData']);
-
-            rewind($stream);
-
-            $fileContent = fread($stream, $length);
-
-            fclose($stream);
+            $fileContent = $this->handleBase64Input($data['fileData']);
         } else {
-            $url = $data['url'];
-
-            if (empty($url) && get_class($event->getRecordOperation()) === CreateRecordOperation::class) {
+            if (empty($data['url']) && get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
                 throw new MissingArgumentException(
                     'Cannot download file. Missing property "url" in the data.',
                     1634667221986
                 );
-            } elseif (!empty($url)) {
-                /** @var Client $httpClient */
-                $httpClient = GeneralUtility::makeInstance(Client::class);
-
-                $metaData = $mappingRepository->getMetaDataValue(
-                    $event->getRecordOperation()->getRemoteId(),
-                    self::class
-                ) ?? [];
-
-                $headers = [];
-
-                if (!empty($metaData['date'])) {
-                    $headers['If-Modified-Since'] = $metaData['date'];
-                }
-
-                if (!empty($metaData['etag'])) {
-                    $headers['If-None-Match'] = $metaData['etag'];
-                }
-
-                try {
-                    $response = $httpClient->get($url, ['headers' => $headers]);
-                } catch (ClientException $exception) {
-                    if ($exception->getCode() >= 400) {
-                        throw new NotFoundException(
-                            'Request failed. URL: "' . $url . '" Message: "' . $exception->getMessage() . '"',
-                            1634667759711
-                        );
-                    }
-                }
-
-                if ($response->getStatusCode() !== 304) {
-                    $fileContent = $response->getBody()->getContents();
-
-                    $mappingRepository->setMetaDataValue(
-                        $event->getRecordOperation()->getRemoteId(),
-                        self::class,
-                        [
-                            'date' => $response->getHeader('Date'),
-                            'etag' => $response->getHeader('ETag'),
-                        ]
-                    );
-                }
+            } elseif (!empty($data['url'])) {
+                $fileContent = $this->handleUrlInput($data['url']);
             }
         }
 
-        if (get_class($event->getRecordOperation()) === CreateRecordOperation::class) {
+        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
             $file = $downloadFolder->createFile($fileBaseName);
         } else {
             try {
                 $file = $resourceFactory->getFileObject(
-                    $mappingRepository->get($event->getRecordOperation()->getRemoteId())
+                    $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId())
                 );
             } catch (FileDoesNotExistException $exception) {
-                if ($mappingRepository->get($event->getRecordOperation()->getRemoteId()) === 0) {
+                if ($this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) === 0) {
                     throw new NotFoundException(
-                        'The file with remote ID "' . $event->getRecordOperation()->getRemoteId() . '" does not '
+                        'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" does not '
                         . 'exist in this TYPO3 instance.',
                         1634668710602
                     );
                 }
 
                 throw new NotFoundException(
-                    'The file with remote ID "' . $event->getRecordOperation()->getRemoteId() . '" and UID '
-                    . '"' . $mappingRepository->get($event->getRecordOperation()->getRemoteId()) . '" does not exist.',
+                    'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" and UID '
+                    . '"' . $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) . '" does not exist.',
                     1634668857809
                 );
             }
@@ -201,9 +154,85 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         unset($data['url']);
         unset($data['name']);
 
-        $event->getRecordOperation()->setUid($file->getUid());
+        $this->event->getRecordOperation()->setUid($file->getUid());
 
-        $event->getRecordOperation()->setData($data);
+        $this->event->getRecordOperation()->setData($data);
+    }
+
+    /**
+     * Decode base64-encoded file data.
+     *
+     * @param string $fileData
+     * @return false|string
+     */
+    protected function handleBase64Input(string $fileData): string
+    {
+        $stream = fopen('php://temp', 'rw');
+
+        stream_filter_append($stream, 'convert.base64-decode', STREAM_FILTER_WRITE);
+
+        $length = fwrite($stream, $fileData);
+
+        rewind($stream);
+
+        $fileContent = fread($stream, $length);
+
+        fclose($stream);
+
+        return $fileContent;
+    }
+
+    /**
+     * Handle file data download from a URL.
+     *
+     * @param string $url
+     * @return string|null
+     */
+    protected function handleUrlInput(string $url): ?string
+    {
+        /** @var Client $httpClient */
+        $httpClient = GeneralUtility::makeInstance(Client::class);
+
+        $metaData = $this->mappingRepository->getMetaDataValue(
+            $this->event->getRecordOperation()->getRemoteId(),
+            self::class
+        ) ?? [];
+
+        $headers = [];
+
+        if (!empty($metaData['date'])) {
+            $headers['If-Modified-Since'] = $metaData['date'];
+        }
+
+        if (!empty($metaData['etag'])) {
+            $headers['If-None-Match'] = $metaData['etag'];
+        }
+
+        try {
+            $response = $httpClient->get($url, ['headers' => $headers]);
+        } catch (ClientException $exception) {
+            if ($exception->getCode() >= 400) {
+                throw new NotFoundException(
+                    'Request failed. URL: "' . $url . '" Message: "' . $exception->getMessage() . '"',
+                    1634667759711
+                );
+            }
+        }
+
+        if ($response->getStatusCode() === 304) {
+            return null;
+        }
+
+        $this->mappingRepository->setMetaDataValue(
+            $this->event->getRecordOperation()->getRemoteId(),
+            self::class,
+            [
+                'date' => $response->getHeader('Date'),
+                'etag' => $response->getHeader('ETag'),
+            ]
+        );
+
+        return $response->getBody()->getContents();
     }
 
     /**
