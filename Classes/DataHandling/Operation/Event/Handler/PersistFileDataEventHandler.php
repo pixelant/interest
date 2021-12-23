@@ -17,10 +17,13 @@ use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use TYPO3\CMS\Core\Resource\AbstractFile;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
 use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -31,6 +34,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 {
     protected RemoteIdMappingRepository $mappingRepository;
 
+    protected ResourceFactory $resourceFactory;
+
     protected BeforeRecordOperationEvent $event;
 
     /**
@@ -39,6 +44,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
         $this->event = $event;
+
+        $isCreateOperation = get_class($this->event->getRecordOperation()) === CreateRecordOperation::class;
 
         if ($this->event->getRecordOperation()->getTable() !== 'sys_file') {
             return;
@@ -62,26 +69,16 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $settings['persistence.']['fileUploadFolderPath.'] ?? []
         );
 
-        /** @var ResourceFactory $resourceFactory */
-        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
+        $this->resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
 
-        $storage = $resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
+        $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
 
         try {
-            $downloadFolder = $resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
         } catch (FolderDoesNotExistException $exception) {
             [, $folderPath] = explode(':', $storagePath);
 
             $downloadFolder = $storage->createFolder($folderPath);
-        }
-
-        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
-            if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
-                throw new IdentityConflictException(
-                    'File "' . $fileBaseName . '" already exists in "' . $storagePath . '".',
-                    1634666560886
-                );
-            }
         }
 
         $hashedSubfolders = (int)$this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
@@ -105,45 +102,48 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             }
         }
 
+        if ($isCreateOperation) {
+            if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
+                throw new IdentityConflictException(
+                    'File "' . $fileBaseName . '" already exists in "' . $storagePath . '".',
+                    1634666560886
+                );
+            }
+        }
+
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         if (!empty($data['fileData'])) {
             $fileContent = $this->handleBase64Input($data['fileData']);
         } else {
-            if (empty($data['url']) && get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
+            if (empty($data['url']) && $isCreateOperation) {
                 throw new MissingArgumentException(
                     'Cannot download file. Missing property "url" in the data.',
                     1634667221986
                 );
             } elseif (!empty($data['url'])) {
-                $fileContent = $this->handleUrlInput($data['url']);
+                if ($isCreateOperation) {
+                    $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
+
+                    $file = $onlineMediaHelperRegistry->transformUrlToFile(
+                        $data['url'],
+                        $downloadFolder,
+                        $onlineMediaHelperRegistry->getSupportedFileExtensions()
+                    );
+
+                    if ($file !== null) {
+                        $file->rename(pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension());
+                    }
+                }
+
+                if ($file === null) {
+                    $fileContent = $this->handleUrlInput($data['url']);
+                }
             }
         }
 
-        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
-            $file = $downloadFolder->createFile($fileBaseName);
-        } else {
-            try {
-                $file = $resourceFactory->getFileObject(
-                    $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId())
-                );
-            } catch (FileDoesNotExistException $exception) {
-                if ($this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) === 0) {
-                    throw new NotFoundException(
-                        'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" does not '
-                        . 'exist in this TYPO3 instance.',
-                        1634668710602
-                    );
-                }
-
-                throw new NotFoundException(
-                    'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" and UID '
-                    . '"' . $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) . '" does not exist.',
-                    1634668857809
-                );
-            }
-
-            $this->renameFile($file, $fileBaseName);
+        if ($file === null) {
+            $file = $this->createFileObject($downloadFolder, $fileBaseName, $isCreateOperation);
         }
 
         if (!empty($fileContent)) {
@@ -157,6 +157,50 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         $this->event->getRecordOperation()->setUid($file->getUid());
 
         $this->event->getRecordOperation()->setData($data);
+    }
+
+    /**
+     * Creates the file object in FAL.
+     *
+     * @param Folder $downloadFolder
+     * @param string $fileBaseName
+     * @param bool $isCreateOperation
+     * @return File
+     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException
+     */
+    protected function createFileObject(
+        Folder $downloadFolder,
+        string $fileBaseName,
+        bool $isCreateOperation
+    ): File
+    {
+        if ($isCreateOperation) {
+            return $downloadFolder->createFile($fileBaseName);
+        }
+
+        try {
+            $file = $this->resourceFactory->getFileObject(
+                $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId())
+            );
+        } catch (FileDoesNotExistException $exception) {
+            if ($this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) === 0) {
+                throw new NotFoundException(
+                    'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" does not '
+                    . 'exist in this TYPO3 instance.',
+                    1634668710602
+                );
+            }
+
+            throw new NotFoundException(
+                'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" and UID '
+                . '"' . $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) . '" does not exist.',
+                1634668857809
+            );
+        }
+
+        $this->renameFile($file, $fileBaseName);
+
+        return $file;
     }
 
     /**
