@@ -192,7 +192,7 @@ abstract class AbstractRecordOperation
 
         if (!empty($this->dataHandler->errorLog)) {
             throw new DataHandlerErrorException(
-                'Error occured during the data handling: ' . implode(', ', $this->dataHandler->errorLog)
+                'Error occurred during the data handling: ' . implode(', ', $this->dataHandler->errorLog)
                 . ' Datamap: ' . json_encode($this->dataHandler->datamap)
                 . ' Cmdmap: ' . json_encode($this->dataHandler->cmdmap),
                 1634296039450

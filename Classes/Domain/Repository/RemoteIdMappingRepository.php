@@ -31,6 +31,11 @@ class RemoteIdMappingRepository extends AbstractRepository
     protected static array $remoteIdToTableCache = [];
 
     /**
+     * @var array Meta data entries (value) for remote IDs (key) that have not yet been mapped to a UID.
+     */
+    protected static array $unmappedMetaDataEntries = [];
+
+    /**
      * Get the local ID equivalent for $remoteId.
      *
      * @param string $remoteId
@@ -126,7 +131,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'crdate' => time(),
                 'tstamp' => time(),
                 'touched' => time(),
-                'metadata' => json_encode([]),
+                'metadata' => json_encode(self::$unmappedMetaDataEntries[$remoteId] ?? []),
             ])
             ->execute();
 
@@ -382,9 +387,21 @@ class RemoteIdMappingRepository extends AbstractRepository
      */
     public function setMetaDataValue(string $remoteId, string $key, $value)
     {
-        $metaData = $this->getMetaData($remoteId);
+        $recordExists = $this->exists($remoteId);
+
+        if (!$recordExists) {
+            $metaData = self::$unmappedMetaDataEntries[$remoteId] ?? [];
+        } else {
+            $metaData = $this->getMetaData($remoteId);
+        }
 
         $metaData[$key] = $value;
+
+        if (!$recordExists) {
+            self::$unmappedMetaDataEntries[$remoteId] = $metaData;
+
+            return;
+        }
 
         $queryBuilder = $this->getQueryBuilder();
 

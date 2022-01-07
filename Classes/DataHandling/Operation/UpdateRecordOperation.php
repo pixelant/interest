@@ -5,13 +5,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
-use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Handler\Exception\ConflictException;
-use Pixelant\Interest\Utility\RelationUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
  * Performs an update operation on a record.

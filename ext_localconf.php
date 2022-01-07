@@ -38,8 +38,18 @@ defined('TYPO3_MODE') or die('Access denied.');
     );
 
     \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaDataEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
         \Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent::class,
         \Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler::class
     );
 
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Console\CommandRequestHandler::class] = [
