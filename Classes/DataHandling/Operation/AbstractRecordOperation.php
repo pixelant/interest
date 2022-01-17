@@ -38,7 +38,7 @@ abstract class AbstractRecordOperation
     /**
      * @var string
      */
-    private string $table;
+    protected string $table;
 
     /**
      * @var string
@@ -309,7 +309,7 @@ abstract class AbstractRecordOperation
      * @param string|null $language
      * @return SiteLanguage|null
      */
-    private function resolveLanguage(?string $language): ?SiteLanguage
+    protected function resolveLanguage(?string $language): ?SiteLanguage
     {
         if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
             return null;
@@ -364,7 +364,7 @@ abstract class AbstractRecordOperation
      * @return int|null
      * @throws ConflictException
      */
-    private function resolveUid(): int
+    protected function resolveUid(): int
     {
         if (
             $this->mappingRepository->exists($this->getRemoteId())

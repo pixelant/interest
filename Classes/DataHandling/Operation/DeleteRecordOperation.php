@@ -5,11 +5,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
-use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
-use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -35,17 +33,13 @@ class DeleteRecordOperation extends AbstractRecordOperation
             );
         }
 
-        $this->table = strtolower($table);
         $this->remoteId = $remoteId;
-        $this->data = $data;
         $this->metaData = $metaData ?? [];
-
-
+        $this->table = $this->mappingRepository->table($remoteId);
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
         $this->language = $this->resolveLanguage((string)$language);
-
         $this->uid = $this->resolveUid();
 
         try {
@@ -59,7 +53,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        $this->dataHandler->cmdmap[$table][$this->getUid()]['delete'] = 1;
+        $this->dataHandler->cmdmap[$this->getTable()][$this->getUid()]['delete'] = 1;
 
         $this->mappingRepository->remove($remoteId);
     }
