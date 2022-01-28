@@ -38,46 +38,46 @@ abstract class AbstractRecordOperation
     /**
      * @var string
      */
-    private string $table;
+    protected string $table;
 
     /**
      * @var string
      */
-    private string $remoteId;
+    protected string $remoteId;
 
     /**
      * @var array
      */
-    private array $data;
+    protected array $data;
 
     /**
      * @var int
      */
-    private int $uid = 0;
+    protected int $uid = 0;
 
     /**
      * @var int
      */
-    private int $storagePid;
+    protected int $storagePid;
 
     /**
      * Language to use for processing.
      *
      * @var SiteLanguage|null
      */
-    private ?SiteLanguage $language;
+    protected ?SiteLanguage $language;
 
     /**
      * @var ContentObjectRenderer
      */
-    private ContentObjectRenderer $contentObjectRenderer;
+    protected ContentObjectRenderer $contentObjectRenderer;
 
     /**
      * Additional data items not to be persisted but used in processing.
      *
      * @var array
      */
-    private array $metaData;
+    protected array $metaData;
 
     /**
      * @var RemoteIdMappingRepository
@@ -309,7 +309,7 @@ abstract class AbstractRecordOperation
      * @param string|null $language
      * @return SiteLanguage|null
      */
-    private function resolveLanguage(?string $language): ?SiteLanguage
+    protected function resolveLanguage(?string $language): ?SiteLanguage
     {
         if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
             return null;
@@ -364,7 +364,7 @@ abstract class AbstractRecordOperation
      * @return int|null
      * @throws ConflictException
      */
-    private function resolveUid(): int
+    protected function resolveUid(): int
     {
         if (
             $this->mappingRepository->exists($this->getRemoteId())

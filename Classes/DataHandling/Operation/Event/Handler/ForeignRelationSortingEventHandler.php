@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\DataHandler;
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
@@ -29,6 +30,10 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
      */
     public function __invoke(AfterRecordOperationEvent $event): void
     {
+        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+            return;
+        }
+
         $this->event = $event;
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
