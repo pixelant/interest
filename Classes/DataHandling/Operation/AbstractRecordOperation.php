@@ -43,41 +43,41 @@ abstract class AbstractRecordOperation
     /**
      * @var string
      */
-    private string $remoteId;
+    protected string $remoteId;
 
     /**
      * @var array
      */
-    private array $data;
+    protected array $data;
 
     /**
      * @var int
      */
-    private int $uid = 0;
+    protected int $uid = 0;
 
     /**
      * @var int
      */
-    private int $storagePid;
+    protected int $storagePid;
 
     /**
      * Language to use for processing.
      *
      * @var SiteLanguage|null
      */
-    private ?SiteLanguage $language;
+    protected ?SiteLanguage $language;
 
     /**
      * @var ContentObjectRenderer
      */
-    private ContentObjectRenderer $contentObjectRenderer;
+    protected ContentObjectRenderer $contentObjectRenderer;
 
     /**
      * Additional data items not to be persisted but used in processing.
      *
      * @var array
      */
-    private array $metaData;
+    protected array $metaData;
 
     /**
      * @var RemoteIdMappingRepository

@@ -10,6 +10,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
@@ -43,6 +44,10 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
+        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+            return;
+        }
+
         $this->event = $event;
 
         $isCreateOperation = get_class($this->event->getRecordOperation()) === CreateRecordOperation::class;

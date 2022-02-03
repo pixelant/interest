@@ -184,16 +184,23 @@ class RemoteIdMappingRepository extends AbstractRepository
      * Returns remote IDs that have not been touched since $timestamp.
      *
      * @param int $timestamp
+     * @param bool $excludeManual Exclude manual entries. Since they are managed in the backend they are usually never
+     *                            touched.
      * @return string[] Remote IDs
      */
-    public function findAllUntouchedSince(int $timestamp): array
+    public function findAllUntouchedSince(int $timestamp, bool $excludeManual = true): array
     {
         $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder->where($queryBuilder->expr()->lt('touched', $timestamp));
+
+        if ($excludeManual) {
+            $queryBuilder->andWhere($queryBuilder->expr()->eq('manual', 0));
+        }
 
         return $queryBuilder
             ->select('remote_id')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->lt('touched', $timestamp))
             ->execute()
             ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
     }
@@ -202,16 +209,23 @@ class RemoteIdMappingRepository extends AbstractRepository
      * Returns remote IDs that have been touched since $timestamp.
      *
      * @param int $timestamp
+     * @param bool $excludeManual Exclude manual entries. Since they are managed in the backend they are usually never
+     *                            touched.
      * @return string[] Remote IDs
      */
-    public function findAllTouchedSince(int $timestamp): array
+    public function findAllTouchedSince(int $timestamp, bool $excludeManual = true): array
     {
         $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder->where($queryBuilder->expr()->lt('touched', $timestamp));
+
+        if ($excludeManual) {
+            $queryBuilder->andWhere($queryBuilder->expr()->eq('manual', 0));
+        }
 
         return $queryBuilder
             ->select('remote_id')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->gt('touched', $timestamp))
             ->execute()
             ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
     }

@@ -34,7 +34,8 @@ class DeleteRecordOperation extends AbstractRecordOperation
         }
 
         $this->remoteId = $remoteId;
-        $this->metaData = $metaData ?? [];
+        $this->metaData = [];
+        $this->data = [];
         $this->table = $this->mappingRepository->table($remoteId);
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
@@ -54,8 +55,13 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->dataHandler->start([], []);
 
         $this->dataHandler->cmdmap[$this->getTable()][$this->getUid()]['delete'] = 1;
+    }
 
-        $this->mappingRepository->remove($remoteId);
+    public function __destruct()
+    {
+        parent::__destruct();
+
+        $this->mappingRepository->remove($this->getRemoteId());
     }
 
 }
