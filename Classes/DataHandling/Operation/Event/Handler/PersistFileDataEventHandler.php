@@ -18,7 +18,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
-use TYPO3\CMS\Core\Resource\AbstractFile;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
@@ -58,7 +57,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $data = $this->event->getRecordOperation()->getData();
 
-        $fileBaseName = $data['name'];
+        $fileBaseName = $data['name'] ?? '';
 
         if (!CompatibilityUtility::getFileNameValidator()->isValid($fileBaseName)) {
             throw new InvalidFileNameException(
@@ -92,7 +91,11 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         );
 
         if ($hashedSubfolders > 0) {
-            $fileNameHash = md5($fileBaseName);
+            if ($fileBaseName === '') {
+                $fileNameHash = bin2hex(random_bytes(18));
+            } else {
+                $fileNameHash = md5($fileBaseName);
+            }
 
             for ($i = 0; $i < $hashedSubfolders; $i++) {
                 $subfolderName = substr($fileNameHash, $i, 1);
@@ -127,17 +130,19 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     1634667221986
                 );
             } elseif (!empty($data['url'])) {
-                if ($isCreateOperation) {
-                    $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
+                $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
 
-                    $file = $onlineMediaHelperRegistry->transformUrlToFile(
-                        $data['url'],
-                        $downloadFolder,
-                        $onlineMediaHelperRegistry->getSupportedFileExtensions()
-                    );
+                $file = $onlineMediaHelperRegistry->transformUrlToFile(
+                    $data['url'],
+                    $downloadFolder,
+                    $onlineMediaHelperRegistry->getSupportedFileExtensions()
+                );
 
-                    if ($file !== null) {
-                        $file->rename(pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension());
+                if ($file !== null && $fileBaseName !== '') {
+                    $mediaFileName = pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension();
+
+                    if ($file->getName() !== $mediaFileName) {
+                        $file->rename($mediaFileName);
                     }
                 }
 
@@ -145,6 +150,13 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     $fileContent = $this->handleUrlInput($data['url']);
                 }
             }
+        }
+
+        if ($fileBaseName === '' && $file === null) {
+            throw new InvalidFileNameException(
+                'Empty file name.',
+                1643987693168
+            );
         }
 
         if ($file === null) {
