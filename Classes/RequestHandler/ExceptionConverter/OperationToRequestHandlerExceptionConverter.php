@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Pixelant\Interest\Handler\ExceptionConverter;
+namespace Pixelant\Interest\RequestHandler\ExceptionConverter;
 
 
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
@@ -13,11 +13,11 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException as OperationInvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException as OperationMissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException as OperationNotFoundException;
-use Pixelant\Interest\Handler\Exception\ConflictException;
-use Pixelant\Interest\Handler\Exception\DataHandlerErrorException;
-use Pixelant\Interest\Handler\Exception\InvalidArgumentException;
-use Pixelant\Interest\Handler\Exception\MissingArgumentException;
-use Pixelant\Interest\Handler\Exception\NotFoundException;
+use Pixelant\Interest\RequestHandler\Exception\ConflictException;
+use Pixelant\Interest\RequestHandler\Exception\DataHandlerErrorException;
+use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
+use Pixelant\Interest\RequestHandler\Exception\MissingArgumentException;
+use Pixelant\Interest\RequestHandler\Exception\NotFoundException;
 use Pixelant\Interest\Http\InterestRequestInterface;
 
 final class OperationToRequestHandlerExceptionConverter

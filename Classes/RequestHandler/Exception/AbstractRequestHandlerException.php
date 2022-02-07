@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Pixelant\Interest\Handler\Exception;
+namespace Pixelant\Interest\RequestHandler\Exception;
 
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use Psr\Http\Client\RequestExceptionInterface;
