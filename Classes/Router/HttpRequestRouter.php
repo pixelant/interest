@@ -3,10 +3,17 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
+use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Repository\TokenRepository;
+use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
+use Pixelant\Interest\RequestHandler\CreateRequestHandler;
+use Pixelant\Interest\RequestHandler\DeleteRequestHandler;
+use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -15,20 +22,15 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class HttpRequestRouter
 {
     /**
-     * @var string[]
+     * Route the request to correct handler.
+     *
+     * @return ResponseInterface
      */
-    protected array $entryPointParts;
-
-    /**
-     * @param RequestInterface $request
-     * @param ExtensionConfiguration $extensionConfiguration
-     */
-    public function __construct(RequestInterface $request, ExtensionConfiguration $extensionConfiguration = null)
+    public static function route(ServerRequestInterface $request): ResponseInterface
     {
-        $extensionConfiguration = $extensionConfiguration
-            ?? GeneralUtility::makeInstance(ExtensionConfiguration::class);
+        $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
-        $this->entryPointParts = explode(
+        $entryPointParts = explode(
             '/',
             substr(
                 $request->getRequestTarget(),
@@ -38,23 +40,56 @@ class HttpRequestRouter
                 ) + 1
             )
         );
+
+        if ($entryPointParts[0] === 'authenticate') {
+            return GeneralUtility::makeInstance(AuthenticateRequestHandler::class, $entryPointParts)->handle();
+        }
+
+        switch (strtoupper($request->getMethod())) {
+            case 'POST':
+                return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
+            case 'PUT':
+                return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
+            case 'PATCH':
+                try {
+                    return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
+                } catch (NotFoundException $exception) {
+                    return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
+                }
+            case 'DELETE':
+                return GeneralUtility::makeInstance(DeleteRequestHandler::class, $entryPointParts)->handle();
+        }
+
+        return GeneralUtility::makeInstance(
+            JsonResponse::class,
+            [
+                'success' => false,
+                'message' => 'Method not allowed.'
+            ],
+            405
+        );
     }
 
     /**
-     * Route the request to correct handler.
+     * Authenticates a token provided in the request.
      *
-     * @return ResponseInterface
+     * @param ServerRequestInterface $request
      */
-    public static function route(): ResponseInterface
+    protected static function authenticateBearerToken(ServerRequestInterface $request): void
     {
+        $authorizationHeader = $request->getHeader('HTTP_AUTHORIZATION')[0]
+            ?? $request->getHeader('REDIRECT_HTTP_AUTHORIZATION')[0]
+            ?? '';
 
-    }
+        [$scheme, $token] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
 
-    /**
-     * @return string[]
-     */
-    public function getEntryPointParts()
-    {
-        return $this->entryPointParts;
+        if (strtolower($scheme) === 'bearer') {
+            $backendUserId = GeneralUtility::makeInstance(TokenRepository::class)
+                ->findBackendUserIdByToken($token);
+
+
+        }
+
+
     }
 }

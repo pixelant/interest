@@ -1,16 +1,18 @@
 #
 # Table structure for table 'tx_interest_api_token'
 #
-#
 CREATE TABLE tx_interest_api_token (
-     uid int(11) DEFAULT '0' NOT NULL auto_increment,
-     token varchar(255) DEFAULT '' NOT NULL,
-     be_user varchar(255) DEFAULT '' NOT NULL,
-     password varchar(255) DEFAULT '' NOT NULL,
-     expires_in bigint(20) DEFAULT '0' NOT NULL,
-     cached_data mediumblob,
+		uid int(11) DEFAULT '0' NOT NULL auto_increment,
+		pid int(11) DEFAULT '0' NOT NULL,
+		tstamp int(11) DEFAULT '0' NOT NULL,
+		crdate int(11) DEFAULT '0' NOT NULL,
+		token varchar(255) DEFAULT '' NOT NULL,
+		be_user int(11) DEFAULT '' NOT NULL,
+		expiry int(11) DEFAULT '0' NOT NULL,
 
-     PRIMARY KEY (uid)
+		PRIMARY KEY (uid),
+		KEY token_expiry (token, expiry),
+		KEY be_user (be_user)
 );
 
 CREATE TABLE tx_interest_remote_id_mapping (
