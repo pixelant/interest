@@ -3,16 +3,21 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
+use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateRequestHandler;
 use Pixelant\Interest\RequestHandler\DeleteRequestHandler;
+use Pixelant\Interest\RequestHandler\Exception\AbstractRequestHandlerException;
+use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
+use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Core\ApplicationContext;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -41,23 +46,70 @@ class HttpRequestRouter
             )
         );
 
-        if ($entryPointParts[0] === 'authenticate') {
-            return GeneralUtility::makeInstance(AuthenticateRequestHandler::class, $entryPointParts)->handle();
-        }
+        try {
+            if ($entryPointParts[0] === 'authenticate') {
+                return GeneralUtility::makeInstance(AuthenticateRequestHandler::class, $entryPointParts)->handle();
+            }
 
-        switch (strtoupper($request->getMethod())) {
-            case 'POST':
-                return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
-            case 'PUT':
-                return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
-            case 'PATCH':
-                try {
-                    return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
-                } catch (NotFoundException $exception) {
-                    return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
+            try {
+                switch (strtoupper($request->getMethod())) {
+                    case 'POST':
+                        return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
+                    case 'PUT':
+                        return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
+                    case 'PATCH':
+                        try {
+                            return GeneralUtility::makeInstance(UpdateRequestHandler::class,
+                                $entryPointParts)->handle();
+                        } catch (NotFoundException $exception) {
+                            return GeneralUtility::makeInstance(CreateRequestHandler::class,
+                                $entryPointParts)->handle();
+                        }
+                    case 'DELETE':
+                        return GeneralUtility::makeInstance(DeleteRequestHandler::class, $entryPointParts)->handle();
                 }
-            case 'DELETE':
-                return GeneralUtility::makeInstance(DeleteRequestHandler::class, $entryPointParts)->handle();
+            } catch (AbstractException $dataHandlingException) {
+                throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
+            }
+        } catch (AbstractRequestHandlerException $requestHandlerException) {
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => false,
+                    'message' => $requestHandlerException->getMessage(),
+                ],
+                $requestHandlerException->getCode()
+            );
+        } catch (\Throwable $throwable) {
+            $trace = [];
+
+            if (GeneralUtility::makeInstance(ApplicationContext::class)->isDevelopment()) {
+                $currentThrowable = $throwable;
+                do {
+                    $trace = array_merge(
+                        $trace,
+                        [
+                            $currentThrowable->getMessage() => array_merge([
+                                [
+                                    'file' => $currentThrowable->getFile(),
+                                    'line' => $currentThrowable->getLine(),
+                                ],
+                                $throwable->getTrace(),
+                            ]),
+                        ]
+                    );
+                } while ($currentThrowable = $throwable->getPrevious());
+            }
+
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => false,
+                    'message' => 'An exception occurred: ' . $throwable->getMessage(),
+                    'trace' => $trace,
+                ],
+                500
+            );
         }
 
         return GeneralUtility::makeInstance(
@@ -74,6 +126,7 @@ class HttpRequestRouter
      * Authenticates a token provided in the request.
      *
      * @param ServerRequestInterface $request
+     * @throws UnauthorizedAccessException
      */
     protected static function authenticateBearerToken(ServerRequestInterface $request): void
     {
@@ -87,7 +140,12 @@ class HttpRequestRouter
             $backendUserId = GeneralUtility::makeInstance(TokenRepository::class)
                 ->findBackendUserIdByToken($token);
 
-
+            if ($backendUserId === 0) {
+                throw new UnauthorizedAccessException(
+                    'Invalid or expired bearer token.',
+                    $request
+                );
+            }
         }
 
 

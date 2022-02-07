@@ -19,6 +19,7 @@ use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\MissingArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\NotFoundException;
 use Pixelant\Interest\Http\InterestRequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class OperationToRequestHandlerExceptionConverter
 {
@@ -33,12 +34,12 @@ final class OperationToRequestHandlerExceptionConverter
 
     /**
      * @param AbstractException $exception The exception to convert.
-     * @param InterestRequestInterface $request The request to attach.
+     * @param ServerRequestInterface $request The request to attach.
      * @return \Throwable
      */
     public static function convert(
         AbstractException $exception,
-        InterestRequestInterface $request
+        ServerRequestInterface $request
     ): \Throwable
     {
         if (array_key_exists(get_class($exception), self::EXCEPTION_MAP)) {
