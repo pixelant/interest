@@ -47,7 +47,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
             }
 
             if (!is_array($relationIds)) {
-                $relationIds = explode(',', $relationIds);
+                $relationIds = explode(',', (string)$relationIds);
             }
 
             $foreignTable = $fieldConfiguration['foreign_table'] ?? null;
