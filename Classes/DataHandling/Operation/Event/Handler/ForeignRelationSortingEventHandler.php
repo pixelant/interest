@@ -103,7 +103,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         $persistedRecordData = DatabaseUtility::getRecord(
             $recordOperation->getTable(),
             $recordOperation->getUid()
-        );
+        ) ?? $recordOperation->getData();
 
         $fieldConfigurations = [];
         foreach (array_keys($GLOBALS['TCA'][$recordOperation->getTable()]['columns']) as $fieldName) {
