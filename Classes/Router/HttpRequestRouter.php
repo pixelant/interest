@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
+use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
@@ -14,12 +15,13 @@ use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
-use Psr\Http\Message\RequestInterface;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Core\ApplicationContext;
+use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -34,40 +36,65 @@ class HttpRequestRouter
      */
     public static function route(ServerRequestInterface $request): ResponseInterface
     {
+        self::initialize();
+
         $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
         $entryPointParts = explode(
             '/',
             substr(
                 $request->getRequestTarget(),
-                strpos(
-                    $request->getRequestTarget(),
+                strlen(
                     '/' . trim($extensionConfiguration->get('interest', 'entryPoint'), '/') . '/'
-                ) + 1
+                )
             )
         );
 
         try {
             if ($entryPointParts[0] === 'authenticate') {
-                return GeneralUtility::makeInstance(AuthenticateRequestHandler::class, $entryPointParts)->handle();
+                return GeneralUtility::makeInstance(
+                    AuthenticateRequestHandler::class,
+                    $entryPointParts,
+                    $request
+                )->handle();
             }
+
+            self::authenticateBearerToken($request);
 
             try {
                 switch (strtoupper($request->getMethod())) {
                     case 'POST':
-                        return GeneralUtility::makeInstance(CreateRequestHandler::class, $entryPointParts)->handle();
+                        return GeneralUtility::makeInstance(
+                            CreateRequestHandler::class,
+                            $entryPointParts,
+                            $request
+                        )->handle();
                     case 'PUT':
-                        return GeneralUtility::makeInstance(UpdateRequestHandler::class, $entryPointParts)->handle();
+                        return GeneralUtility::makeInstance(
+                            UpdateRequestHandler::class,
+                            $entryPointParts,
+                            $request
+                        )->handle();
                     case 'PATCH':
                         try {
-                            return GeneralUtility::makeInstance(UpdateRequestHandler::class,
-                                $entryPointParts)->handle();
+                            return GeneralUtility::makeInstance(
+                                UpdateRequestHandler::class,
+                                $entryPointParts,
+                                $request
+                            )->handle();
                         } catch (NotFoundException $exception) {
-                            return GeneralUtility::makeInstance(CreateRequestHandler::class,
-                                $entryPointParts)->handle();
+                            return GeneralUtility::makeInstance(
+                                CreateRequestHandler::class,
+                                $entryPointParts,
+                                $request
+                            )->handle();
                         }
                     case 'DELETE':
-                        return GeneralUtility::makeInstance(DeleteRequestHandler::class, $entryPointParts)->handle();
+                        return GeneralUtility::makeInstance(
+                            DeleteRequestHandler::class,
+                            $entryPointParts,
+                            $request
+                        )->handle();
                 }
             } catch (AbstractException $dataHandlingException) {
                 throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
@@ -84,7 +111,7 @@ class HttpRequestRouter
         } catch (\Throwable $throwable) {
             $trace = [];
 
-            if (GeneralUtility::makeInstance(ApplicationContext::class)->isDevelopment()) {
+            if (CompatibilityUtility::getApplicationContext()->isDevelopment()) {
                 $currentThrowable = $throwable;
                 do {
                     $trace = array_merge(
@@ -131,8 +158,8 @@ class HttpRequestRouter
      */
     protected static function authenticateBearerToken(ServerRequestInterface $request): void
     {
-        $authorizationHeader = $request->getHeader('HTTP_AUTHORIZATION')[0]
-            ?? $request->getHeader('REDIRECT_HTTP_AUTHORIZATION')[0]
+        $authorizationHeader = $request->getHeader('authorization')[0]
+            ?? $request->getHeader('redirect_http_authorization')[0]
             ?? '';
 
         [$scheme, $token] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
@@ -148,12 +175,22 @@ class HttpRequestRouter
                 );
             }
 
-            // TODO: Find user
+            $GLOBALS['BE_USER']->authenticate($backendUserId);
         }
 
         throw new InvalidArgumentException(
             'Unknown authorization scheme "' . $scheme . '".',
             $request
         );
+    }
+
+    /**
+     * Necessary initialization.
+     */
+    protected static function initialize()
+    {
+        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+        ExtensionManagementUtility::loadExtTables();
+        Bootstrap::initializeLanguageObject();
     }
 }

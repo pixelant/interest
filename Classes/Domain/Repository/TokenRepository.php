@@ -5,6 +5,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Crypto\Random;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * Repository for bearer tokens.
  */
@@ -34,5 +38,32 @@ class TokenRepository extends AbstractRepository
             )
             ->execute()
             ->fetchColumn();
+    }
+
+    /**
+     * @param int $id The backend user ID.
+     * @return string
+     */
+    public function createTokenForBackendUser(int $id): string
+    {
+        $token = GeneralUtility::makeInstance(Random::class)
+            ->generateRandomHexString(32);
+
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->insert(self::TABLE_NAME)
+            ->values([
+                'pid' => 0,
+                'tstamp' => time(),
+                'crdate' => time(),
+                'token' => $token,
+                'be_user' => $id,
+                'expiry' => (int)GeneralUtility::makeInstance(ExtensionConfiguration::class)
+                    ->get('interest', 'tokenLifetime')
+            ])
+            ->execute();
+
+        return $token;
     }
 }

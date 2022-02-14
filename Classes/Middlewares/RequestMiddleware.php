@@ -24,7 +24,7 @@ class RequestMiddleware implements MiddlewareInterface
                 '/' . trim($extensionConfiguration->get('interest', 'entryPoint'), '/') . '/'
             ) === 0
         ) {
-            HttpRequestRouter::route($request);
+            return HttpRequestRouter::route($request);
         }
 
         return $handler->handle($request);

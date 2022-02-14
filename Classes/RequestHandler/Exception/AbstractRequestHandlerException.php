@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Pixelant\Interest\RequestHandler\Exception;
 
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
-use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 
 /**
  * Abstract class for handler exceptions.
  */
-abstract class AbstractRequestHandlerException extends GuzzleRequestException implements RequestExceptionInterface
+abstract class AbstractRequestHandlerException extends GuzzleRequestException
 {
     protected const RESPONSE_CODE = 400;
 
