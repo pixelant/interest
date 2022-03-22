@@ -75,6 +75,18 @@ class TcaUtility
         ?string $remoteId = null
     ): array
     {
+        if ($field === 'pid') {
+            return [
+                'type' => 'group',
+                'internal_type' => 'db',
+                'allowed' => 'pages',
+                'size' => 1,
+                'maxitems' => 1,
+                'minitems' => 1,
+                'default' => 0,
+            ];
+        }
+
         /** @var RemoteIdMappingRepository $mappingRepository */
         $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
