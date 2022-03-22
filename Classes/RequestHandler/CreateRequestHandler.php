@@ -2,20 +2,30 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\RequestHandler;
 
+use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 
-use Psr\Http\Message\ResponseInterface;
-
-class CreateRequestHandler extends AbstractRequestHandler
+class CreateRequestHandler extends AbstractRecordRequestHandler
 {
-
     /**
      * @inheritDoc
      */
-    public function handle(): ResponseInterface
+    protected function handleSingleOperation(
+        string $table,
+        string $remoteId,
+        string $language,
+        string $workspace,
+        array $data
+    ): void
     {
-        // TODO: Implement handle() method.
+        new CreateRecordOperation(
+            $data,
+            $table,
+            $remoteId,
+            $language !== '' ? $language : null,
+            $workspace !== '' ? $workspace : null,
+            $this->metaData
+        );
     }
 }

@@ -5,9 +5,9 @@ namespace Pixelant\Interest\Router;
 
 use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
-use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
+use Pixelant\Interest\RequestHandler\CreateOrUpdateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateRequestHandler;
 use Pixelant\Interest\RequestHandler\DeleteRequestHandler;
 use Pixelant\Interest\RequestHandler\Exception\AbstractRequestHandlerException;
@@ -76,19 +76,11 @@ class HttpRequestRouter
                             $request
                         )->handle();
                     case 'PATCH':
-                        try {
-                            return GeneralUtility::makeInstance(
-                                UpdateRequestHandler::class,
-                                $entryPointParts,
-                                $request
-                            )->handle();
-                        } catch (NotFoundException $exception) {
-                            return GeneralUtility::makeInstance(
-                                CreateRequestHandler::class,
-                                $entryPointParts,
-                                $request
-                            )->handle();
-                        }
+                        return GeneralUtility::makeInstance(
+                            CreateOrUpdateRequestHandler::class,
+                            $entryPointParts,
+                            $request
+                        )->handle();
                     case 'DELETE':
                         return GeneralUtility::makeInstance(
                             DeleteRequestHandler::class,
@@ -176,6 +168,8 @@ class HttpRequestRouter
             }
 
             $GLOBALS['BE_USER']->authenticate($backendUserId);
+
+            return;
         }
 
         throw new InvalidArgumentException(

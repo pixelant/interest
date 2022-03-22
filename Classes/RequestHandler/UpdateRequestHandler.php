@@ -2,20 +2,29 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\RequestHandler;
 
+use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 
-use Psr\Http\Message\ResponseInterface;
-
-class UpdateRequestHandler extends AbstractRequestHandler
+class UpdateRequestHandler extends AbstractRecordRequestHandler
 {
-
     /**
      * @inheritDoc
      */
-    public function handle(): ResponseInterface
-    {
-        // TODO: Implement handle() method.
+    protected function handleSingleOperation(
+        string $table,
+        string $remoteId,
+        string $language,
+        string $workspace,
+        array $data
+    ): void {
+        new UpdateRecordOperation(
+            $data,
+            $table,
+            $remoteId,
+            $language !== '' ? $language : null,
+            $workspace !== '' ? $workspace : null,
+            $this->metaData
+        );
     }
 }

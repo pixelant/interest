@@ -1,18 +1,26 @@
 <?php
-
 declare(strict_types=1);
-
 
 namespace Pixelant\Interest\RequestHandler;
 
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 
-use Psr\Http\Message\ResponseInterface;
-
-class DeleteRequestHandler extends AbstractRequestHandler
+class DeleteRequestHandler extends AbstractRecordRequestHandler
 {
-
-    public function handle(): ResponseInterface
-    {
-        // TODO: Implement handle() method.
+    /**
+     * @inheritDoc
+     */
+    protected function handleSingleOperation(
+        string $table,
+        string $remoteId,
+        string $language,
+        string $workspace,
+        array $data
+    ): void {
+        new DeleteRecordOperation(
+            $remoteId,
+            $language !== '' ? $language : null,
+            $workspace !== '' ? $workspace : null
+        );
     }
 }
