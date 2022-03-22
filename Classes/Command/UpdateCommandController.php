@@ -44,14 +44,14 @@ class UpdateCommandController extends AbstractReceiveCommandController
 
         foreach ($input->getOption('data') as $remoteId => $data) {
             try {
-                new UpdateRecordOperation(
+                (new UpdateRecordOperation(
                     $data,
                     $input->getArgument('endpoint'),
                     $remoteId,
                     $input->getArgument('language'),
                     $input->getArgument('workspace'),
                     $input->getOption('metaData')
-                );
+                ))();
             } catch (StopRecordOperationException $exception) {
                 $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
 
@@ -61,14 +61,14 @@ class UpdateCommandController extends AbstractReceiveCommandController
                     throw $exception;
                 }
 
-                new CreateRecordOperation(
+                (new CreateRecordOperation(
                     $data,
                     $input->getArgument('endpoint'),
                     $remoteId,
                     $input->getArgument('language'),
                     $input->getArgument('workspace'),
                     $input->getOption('metaData')
-                );
+                ))();
             } catch (\Throwable $exception) {
                 $exceptions[] = $exception;
             }

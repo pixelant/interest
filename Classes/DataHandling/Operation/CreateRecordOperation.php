@@ -41,9 +41,9 @@ class CreateRecordOperation extends AbstractRecordOperation
         $this->resolvePendingRelations($uid);
     }
 
-    public function __destruct()
+    public function __invoke()
     {
-        parent::__destruct();
+        parent::__invoke();
 
         $this->pendingRelationsRepository->removeRemote($this->getRemoteId());
     }

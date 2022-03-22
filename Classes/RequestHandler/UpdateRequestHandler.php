@@ -18,13 +18,13 @@ class UpdateRequestHandler extends AbstractRecordRequestHandler
         string $workspace,
         array $data
     ): void {
-        new UpdateRecordOperation(
+        (new UpdateRecordOperation(
             $data,
             $table,
             $remoteId,
             $language !== '' ? $language : null,
             $workspace !== '' ? $workspace : null,
             $this->metaData
-        );
+        ))();
     }
 }

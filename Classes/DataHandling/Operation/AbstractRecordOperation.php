@@ -176,7 +176,7 @@ abstract class AbstractRecordOperation
         $this->data['pid'] = $this->storagePid;
     }
 
-    public function __destruct()
+    public function __invoke()
     {
         if ($this->operationStopped) {
             return;

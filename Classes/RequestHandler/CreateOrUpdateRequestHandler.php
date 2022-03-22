@@ -21,14 +21,14 @@ class CreateOrUpdateRequestHandler extends AbstractRecordRequestHandler
         array $data
     ): void {
         try {
-            new UpdateRecordOperation(
+            (new UpdateRecordOperation(
                 $data,
                 $table,
                 $remoteId,
                 $language !== '' ? $language : null,
                 $workspace !== '' ? $workspace : null,
                 $this->metaData
-            );
+            ))();
         } catch (NotFoundException $exception) {
             new CreateRecordOperation(
                 $data,

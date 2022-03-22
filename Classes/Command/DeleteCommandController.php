@@ -78,11 +78,11 @@ class DeleteCommandController extends Command
 
         foreach (GeneralUtility::trimExplode(',', $input->getArgument('remoteId'), true) as $remoteId) {
             try {
-                new DeleteRecordOperation(
+                (new DeleteRecordOperation(
                     $remoteId,
                     $input->getArgument('language'),
                     $input->getArgument('workspace')
-                );
+                ))();
             } catch (StopRecordOperationException $exception) {
                 $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
 

@@ -17,10 +17,10 @@ class DeleteRequestHandler extends AbstractRecordRequestHandler
         string $workspace,
         array $data
     ): void {
-        new DeleteRecordOperation(
+        (new DeleteRecordOperation(
             $remoteId,
             $language !== '' ? $language : null,
             $workspace !== '' ? $workspace : null
-        );
+        ))();
     }
 }

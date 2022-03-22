@@ -19,13 +19,13 @@ class CreateRequestHandler extends AbstractRecordRequestHandler
         array $data
     ): void
     {
-        new CreateRecordOperation(
+        (new CreateRecordOperation(
             $data,
             $table,
             $remoteId,
             $language !== '' ? $language : null,
             $workspace !== '' ? $workspace : null,
             $this->metaData
-        );
+        ))();
     }
 }
