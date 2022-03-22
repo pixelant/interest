@@ -106,7 +106,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
                 break;
             }
 
-            $currentLayer = next($currentLayer);
+            $currentLayer = array_values(get_object_vars($currentLayer))[0] ?? [];
 
             $dataLayerCount++;
         } while ($dataLayerCount < 5);
@@ -257,7 +257,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     private function isRecordData(object $object): bool
     {
-       return !is_object(next($object));
+       return !is_object(array_values(get_object_vars($object))[0] ?? null);
     }
 
     /**
