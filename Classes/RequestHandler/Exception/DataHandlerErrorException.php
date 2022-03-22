@@ -14,18 +14,4 @@ use Pixelant\Interest\DataHandling\DataHandler;
 class DataHandlerErrorException extends AbstractRequestHandlerException
 {
     protected const RESPONSE_CODE = 400;
-
-    public function __construct(DataHandler $dataHandler, RequestInterface $request)
-    {
-        if (count($dataHandler->errorLog) === 0) {
-            throw new \UnexpectedValueException(
-                'No DataHandler errors. This exception should not have been thrown.',
-                1616669972
-            );
-        }
-
-        $message = 'Error occured during the data handling: ' . implode(', ', $dataHandler->errorLog) . ')';
-
-        parent::__construct($message, $request, null);
-    }
 }

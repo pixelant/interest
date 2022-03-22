@@ -163,7 +163,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
                         try {
                             $this->handleSingleOperation($table, $remoteId, $language, $workspace, $data);
-                        } catch (\Throwable $exception) {
+                        } catch (AbstractException $exception) {
                             $exceptions[$table][$remoteId][$language][$workspace] = $exception;
                         }
                     }

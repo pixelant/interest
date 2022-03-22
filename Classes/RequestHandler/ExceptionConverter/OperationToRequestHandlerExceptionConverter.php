@@ -44,6 +44,7 @@ final class OperationToRequestHandlerExceptionConverter
     {
         if (array_key_exists(get_class($exception), self::EXCEPTION_MAP)) {
             $newExceptionFqcn = self::EXCEPTION_MAP[get_class($exception)];
+
             return new $newExceptionFqcn(
                 sprintf('%s (%s)', $exception->getMessage(), $exception->getCode()),
                 $request
