@@ -6,12 +6,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Authentication;
 
 
-use Pixelant\Interest\Domain\Repository\TokenRepository;
-use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Authentication\LoginType;
-use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Session\Backend\HashableSessionBackendInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class HttpBackendUserAuthentication extends BackendUserAuthentication
