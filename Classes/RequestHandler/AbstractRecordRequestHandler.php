@@ -111,15 +111,23 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             $dataLayerCount++;
         } while ($dataLayerCount < 5);
 
-        if ($dataLayerCount < 4) {
-            $data = [(string)$workspace => $data];
-        }
+        array_walk_recursive(
+            $data,
+            function (&$item, $key) use ($dataLayerCount, $workspace, $language, $table) {
+                if ($dataLayerCount < 4) {
+                    $item = [(string)$workspace => $item];
+                }
 
-        if ($dataLayerCount < 3) {
-            $data = [(string)$language => $data];
-        }
+                if ($dataLayerCount < 3) {
+                    $item = [(string)$language => $item];
+                }
+            }
+        );
 
-        if ($dataLayerCount < 2) {
+        if (
+            !($dataLayerCount === 1 && $table !== null)
+            && $dataLayerCount < 2
+        ) {
             if ($remoteId === null) {
                 throw new MissingArgumentException(
                     'Remote ID not specified.',
@@ -130,7 +138,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             $data = [$remoteId => $data];
         }
 
-        if ($dataLayerCount < 1) {
+        if ($dataLayerCount < 1 || ($dataLayerCount === 1 && $table !== null)) {
             if ($table === null) {
                 throw new MissingArgumentException(
                     'Table not specified.',
