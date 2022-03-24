@@ -7,7 +7,7 @@ CREATE TABLE tx_interest_api_token (
 		tstamp int(11) DEFAULT '0' NOT NULL,
 		crdate int(11) DEFAULT '0' NOT NULL,
 		token varchar(255) DEFAULT '' NOT NULL,
-		be_user int(11) DEFAULT '' NOT NULL,
+		be_user int(11) DEFAULT '0' NOT NULL,
 		expiry int(11) DEFAULT '0' NOT NULL,
 
 		PRIMARY KEY (uid),
