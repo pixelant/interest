@@ -6,11 +6,7 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
-use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\RelationUtility;
-use Pixelant\Interest\Utility\TcaUtility;
-use TYPO3\CMS\Core\Database\RelationHandler;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Updates the inline relation record count stored in the parent record field before we delete one of the relations.
