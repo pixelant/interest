@@ -99,57 +99,61 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             ?? $this->getRequest()->getQueryParams()['workspace']
             ?? null;
 
-        $dataLayerCount = 0;
-        $currentLayer = $data;
-        do {
-            if ($this->isRecordData($currentLayer)) {
-                break;
-            }
+        $layerCount = 0;
 
-            $currentLayer = array_values(get_object_vars($currentLayer))[0] ?? [];
+        if ($table !== null) {
+            $layerCount++;
+        }
 
-            $dataLayerCount++;
-        } while ($dataLayerCount < 5);
+        if ($remoteId !== null) {
+            $layerCount++;
+        }
 
-        array_walk_recursive(
-            $data,
-            function (&$item, $key) use ($dataLayerCount, $workspace, $language, $table) {
-                if ($dataLayerCount < 4) {
-                    $item = [(string)$workspace => $item];
+        if (!$this->isRecordData($data)) {
+            $currentLayer = $data;
+            do {
+                $layerCount++;
+
+                $currentLayer = next($currentLayer);
+
+                if ($this->isRecordData($currentLayer)) {
+                    break;
                 }
+            } while (true);
 
-                if ($dataLayerCount < 3) {
-                    $item = [(string)$language => $item];
+            $data = $this->convertObjectToArrayRecursive((array)$data);
+
+            array_walk_recursive(
+                $data,
+                function (&$item) use ($layerCount, $workspace, $language) {
+                    $item = (array)$item;
+
+                    if ($layerCount < 4 || $workspace !== null) {
+                        $item = [(string)$workspace => $item];
+                    }
+
+                    if ($layerCount < 3 || $language !== null) {
+                        $item = [(string)$language => $item];
+                    }
                 }
-            }
-        );
+            );
+        } else {
+            $data = [
+                (string)$language => [
+                    (string)$workspace => (array)$data
+                ]
+            ];
+        }
 
-        if (
-            !($dataLayerCount === 1 && $table !== null)
-            && $dataLayerCount < 2
-        ) {
-            if ($remoteId === null) {
-                throw new MissingArgumentException(
-                    'Remote ID not specified.',
-                    $this->getRequest()
-                );
-            }
-
+        if ($remoteId !== null) {
             $data = [$remoteId => $data];
         }
 
-        if ($dataLayerCount < 1 || ($dataLayerCount === 1 && $table !== null)) {
-            if ($table === null) {
-                throw new MissingArgumentException(
-                    'Table not specified.',
-                    $this->getRequest()
-                );
-            }
-
+        if ($table !== null) {
             $data = [$table => $data];
         }
 
-        $this->data = $this->convertObjectToArrayRecursive($data);
+        $this->data = $data;
     }
 
     /**
@@ -265,7 +269,9 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     private function isRecordData(object $object): bool
     {
-       return !is_object(array_values(get_object_vars($object))[0] ?? null);
+        $array = (array)$object;
+
+        return !is_object($array[array_key_first($array)]);
     }
 
     /**
@@ -277,11 +283,10 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     private function convertObjectToArrayRecursive(array $values): array
     {
         foreach ($values as &$value) {
-            if (is_object($value)) {
+            $valueCopy = (array)$value;
+            if (!is_array($valueCopy[array_key_first($valueCopy)]) || is_object($value)) {
                 $value = (array)$value;
-            }
-
-            if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $value = $this->convertObjectToArrayRecursive($value);
             }
         }
