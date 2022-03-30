@@ -37,7 +37,7 @@ class TokenRepository extends AbstractRepository
                 )
             )
             ->execute()
-            ->fetchColumn();
+            ->fetchOne();
     }
 
     /**
