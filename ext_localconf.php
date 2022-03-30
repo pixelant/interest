@@ -40,6 +40,11 @@ defined('TYPO3_MODE') or die('Access denied.');
     );
 
     \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
         \Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent::class,
         \Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler::class
     );

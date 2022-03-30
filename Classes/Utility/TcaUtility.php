@@ -8,11 +8,24 @@ namespace Pixelant\Interest\Utility;
 
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TcaUtility
 {
+    /**
+     * [
+     *     'tableName' => [
+     *         ''
+     *     ],
+     * ]
+     *
+     * @var array|null
+     * @see TcaUtility::getInlineRelationsToTable()
+     */
+    protected static ?array $inlineRelationsToTablesCache = null;
+
     /**
      * Returns true if the table is localizable.
      *
@@ -119,5 +132,76 @@ class TcaUtility
         }
 
         return $tcaFieldConf;
+    }
+
+    /**
+     * Get a list of the tables and fields where $tableName is used as inline records (type=inline in the TCA).
+     *
+     * A returned array might look like:
+     *
+     * [
+     *     'tablename1' => ['field1', 'field2'],
+     *     'tablename2' => ['field2'],
+     * ]
+     *
+     * @param string $tableName
+     * @return array
+     */
+    public static function getInlineRelationsToTable(string $tableName): array
+    {
+        if (self::$inlineRelationsToTablesCache === null) {
+            $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
+
+            $cacheName = CompatibilityUtility::typo3VersionIsLessThan('10') ? 'cache_hash' : 'hash';
+
+            $cacheHash = md5(self::class . '_inlineRelationsToTables');
+
+            $cache = $cacheManager->getCache($cacheName);
+
+            self::$inlineRelationsToTablesCache = $cache->get($cacheHash) ?: null;
+
+            if (self::$inlineRelationsToTablesCache === null || !is_array(self::$inlineRelationsToTablesCache)) {
+                self::$inlineRelationsToTablesCache = [];
+
+                foreach ($GLOBALS['TCA'] as $table => $tableConfig) {
+                    $recordTypeKeys = array_keys($tableConfig['types']);
+
+                    foreach (array_keys($tableConfig['columns']) as $fieldName) {
+                        $typeFieldName = static::getTypeFieldForTable($table);
+
+                        foreach ($recordTypeKeys as $recordTypeKey) {
+                            $row = $typeFieldName === null ? [] : [$typeFieldName => $recordTypeKey];
+
+                            $fieldConfig = static::getTcaFieldConfigurationAndRespectColumnsOverrides(
+                                $table,
+                                $fieldName,
+                                $row
+                            );
+
+                            if ($fieldConfig['type'] === 'inline') {
+                                self::$inlineRelationsToTablesCache[
+                                    $fieldConfig['foreign_table']
+                                ][$table][$fieldName][] = $recordTypeKey;
+                            }
+                        }
+                    }
+                }
+
+                $cache->set($cacheHash, self::$inlineRelationsToTablesCache);
+            }
+        }
+
+        return self::$inlineRelationsToTablesCache[$tableName] ?? [];
+    }
+
+    /**
+     * Returns the name of the record type field or null if there is none.
+     *
+     * @param string $table
+     * @return string|null
+     */
+    public static function getTypeFieldForTable(string $table): ?string
+    {
+        return $GLOBALS['TCA'][$table]['ctrl']['type'] ?? null;
     }
 }
