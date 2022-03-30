@@ -25,8 +25,26 @@ services:
         identifier: deferSysFileReferenceRecordOperation
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
 
-  \Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler:
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaDataEventHandler:
+    tags:
+      - name: event.listener
+        identifier: relationSortingAsMetaData
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler:
+    tags:
+      - name: event.listener
+        identifier: updateCountOnForeignSideOfInlineRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler:
     tags:
       - name: event.listener
         identifier: processDeferredRecordOperations
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler:
+    tags:
+      - name: event.listener
+        identifier: foreignRelationSorting
         event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent

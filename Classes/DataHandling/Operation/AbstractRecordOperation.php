@@ -133,13 +133,10 @@ abstract class AbstractRecordOperation
         $this->data = $data;
         $this->metaData = $metaData ?? [];
 
-        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
-        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
-        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
         $this->language = $this->resolveLanguage((string)$language);
@@ -169,7 +166,6 @@ abstract class AbstractRecordOperation
 
         $this->prepareRelations();
 
-        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
