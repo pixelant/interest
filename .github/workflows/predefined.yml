@@ -1,14 +1,13 @@
+# This workflow does not use the Composer actions for calling the tools.
+# Use this workflow if you do not intend to call the code quality checks locally,
+# but only in the CI builds.
+#
+# Note that, to keep things fast, pull requests and pushes do not trigger this workflow.
+# If you are going to use this workflow, please copy the corresponding trigger settings from the `ci.yml` workflow.
 ---
-# This GitHub Actions workflow uses the same development tools that are also installed locally
-# via Composer or PHIVE and calls them using the Composer scripts.
-name: CI with Composer scripts
+name: CI with predefined GitHub actions
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-  schedule:
-    - cron: '15 3 * * 1'
+  workflow_dispatch:
 jobs:
   php-lint:
     name: "PHP linter"
@@ -31,8 +30,68 @@ jobs:
           - 7.2
           - 7.3
           - 7.4
-          - 8.0
-          - 8.1
+  typoscript-lint:
+    name: "TypoScript linter"
+    runs-on: ubuntu-20.04
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run TypoScript lint"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-Typoscript-Lint@v1
+  php-codesniffer:
+    name: "PHP Codesniffer"
+    runs-on: ubuntu-20.04
+    needs: php-lint
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run PHP Codesniffer"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-PHP-Codesniffer@v1
+  yaml-lint:
+    name: "YAML linter"
+    runs-on: ubuntu-20.04
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run YAML lint"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-YAML-Lint@v1
+  json-lint:
+    name: "JSON linter"
+    runs-on: ubuntu-20.04
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run JSON lint"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-JSON-Lint@v1
+  php-cs-fixer:
+    name: "PHP CS Fixer"
+    runs-on: ubuntu-20.04
+    needs: php-lint
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run PHP CS Fixer"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-PHP-CS-Fixer@v1
+  phpstan-check:
+    name: "PHPStan check"
+    runs-on: ubuntu-20.04
+    needs: php-lint
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run PHPStan"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-PHPStan@v1
+        with:
+          config_file: './phpstan.neon'
+  copypaste-detector:
+    name: "Copy'n'paste detector"
+    runs-on: ubuntu-20.04
+    needs: php-lint
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Run the Copy'n'paste Detector"
+        uses: TYPO3-Continuous-Integration/TYPO3-CI-Copy-Paste-Detector@v1
   code-quality:
     name: "Code quality checks"
     runs-on: ubuntu-20.04
@@ -62,13 +121,7 @@ jobs:
       matrix:
         command:
           - "composer:normalize"
-          - "json:lint"
-          - "php:copypaste"
-          - "php:cs-fixer"
           - "php:sniff"
-          - "php:stan"
-          - "ts:lint"
-          - "yaml:lint"
         php-version:
           - 7.4
   code-quality-frontend:
@@ -122,7 +175,7 @@ jobs:
         env:
           TYPO3: "${{ matrix.typo3-version }}"
         run: |
-          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3"
+          composer require --no-progress typo3/minimal:"$TYPO3"
           composer show
       - name: "Install lowest dependencies with composer"
         if: "matrix.composer-dependencies == 'lowest'"
@@ -139,43 +192,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - typo3-version: ^10.4
-            php-version: 7.2
-            composer-dependencies: highest
-          - typo3-version: ^10.4
-            php-version: 7.2
-            composer-dependencies: lowest
-          - typo3-version: ^10.4
-            php-version: 7.3
-            composer-dependencies: highest
-          - typo3-version: ^10.4
-            php-version: 7.3
-            composer-dependencies: lowest
-          - typo3-version: ^10.4
-            php-version: 7.4
-            composer-dependencies: highest
-          - typo3-version: ^10.4
-            php-version: 7.4
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 7.4
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 7.4
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 8.0
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 8.0
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 8.1
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 8.1
-            composer-dependencies: lowest
+        composer-dependencies:
+          - highest
+          - lowest
+        php-version:
+          - 7.2
+          - 7.3
+          - 7.4
+        typo3-version:
+          - ^9.5
+          - ^10.4
   functional-tests:
     name: "Functional tests"
     runs-on: ubuntu-18.04
@@ -202,7 +228,7 @@ jobs:
         env:
           TYPO3: "${{ matrix.typo3-version }}"
         run: |
-          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3"
+          composer require --no-progress typo3/minimal:"$TYPO3"
           composer show
       - name: "Install lowest dependencies with composer"
         if: "matrix.composer-dependencies == 'lowest'"
@@ -244,22 +270,4 @@ jobs:
             composer-dependencies: highest
           - typo3-version: ^10.4
             php-version: 7.4
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 7.4
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 7.4
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 8.0
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 8.0
-            composer-dependencies: lowest
-          - typo3-version: ^11.5
-            php-version: 8.1
-            composer-dependencies: highest
-          - typo3-version: ^11.5
-            php-version: 8.1
             composer-dependencies: lowest
