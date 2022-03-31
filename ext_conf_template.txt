@@ -1,3 +1,9 @@
+# cat=REST; type=string; label=URL Entry Point: If you want to make REST calls to "https://example.org/entrypoint/...", the value here should be "entrypoint".
+entryPoint = rest
+
+# cat=REST; type=string; label=Token lifetime: The authentication token's lifetime in seconds. Zero means no expity.
+tokenLifetime = 86400
+
 # cat=Logging; type=options[Disabled=0,Headers=1,Database=2,Both=1]; label=Enable logging: In response headers and/or database.
 log = 0
 

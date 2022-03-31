@@ -57,9 +57,9 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->dataHandler->cmdmap[$this->getTable()][$this->getUid()]['delete'] = 1;
     }
 
-    public function __destruct()
+    public function __invoke()
     {
-        parent::__destruct();
+        parent::__invoke();
 
         $this->mappingRepository->remove($this->getRemoteId());
     }

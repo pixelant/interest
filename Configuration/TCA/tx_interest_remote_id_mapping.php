@@ -88,7 +88,8 @@ return [
         'metadata' => [
             'label' => 'Meta dats',
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'passthrough',
+                'default' => '',
             ]
         ],
     ],

@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
-use Pixelant\Interest\Configuration\ConfigurationProviderInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
@@ -85,9 +84,9 @@ abstract class AbstractRecordOperation
     protected RemoteIdMappingRepository $mappingRepository;
 
     /**
-     * @var ConfigurationProviderInterface
+     * @var ConfigurationProvider
      */
-    protected ConfigurationProviderInterface $configurationProvider;
+    protected ConfigurationProvider $configurationProvider;
 
     /**
      * @var PendingRelationsRepository
@@ -172,7 +171,7 @@ abstract class AbstractRecordOperation
         $this->data['pid'] = $this->storagePid;
     }
 
-    public function __destruct()
+    public function __invoke()
     {
         if ($this->operationStopped) {
             return;
