@@ -78,6 +78,7 @@ class BootstrapDispatcher
             $this->initializeConfiguration($this->configuration);
             $this->initializePageDoktypes();
             $this->initializeDispatcher();
+            $this->initializeSolrTceMainHooks();
 
             $this->isInitialized = true;
         }
@@ -203,6 +204,33 @@ class BootstrapDispatcher
             if ($token !== null) {
                 $GLOBALS['BE_USER']->cacheUser($token);
             }
+        }
+    }
+
+    /**
+     * Initialize solr TCE Main hooks to enable monitoring of record updates.
+     * Hooks aren't registered by default in FE context.
+     *
+     * Code is copied from file EXT:/solr/ext_tables.php.
+     *
+     * @return void
+     */
+    protected function initializeSolrTceMainHooks(): void
+    {
+        if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('solr')) {
+            // hooking into TCE Main to monitor record updates that may require deleting documents from the index
+            $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass'][]
+                = \ApacheSolrForTypo3\Solr\GarbageCollector::class;
+
+            $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][]
+                = \ApacheSolrForTypo3\Solr\GarbageCollector::class;
+
+            // hooking into TCE Main to monitor record updates that may require reindexing by the index queue
+            $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass'][]
+                = \ApacheSolrForTypo3\Solr\IndexQueue\RecordMonitor::class;
+
+            $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][]
+                = \ApacheSolrForTypo3\Solr\IndexQueue\RecordMonitor::class;
         }
     }
 }
