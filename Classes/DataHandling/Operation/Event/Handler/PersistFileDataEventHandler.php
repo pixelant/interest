@@ -16,6 +16,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
@@ -37,7 +38,14 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     protected BeforeRecordOperationEvent $event;
 
     /**
-     * @inheritDoc
+     * @param BeforeRecordOperationEvent $event
+     * @return void
+     * @throws InvalidFileNameException
+     * @throws ExistingTargetFileNameException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderReadPermissionsException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderWritePermissionsException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
@@ -182,7 +190,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param string $fileBaseName
      * @param bool $isCreateOperation
      * @return File
-     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException
+     * @throws ExistingTargetFileNameException
+     * @throws NotFoundException
      */
     protected function createFileObject(
         Folder $downloadFolder,
@@ -200,15 +209,16 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         } catch (FileDoesNotExistException $exception) {
             if ($this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) === 0) {
                 throw new NotFoundException(
-                    'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" does not '
-                    . 'exist in this TYPO3 instance.',
+                    'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId()
+                    . '" does not exist in this TYPO3 instance.',
                     1634668710602
                 );
             }
 
             throw new NotFoundException(
                 'The file with remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '" and UID '
-                . '"' . $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId()) . '" does not exist.',
+                . '"' . $this->mappingRepository->get($this->event->getRecordOperation()->getRemoteId())
+                . '" does not exist.',
                 1634668857809
             );
         }
@@ -246,6 +256,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      *
      * @param string $url
      * @return string|null
+     *
+     * @throws NotFoundException
      */
     protected function handleUrlInput(string $url): ?string
     {
@@ -299,7 +311,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      *
      * @param File $file
      * @param string $fileName
-     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException
+     * @throws ExistingTargetFileNameException
      */
     protected function renameFile(File $file, string $fileName)
     {

@@ -16,7 +16,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class AuthenticateRequestHandler extends AbstractRequestHandler
 {
     /**
-     * @inheritDoc
+     * @return ResponseInterface
+     * @throws UnauthorizedAccessException
+     * @throws InvalidArgumentException
      */
     public function handle(): ResponseInterface
     {

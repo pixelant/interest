@@ -47,7 +47,9 @@ class ClearRecordHashCommandController extends Command
             if ($input->getOption('contains')) {
                 $queryBuilder->where($queryBuilder->expr()->like(
                     'remote_id',
-                    $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($input->getArgument('remoteId')) . '%')
+                    $queryBuilder->createNamedParameter(
+                        '%' . $queryBuilder->escapeLikeWildcards($input->getArgument('remoteId')) . '%'
+                    )
                 ));
             } else {
                 $queryBuilder->where($queryBuilder->expr()->eq(

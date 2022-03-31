@@ -13,11 +13,14 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
 
     /**
      * Construct.
+     *
+     * @throws \RuntimeException if TYPO3 is in maintenance mode and user can't be logged in.
      */
     public function __construct()
     {
         if (!$this->isUserAllowedToLogin()) {
-            throw new \RuntimeException('Login Error: TYPO3 is in maintenance mode at the moment. Only administrators are allowed access.', 1483971855);
+            throw new \RuntimeException('Login Error: TYPO3 is in maintenance mode at the moment. Only' .
+                ' administrators are allowed access.', 1483971855);
         }
 
         $this->dontSetCookie = true;
@@ -84,7 +87,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         // First found user will be used
         $subType = 'getUser' . $this->loginType;
         foreach ($this->getAuthServices($subType, $loginData, $authInfo) as $serviceObj) {
-            if ($row = $serviceObj->getUser()) {
+            $row = $serviceObj->getUser();
+            if ($row) {
                 $tempuserArr[] = $row;
                 $this->logger->debug('User found', [
                     $this->userid_column => $row[$this->userid_column],
@@ -108,13 +112,16 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
             foreach ($tempuserArr as $tempuser) {
                 // Use 'auth' service to authenticate the user
                 // If one service returns FALSE then authentication failed
-                // a service might return 100 which means there's no reason to stop but the user can't be authenticated by that service
+                // a service might return 100 which means there's no reason to stop but the user can't be authenticated
+                // by that service
                 $this->logger->debug('Auth user', $this->removeSensitiveLoginDataForLoggingInfo($tempuser, true));
                 $subType = 'authUser' . $this->loginType;
 
                 foreach ($this->getAuthServices($subType, $loginData, $authInfo) as $serviceObj) {
-                    if (($ret = $serviceObj->authUser($tempuser)) > 0) {
-                        // If the service returns >=200 then no more checking is needed - useful for IP checking without password
+                    $ret = $serviceObj->authUser($tempuser);
+                    if ($ret > 0) {
+                        // If the service returns >=200 then no more checking is needed - useful for IP checking without
+                        // password
                         if ((int)$ret >= 200) {
                             $authenticated = true;
                             break;
@@ -153,10 +160,23 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
 
             // User logged in - write that to the log!
             if ($this->writeStdLog) {
-                $this->writelog(255, 1, 0, 1, 'User %s logged in from ###IP###', [$tempuser[$this->username_column]], '', '', '');
+                $this->writelog(
+                    255,
+                    1,
+                    0,
+                    1,
+                    'User %s logged in from ###IP###',
+                    [$tempuser[$this->username_column]],
+                    '',
+                    '',
+                    ''
+                );
             }
 
-            $this->logger->debug('User ' . $tempuser[$this->username_column] . ' authenticated from ' . GeneralUtility::getIndpEnv('REMOTE_ADDR'));
+            $this->logger->debug(
+                'User ' . $tempuser[$this->username_column] . ' authenticated from '
+                . GeneralUtility::getIndpEnv('REMOTE_ADDR')
+            );
         } else {
             $this->loginFailure = true;
 

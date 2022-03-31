@@ -28,7 +28,8 @@ class FileNameValidator
     /**
      * Previously this was used within SystemEnvironmentBuilder
      */
-    public const DEFAULT_FILE_DENY_PATTERN = '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$';
+    public const DEFAULT_FILE_DENY_PATTERN
+        = '\\.(php[3-8]?|phpsh|phtml|pht|phar|shtml|cgi)(\\..*)?$|\\.pl$|^\\.htaccess$';
 
     /**
      * @var string

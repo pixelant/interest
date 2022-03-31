@@ -102,6 +102,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param int $uid
      * @param AbstractRecordOperation|null $recordOperation Must be set when called from within a record operation
      * @throws UniqueConstraintViolationException
+     * @throws IdentityConflictException
      */
     public function add(
         string $remoteId,

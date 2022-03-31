@@ -162,7 +162,13 @@ class PendingRelationsCommandController extends Command
         /** @var PendingRelationsRepository $pendingRelationsRepository */
         $pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        while ($resolvableRelation = $resolvableRelations->fetchAssociative()) {
+        while (true) {
+            $resolvableRelation = $resolvableRelations->fetchAssociative();
+
+            if (!$resolvableRelation) {
+                break;
+            }
+
             // Recreate DataHandler each time. This can probably by optimized by running e.g. 50 changes at a time,
             // but with thousands of changes we shouldn't run them all in one operation due to memory concerns.
             /** @var DataHandler $dataHandler */

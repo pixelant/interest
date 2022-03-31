@@ -150,7 +150,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     }
 
     /**
-     * @inheritDoc
+     * @return ResponseInterface
+     * @throws \Throwable
      */
     public function handle(): ResponseInterface
     {
@@ -227,7 +228,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             JsonResponse::class,
             [
                 'success' => $exceptionCount === 0,
-                'message' => $exceptionCount . ' operations failed while ' . ($operationCount - $exceptionCount) . ' operations completed successfully.',
+                'message' => $exceptionCount . ' operations failed while ' . ($operationCount - $exceptionCount)
+                    . ' operations completed successfully.',
                 'statuses' => $statuses,
                 'total' => $operationCount,
                 'successful' => $operationCount - $exceptionCount,

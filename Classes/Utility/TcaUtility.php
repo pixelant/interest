@@ -78,6 +78,7 @@ class TcaUtility
      * @param string $field
      * @param array $row
      * @return array
+     * @throws \UnexpectedValueException
      */
     public static function getTcaFieldConfigurationAndRespectColumnsOverrides(
         string $table,
@@ -176,7 +177,8 @@ class TcaUtility
                             );
 
                             if ($fieldConfig['type'] === 'inline') {
-                                self::$inlineRelationsToTablesCache[$fieldConfig['foreign_table']][$table][$fieldName][] = $recordTypeKey;
+                                self::$inlineRelationsToTablesCache[$fieldConfig['foreign_table']][$table][$fieldName][]
+                                    = $recordTypeKey;
                             }
                         }
                     }

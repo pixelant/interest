@@ -119,7 +119,9 @@ class HttpRequestRouter
                             ]),
                         ]
                     );
-                } while ($currentThrowable = $throwable->getPrevious());
+
+                    $currentThrowable = $throwable->getPrevious();
+                } while ($currentThrowable);
             }
 
             return GeneralUtility::makeInstance(
@@ -148,6 +150,7 @@ class HttpRequestRouter
      *
      * @param ServerRequestInterface $request
      * @throws UnauthorizedAccessException
+     * @throws InvalidArgumentException
      */
     protected static function authenticateBearerToken(ServerRequestInterface $request): void
     {

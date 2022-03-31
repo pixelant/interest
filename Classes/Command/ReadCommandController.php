@@ -21,12 +21,4 @@ class ReadCommandController extends AbstractRecordCommandController
 
         $this->setDescription('Read data from a record. NOT YET IMPLEMENTED');
     }
-
-    /**
-     * @inheritDoc
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        parent::execute($input, $output);
-    }
 }

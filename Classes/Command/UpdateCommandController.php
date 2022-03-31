@@ -35,7 +35,11 @@ class UpdateCommandController extends AbstractReceiveCommandController
     }
 
     /**
-     * @inheritDoc
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     *
+     * @throws \Throwable All exceptions that can't be handled are re-thrown.
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

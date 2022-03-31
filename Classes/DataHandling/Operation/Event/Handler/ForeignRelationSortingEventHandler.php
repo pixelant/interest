@@ -26,7 +26,9 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     protected ?RemoteIdMappingRepository $mappingRepository = null;
 
     /**
-     * @inheritDoc
+     * @param AfterRecordOperationEvent $event
+     * @return void
+     * @throws DataHandlerErrorException
      */
     public function __invoke(AfterRecordOperationEvent $event): void
     {

@@ -8,6 +8,7 @@ use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\BeforeRecordOperationEventException;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
@@ -116,6 +117,8 @@ abstract class AbstractRecordOperation
      * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
      * @param string|null $workspaceRemoteId workspace represented with a remote ID.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
+     *
+     * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
      */
     public function __construct(
         array $data,
@@ -156,8 +159,8 @@ abstract class AbstractRecordOperation
 
         $this->validateFieldNames();
 
-        $this->contentObjectRenderer->data['language'] =
-            $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
+        $this->contentObjectRenderer->data['language']
+            = $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
 
         $this->applyFieldDataTransformations();
 
@@ -205,7 +208,8 @@ abstract class AbstractRecordOperation
                 $this->getTable(),
                 // This assumes we have only done a single operation and there is only one NEW key.
                 // The UID might have been set by another operation already, even though this is CreateRecordOperation.
-                $this->getUid() ?: $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
+                $this->getUid()
+                    ?: $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
                 $this
             );
 
@@ -259,7 +263,7 @@ abstract class AbstractRecordOperation
      * @return int
      * @throws NotFoundException
      * @throws ConflictException
-     * @throws MissingArgumentException
+     * @throws InvalidArgumentException
      */
     private function resolveStoragePid(): int
     {
@@ -301,6 +305,7 @@ abstract class AbstractRecordOperation
      *
      * @param string|null $language
      * @return SiteLanguage|null
+     * @throws InvalidArgumentException
      */
     protected function resolveLanguage(?string $language): ?SiteLanguage
     {
@@ -469,7 +474,10 @@ abstract class AbstractRecordOperation
                 is_array($this->data[$fieldName])
                 && $this->contentObjectRenderer->stdWrap(
                     $tcaConfiguration['type'],
-                    $this->configurationProvider->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.'] ?? []
+                    $this
+                        ->configurationProvider
+                        ->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.']
+                    ?? []
                 ) === 'inline'
             ) {
                 $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
