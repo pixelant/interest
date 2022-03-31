@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Utility;
-
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -31,7 +28,6 @@ class DatabaseUtility
 
             // do not use enabled fields here
             $queryBuilder->getRestrictions()->removeAll();
-            /** @noinspection PhpParamsInspection */
             $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(DeletedRestriction::class));
 
             // set table and where clause

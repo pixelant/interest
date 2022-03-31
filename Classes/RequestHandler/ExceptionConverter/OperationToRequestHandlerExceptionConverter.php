@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\RequestHandler\ExceptionConverter;
-
 
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException as OperationConflictException;
@@ -18,7 +16,6 @@ use Pixelant\Interest\RequestHandler\Exception\DataHandlerErrorException;
 use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\MissingArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\NotFoundException;
-use Pixelant\Interest\Http\InterestRequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class OperationToRequestHandlerExceptionConverter
@@ -40,8 +37,7 @@ final class OperationToRequestHandlerExceptionConverter
     public static function convert(
         AbstractException $exception,
         ServerRequestInterface $request
-    ): \Throwable
-    {
+    ): \Throwable {
         if (array_key_exists(get_class($exception), self::EXCEPTION_MAP)) {
             $newExceptionFqcn = self::EXCEPTION_MAP[get_class($exception)];
 

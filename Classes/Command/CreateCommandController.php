@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Command;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;

@@ -2,8 +2,6 @@
 
 namespace Pixelant\Interest\Middlewares;
 
-use Pixelant\Interest\BootstrapDispatcher;
-use Pixelant\Interest\ObjectManager;
 use Pixelant\Interest\Router\HttpRequestRouter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

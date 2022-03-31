@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Utility;
-
 
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -86,8 +84,7 @@ class TcaUtility
         string $field,
         array $row,
         ?string $remoteId = null
-    ): array
-    {
+    ): array {
         if ($field === 'pid') {
             return [
                 'type' => 'group',
@@ -179,9 +176,7 @@ class TcaUtility
                             );
 
                             if ($fieldConfig['type'] === 'inline') {
-                                self::$inlineRelationsToTablesCache[
-                                    $fieldConfig['foreign_table']
-                                ][$table][$fieldName][] = $recordTypeKey;
+                                self::$inlineRelationsToTablesCache[$fieldConfig['foreign_table']][$table][$fieldName][] = $recordTypeKey;
                             }
                         }
                     }

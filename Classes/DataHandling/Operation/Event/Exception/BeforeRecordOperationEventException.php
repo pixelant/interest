@@ -11,5 +11,4 @@ use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
  */
 class BeforeRecordOperationEventException extends AbstractException
 {
-
 }

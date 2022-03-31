@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
-use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
@@ -108,8 +108,7 @@ class RemoteIdMappingRepository extends AbstractRepository
         string $tableName,
         int $uid,
         ?AbstractRecordOperation $recordOperation = null
-    ): void
-    {
+    ): void {
         $remoteId = $this->addAspectsToRemoteId($remoteId, $recordOperation);
 
         if ($this->exists($remoteId)) {
@@ -385,7 +384,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @param string $key
-     * @return null|string|float|int|array Null if value wasn't found
+     * @return string|float|int|array|null Null if value wasn't found
      */
     public function getMetaDataValue(string $remoteId, string $key)
     {
@@ -397,7 +396,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @param string $key
-     * @param null|string|float|int|array $value
+     * @param string|float|int|array|null $value
      */
     public function setMetaDataValue(string $remoteId, string $key, $value)
     {

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
@@ -136,7 +137,7 @@ class HttpRequestRouter
             JsonResponse::class,
             [
                 'success' => false,
-                'message' => 'Method not allowed.'
+                'message' => 'Method not allowed.',
             ],
             405
         );

@@ -7,7 +7,6 @@ namespace Pixelant\Interest\RequestHandler;
 use Pixelant\Interest\Context;
 use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
-use Pixelant\Interest\RequestHandler\Exception\MissingArgumentException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,7 +38,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
         if (Context::isDisableReferenceIndex()) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
-                'className' => RelationHandlerWithoutReferenceIndex::class
+                'className' => RelationHandlerWithoutReferenceIndex::class,
             ];
         }
 
@@ -66,8 +65,6 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      *     ],
      *     ...
      * ];
-     *
-     * @return void
      */
     protected function compileData(): void
     {
@@ -136,8 +133,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         } else {
             $data = [
                 (string)$language => [
-                    (string)$workspace => (array)$data
-                ]
+                    (string)$workspace => (array)$data,
+                ],
             ];
         }
 
@@ -234,7 +231,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
                 'statuses' => $statuses,
                 'total' => $operationCount,
                 'successful' => $operationCount - $exceptionCount,
-                'unsuccessful' => $exceptionCount
+                'unsuccessful' => $exceptionCount,
             ],
             207
         );
@@ -247,7 +244,6 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      * @param string $remoteId
      * @param string $language
      * @param string $workspace
-     * @return void
      */
     abstract protected function handleSingleOperation(
         string $table,
@@ -258,8 +254,6 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     ): void;
 
     /**
-     *
-     *
      * @param object $object
      * @return bool True if the object contains any other value than objects.
      */

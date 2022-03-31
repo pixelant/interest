@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\RelationUtility;
-use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 

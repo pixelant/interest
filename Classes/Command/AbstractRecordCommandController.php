@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Command;
 
 use Pixelant\Interest\Context;
@@ -14,7 +13,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StreamableInputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\RelationHandler;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Abstract command for handling operations with entrypoint and remoteId.
@@ -112,7 +110,7 @@ abstract class AbstractRecordCommandController extends Command
 
         if (Context::isDisableReferenceIndex()) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
-                'className' => RelationHandlerWithoutReferenceIndex::class
+                'className' => RelationHandlerWithoutReferenceIndex::class,
             ];
         }
     }

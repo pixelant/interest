@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\RequestHandler;
-
 
 use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
@@ -17,7 +15,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class AuthenticateRequestHandler extends AbstractRequestHandler
 {
-
     /**
      * @inheritDoc
      */

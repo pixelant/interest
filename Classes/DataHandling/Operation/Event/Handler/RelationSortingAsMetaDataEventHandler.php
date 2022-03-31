@@ -101,7 +101,7 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
 
         $mappingRepository->setMetaDataValue(
             $recordOperation->getRemoteId(),
-            RelationSortingAsMetaDataEventHandler::class,
+            self::class,
             $sortingIntents
         );
     }

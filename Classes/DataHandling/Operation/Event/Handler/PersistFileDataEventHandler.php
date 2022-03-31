@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
-
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
@@ -129,7 +127,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     'Cannot download file. Missing property "url" in the data.',
                     1634667221986
                 );
-            } elseif (!empty($data['url'])) {
+            }
+            if (!empty($data['url'])) {
                 $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
 
                 $file = $onlineMediaHelperRegistry->transformUrlToFile(
@@ -189,8 +188,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         Folder $downloadFolder,
         string $fileBaseName,
         bool $isCreateOperation
-    ): File
-    {
+    ): File {
         if ($isCreateOperation) {
             return $downloadFolder->createFile($fileBaseName);
         }

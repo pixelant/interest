@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\RequestHandler;
 
-use Pixelant\Interest\Router\HttpRequestRouter;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Abstract class for handling requests.

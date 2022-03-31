@@ -23,8 +23,8 @@ return [
         'pid' => [
             'label' => 'pid',
             'config' => [
-                'type' => 'passthrough'
-            ]
+                'type' => 'passthrough',
+            ],
         ],
         'crdate' => [
             'label' => 'crdate',
@@ -32,7 +32,7 @@ return [
                 'type' => 'input',
                 'renderType' => 'inputDateTime',
                 'eval' => 'datetime',
-            ]
+            ],
         ],
         'tstamp' => [
             'label' => 'tstamp',
@@ -40,7 +40,7 @@ return [
                 'type' => 'input',
                 'renderType' => 'inputDateTime',
                 'eval' => 'datetime',
-            ]
+            ],
         ],
         'remote_id' => [
             'exclude' => false,
@@ -49,7 +49,7 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'eval' => 'required,unique,alphanum_x,trim',
-            ]
+            ],
         ],
         'table' => [
             'exclude' => false,
@@ -58,7 +58,7 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'eval' => 'required,alphanum_x,trim',
-            ]
+            ],
         ],
         'uid_local' => [
             'exclude' => false,
@@ -67,7 +67,7 @@ return [
                 'type' => 'input',
                 'size' => 10,
                 'eval' => 'required,int',
-            ]
+            ],
         ],
         'manual' => [
             'exclude' => false,
@@ -83,19 +83,19 @@ return [
                         1 => '',
                     ],
                 ],
-            ]
+            ],
         ],
         'metadata' => [
             'label' => 'Meta dats',
             'config' => [
                 'type' => 'passthrough',
                 'default' => '',
-            ]
+            ],
         ],
     ],
     'types' => [
         '0' => [
-            'showitem' => 'manual, remote_id, table, uid_local'
+            'showitem' => 'manual, remote_id, table, uid_local',
         ],
     ],
 ];

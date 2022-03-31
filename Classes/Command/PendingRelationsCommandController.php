@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Command;
 
-
+use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\RelationUtility;
@@ -18,7 +17,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class PendingRelationsCommandController extends Command
@@ -74,7 +72,8 @@ class PendingRelationsCommandController extends Command
             ->count('*')
             ->from(PendingRelationsRepository::TABLE_NAME, 'p')
             ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                'p.remote_id', $queryBuilder->quoteIdentifier('m.remote_id')
+                'p.remote_id',
+                $queryBuilder->quoteIdentifier('m.remote_id')
             ))
             ->execute()
             ->fetchColumn(0);
@@ -96,7 +95,7 @@ class PendingRelationsCommandController extends Command
         $rows[] = [
             'TOTAL',
             $counts['_total']['count'],
-            $this->formatRedIfNonzero($counts['_total']['resolvable'])
+            $this->formatRedIfNonzero($counts['_total']['resolvable']),
         ];
 
         foreach ($tables as $table) {
@@ -119,7 +118,8 @@ class PendingRelationsCommandController extends Command
                 ->count('*')
                 ->from(PendingRelationsRepository::TABLE_NAME, 'p')
                 ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                    'p.remote_id', $queryBuilder->quoteIdentifier('m.remote_id')
+                    'p.remote_id',
+                    $queryBuilder->quoteIdentifier('m.remote_id')
                 ))
                 ->where(
                     $queryBuilder->expr()->eq('p.table', $queryBuilder->createNamedParameter($table))
@@ -130,7 +130,7 @@ class PendingRelationsCommandController extends Command
             $rows[] = [
                 $table,
                 $counts[$table]['count'],
-                $this->formatRedIfNonzero($counts[$table]['resolvable'])
+                $this->formatRedIfNonzero($counts[$table]['resolvable']),
             ];
         }
 
@@ -151,7 +151,8 @@ class PendingRelationsCommandController extends Command
             ->select('p.*', 'm.table as _foreign_table', 'm.uid_local as _foreign_uid')
             ->from(PendingRelationsRepository::TABLE_NAME, 'p')
             ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                'p.remote_id', $queryBuilder->quoteIdentifier('m.remote_id')
+                'p.remote_id',
+                $queryBuilder->quoteIdentifier('m.remote_id')
             ))
             ->execute();
 
@@ -179,7 +180,7 @@ class PendingRelationsCommandController extends Command
             $output->writeln(
                 var_export([
                     'resolvableRelation' => $resolvableRelation,
-                    'datamap' => $dataHandler->datamap
+                    'datamap' => $dataHandler->datamap,
                 ], true),
                 OutputInterface::VERBOSITY_VERY_VERBOSE
             );

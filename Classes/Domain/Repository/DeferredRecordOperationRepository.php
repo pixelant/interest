@@ -2,15 +2,10 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Domain\Repository;
-
 
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 
-/**
- *
- */
 class DeferredRecordOperationRepository extends AbstractRepository
 {
     public const TABLE_NAME = 'tx_interest_deferred_operation';
@@ -31,7 +26,7 @@ class DeferredRecordOperationRepository extends AbstractRepository
                 'crdate' => time(),
                 'dependent_remote_id' => $dependentRemoteId,
                 'class' => get_class($operation),
-                'arguments' => serialize($operation->getArguments())
+                'arguments' => serialize($operation->getArguments()),
             ])
             ->execute();
     }
@@ -49,9 +44,11 @@ class DeferredRecordOperationRepository extends AbstractRepository
         $rows = $queryBuilder
             ->select('*')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'dependent_remote_id',
-                $queryBuilder->createNamedParameter($dependentRemoteId))
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'dependent_remote_id',
+                    $queryBuilder->createNamedParameter($dependentRemoteId)
+                )
             )
             ->orderBy('crdate')
             ->execute()
@@ -79,9 +76,11 @@ class DeferredRecordOperationRepository extends AbstractRepository
 
         $queryBuilder
             ->delete(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'uid',
-                $queryBuilder->createNamedParameter($uid, \PDO::PARAM_INT))
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'uid',
+                    $queryBuilder->createNamedParameter($uid, \PDO::PARAM_INT)
+                )
             )
             ->execute();
     }

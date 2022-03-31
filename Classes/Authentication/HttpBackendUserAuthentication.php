@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Authentication;
-
 
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -47,7 +45,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      */
     public function backendCheckLogin($proceedIfNoUserIsLoggedIn = false)
     {
-        $this->authenticate();
     }
 
     /**
@@ -122,8 +119,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
                             $authenticated = true;
                             break;
                         }
-                        if ((int)$ret >= 100) {
-                        } else {
+                        if ((int)$ret < 100) {
                             $authenticated = true;
                         }
                     } else {
@@ -145,9 +141,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
             $this->loginFailure = false;
             // Insert session record if needed:
 
-
-            $this->user = $tempuser
-            ;
+            $this->user = $tempuser;
             // The login session is started.
             $this->loginSessionStarted = true;
             if (is_array($this->user)) {
@@ -163,13 +157,12 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
             }
 
             $this->logger->debug('User ' . $tempuser[$this->username_column] . ' authenticated from ' . GeneralUtility::getIndpEnv('REMOTE_ADDR'));
-
         } else {
             $this->loginFailure = true;
 
             if (empty($tempuserArr)) {
                 $logData = [
-                    'loginData' => $this->removeSensitiveLoginDataForLoggingInfo($loginData)
+                    'loginData' => $this->removeSensitiveLoginDataForLoggingInfo($loginData),
                 ];
                 $this->logger->debug('Login failed', $logData);
             }

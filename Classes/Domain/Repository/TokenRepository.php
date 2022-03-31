@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Domain\Repository;
 
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -60,7 +59,7 @@ class TokenRepository extends AbstractRepository
                 'token' => $token,
                 'be_user' => $id,
                 'expiry' => (int)GeneralUtility::makeInstance(ExtensionConfiguration::class)
-                    ->get('interest', 'tokenLifetime')
+                    ->get('interest', 'tokenLifetime'),
             ])
             ->execute();
 

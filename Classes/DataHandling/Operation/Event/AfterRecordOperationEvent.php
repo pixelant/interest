@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation\Event;
-
 
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 
 /**
  * Event called after the completion of an AbstractRecordOperation.
- *
  */
 class AfterRecordOperationEvent
 {
@@ -19,7 +16,8 @@ class AfterRecordOperationEvent
     /**
      * @param AbstractRecordOperation $recordOperation
      */
-    public function __construct(AbstractRecordOperation $recordOperation) {
+    public function __construct(AbstractRecordOperation $recordOperation)
+    {
         $this->recordOperation = $recordOperation;
     }
 

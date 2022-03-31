@@ -29,5 +29,4 @@ class DeleteRemoteIdForDeletedFileSlot
             $mappingRepository->remove($remoteId);
         }
     }
-
 }

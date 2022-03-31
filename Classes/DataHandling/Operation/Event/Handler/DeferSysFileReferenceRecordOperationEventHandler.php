@@ -2,13 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
-
-
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Defers a sys_file_reference operation if the local file has not yet been created.

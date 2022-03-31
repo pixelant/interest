@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Command;
 
 use Pixelant\Interest\Context;
@@ -54,8 +53,8 @@ class DeleteCommandController extends Command
     }
 
     /**
-    * @inheritDoc
-    */
+     * @inheritDoc
+     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         Bootstrap::initializeBackendAuthentication();
@@ -64,7 +63,7 @@ class DeleteCommandController extends Command
 
         if (Context::isDisableReferenceIndex()) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
-                'className' => RelationHandlerWithoutReferenceIndex::class
+                'className' => RelationHandlerWithoutReferenceIndex::class,
             ];
         }
     }

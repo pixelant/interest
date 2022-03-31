@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Hook;
-
 
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -23,8 +21,7 @@ class ProcessCmdmap
         DataHandler $dataHandler,
         $pasteUpdate,
         $pasteDatamap
-    )
-    {
+    ) {
         if ($command === 'delete') {
             /** @var RemoteIdMappingRepository $mappingRepository */
             $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);

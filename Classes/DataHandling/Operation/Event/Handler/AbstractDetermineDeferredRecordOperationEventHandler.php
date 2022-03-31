@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
@@ -16,8 +15,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Abstract for event handlers dealing with deferred persistence. I.e. where a record operation should not be executed
  * now because other data needs to appear first. All subclasses must throw a DeferRecordOperationException.
  */
-abstract class AbstractDetermineDeferredRecordOperationEventHandler
-    implements BeforeRecordOperationEventHandlerInterface
+abstract class AbstractDetermineDeferredRecordOperationEventHandler implements BeforeRecordOperationEventHandlerInterface
 {
     /**
      * @var BeforeRecordOperationEvent

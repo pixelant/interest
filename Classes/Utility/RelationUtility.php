@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\Utility;
 
+use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler;
 use TYPO3\CMS\Core\Database\RelationHandler;
-use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -26,8 +25,7 @@ class RelationUtility
         array $pendingRelation,
         string $foreignTable,
         $foreignUid
-    )
-    {
+    ) {
         /** @var RelationHandler $relationHandler */
         $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
 
@@ -67,8 +65,7 @@ class RelationUtility
         int $uid,
         string $field,
         array $rowWithRecordType = []
-    ): array
-    {
+    ): array {
         return self::getRelationsFromFieldConfiguration(
             $table,
             $uid,
@@ -92,8 +89,7 @@ class RelationUtility
         string $table,
         int $uid,
         array $fieldConfig
-    ): array
-    {
+    ): array {
         $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
 
         $relationHandler->start(
@@ -124,8 +120,7 @@ class RelationUtility
         string $foreignTable,
         string $foreignField,
         $recordType = null
-    ): array
-    {
+    ): array {
         $rowWithTypeField = [];
 
         $typeField = TcaUtility::getTypeFieldForTable($foreignTable);
@@ -183,14 +178,12 @@ class RelationUtility
      * @param string $localTable
      * @param int $localUid
      * @param int $countModifier Number to add or subtract from the count.
-     * @return void
      */
     public static function updateParentRecordInlineFieldRelationCount(
         string $localTable,
         int $localUid,
         int $countModifier = 0
-    )
-    {
+    ) {
         $inlineRelations = TcaUtility::getInlineRelationsToTable($localTable);
 
         if (count($inlineRelations) === 0) {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-
 namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
+use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
@@ -21,7 +21,6 @@ use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use Pixelant\Interest\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -125,8 +124,7 @@ abstract class AbstractRecordOperation
         ?string $language = null,
         ?string $workspace = null,
         ?array $metaData = []
-    )
-    {
+    ) {
         $this->table = strtolower($table);
         $this->remoteId = $remoteId;
         $this->data = $data;
@@ -234,7 +232,7 @@ abstract class AbstractRecordOperation
             $this->getRemoteId(),
             $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang(),
             null,
-            $this->getMetaData()
+            $this->getMetaData(),
         ];
     }
 
@@ -270,7 +268,7 @@ abstract class AbstractRecordOperation
         }
 
         if (isset($this->getData()['pid'])) {
-            if(!$this->mappingRepository->exists((string)$this->getData()['pid']))  {
+            if (!$this->mappingRepository->exists((string)$this->getData()['pid'])) {
                 throw new NotFoundException(
                     'Unable to set PID. The remote ID "' . $this->getData()['pid'] . '" does not exist.',
                     1634205352895
@@ -392,7 +390,7 @@ abstract class AbstractRecordOperation
             'language' => null,
             'workspace' => null,
             'metaData' => $this->getMetaData(),
-            'data' => $this->getData()
+            'data' => $this->getData(),
         ];
 
         return $contentObjectRenderer;
@@ -616,7 +614,8 @@ abstract class AbstractRecordOperation
      * @param string $field
      * @return array
      */
-    protected function getTcaFieldConfigurationAndRespectColumnsOverrides(string $field): array {
+    protected function getTcaFieldConfigurationAndRespectColumnsOverrides(string $field): array
+    {
         return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
             $this->getTable(),
             $field,

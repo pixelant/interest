@@ -17,8 +17,7 @@ class CreateRequestHandler extends AbstractRecordRequestHandler
         string $language,
         string $workspace,
         array $data
-    ): void
-    {
+    ): void {
         (new CreateRecordOperation(
             $data,
             $table,
