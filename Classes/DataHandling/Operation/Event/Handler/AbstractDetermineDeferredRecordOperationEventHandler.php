@@ -65,8 +65,8 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler implements B
         $deferredOperationRepository->add($dependentRemoteId, $this->getEvent()->getRecordOperation());
 
         throw new StopRecordOperationException(
-            'Deferred record operation on remote ID "' . $this->getEvent()->getRecordOperation()->getRemoteId() . '. '
-            . ' Waiting for remote ID "' . $dependentRemoteId . '".',
+            'Deferred record operation on remote ID "' . $this->getEvent()->getRecordOperation()->getRemoteId()
+            . '. ' . ' Waiting for remote ID "' . $dependentRemoteId . '".',
             1634553398351
         );
     }

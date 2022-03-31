@@ -25,6 +25,8 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 {
     protected ?RemoteIdMappingRepository $mappingRepository = null;
 
+    protected AfterRecordOperationEvent $event;
+
     /**
      * @param AfterRecordOperationEvent $event
      * @throws DataHandlerErrorException
@@ -39,55 +41,10 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
-        $data = [];
-        foreach ($this->getMmFieldConfigurations() as $fieldName => $fieldConfiguration) {
-            $relationIds = $event->getRecordOperation()->getData()[$fieldName] ?? [];
-
-            if (empty($relationIds)) {
-                continue;
-            }
-
-            if (!is_array($relationIds)) {
-                $relationIds = explode(',', (string)$relationIds);
-            }
-
-            $foreignTable = $fieldConfiguration['foreign_table'] ?? null;
-            if (
-                $fieldConfiguration['type'] === 'group'
-                && $fieldConfiguration['allowed'] !== '*'
-                && strpos($fieldConfiguration['allowed'], ',') === false
-            ) {
-                $foreignTable = $fieldConfiguration['allowed'];
-            }
-
-            foreach ($relationIds as $relationId) {
-                if ($fieldConfiguration['type'] === 'group' && $foreignTable === null) {
-                    $parts = explode('_', $relationId);
-                    $relationId = array_pop($parts);
-                    $foreignTable = implode('_', $parts);
-                }
-
-                $data = array_merge_recursive(
-                    $data,
-                    $this->orderOnForeignSideOfRelation($foreignTable, (int)$relationId)
-                );
-            }
-        }
+        $data = $this->generateSortingData();
 
         if (count($data) > 0) {
-            $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
-            $dataHandler->start($data, []);
-            $dataHandler->process_datamap();
-
-            if (!empty($this->dataHandler->errorLog)) {
-                throw new DataHandlerErrorException(
-                    'Error occurred during foreign-side relation ordering in remote ID based on relations'
-                    . ' from remote ID "' . $event->getRecordOperation()->getRemoteId() . '": '
-                    . implode(', ', $this->dataHandler->errorLog)
-                    . ' Datamap: ' . json_encode($this->dataHandler->datamap),
-                    1641480842077
-                );
-            }
+            $this->persistData($data);
         }
     }
 
@@ -222,5 +179,73 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         }
 
         return [];
+    }
+
+    /**
+     * @param AfterRecordOperationEvent $event
+     * @param $data
+     * @return array
+     */
+    protected function generateSortingData(): array
+    {
+        $data = [];
+
+        foreach ($this->getMmFieldConfigurations() as $fieldName => $fieldConfiguration) {
+            $relationIds = $this->event->getRecordOperation()->getData()[$fieldName] ?? [];
+
+            if (empty($relationIds)) {
+                continue;
+            }
+
+            if (!is_array($relationIds)) {
+                $relationIds = explode(',', (string)$relationIds);
+            }
+
+            $foreignTable = $fieldConfiguration['foreign_table'] ?? null;
+            if (
+                $fieldConfiguration['type'] === 'group'
+                && $fieldConfiguration['allowed'] !== '*'
+                && strpos($fieldConfiguration['allowed'], ',') === false
+            ) {
+                $foreignTable = $fieldConfiguration['allowed'];
+            }
+
+            foreach ($relationIds as $relationId) {
+                if ($fieldConfiguration['type'] === 'group' && $foreignTable === null) {
+                    $parts = explode('_', $relationId);
+                    $relationId = array_pop($parts);
+                    $foreignTable = implode('_', $parts);
+                }
+
+                $data = array_merge_recursive(
+                    $data,
+                    $this->orderOnForeignSideOfRelation($foreignTable, (int)$relationId)
+                );
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $data
+     * @param AfterRecordOperationEvent $event
+     * @return void
+     */
+    protected function persistData(array $data): void
+    {
+        $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
+        $dataHandler->start($data, []);
+        $dataHandler->process_datamap();
+
+        if (!empty($this->dataHandler->errorLog)) {
+            throw new DataHandlerErrorException(
+                'Error occurred during foreign-side relation ordering in remote ID based on relations'
+                . ' from remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '": '
+                . implode(', ', $this->dataHandler->errorLog)
+                . ' Datamap: ' . json_encode($this->dataHandler->datamap),
+                1641480842077
+            );
+        }
     }
 }

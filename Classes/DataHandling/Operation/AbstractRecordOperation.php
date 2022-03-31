@@ -260,7 +260,6 @@ abstract class AbstractRecordOperation
      *
      * @return int
      * @throws NotFoundException
-     * @throws ConflictException
      * @throws InvalidArgumentException
      */
     private function resolveStoragePid(): int
@@ -440,63 +439,17 @@ abstract class AbstractRecordOperation
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
             }
 
-            $prefixWithTable = false;
-            if (
-                $tcaConfiguration['type'] === 'group'
-                && (
-                    $tcaConfiguration['allowed'] === '*'
-                    || strpos(',', $tcaConfiguration['allowed']) !== false
-                )
-            ) {
-                $prefixWithTable = true;
-            }
+            $this->detectPendingRelations(
+                $fieldName,
+                $fieldValue,
+                $this->isPrefixWithTable($tcaConfiguration)
+            );
 
-            $this->data[$fieldName] = [];
-            foreach ($fieldValue as $remoteIdRelation) {
-                if ($this->mappingRepository->exists($remoteIdRelation)) {
-                    $uid = $this->mappingRepository->get($remoteIdRelation);
-
-                    if ($prefixWithTable) {
-                        $uid = $this->mappingRepository->table($remoteIdRelation) . '_' . $uid;
-                    }
-
-                    $this->data[$fieldName][] = $uid;
-
-                    continue;
-                }
-
-                $this->pendingRelations[$fieldName][] = $remoteIdRelation;
-            }
-
-            if (
-                is_array($this->data[$fieldName])
-                && $this->contentObjectRenderer->stdWrap(
-                    $tcaConfiguration['type'],
-                    $this
-                        ->configurationProvider
-                        ->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.']
-                    ?? []
-                ) === 'inline'
-            ) {
-                $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
-            }
+            $this->convertInlineRelationsValueToCsv($fieldName, $tcaConfiguration['type']);
         }
 
-        // Transform single-value array into $key => $value pair to prevent Data Handler error.
-        foreach ($this->data as $fieldName => $fieldValue) {
-            if (is_array($fieldValue) && count($fieldValue) <= 1) {
-                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
-
-                // Unset empty single-relation fields (1:n) in new records.
-                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
-                    unset($this->data[$fieldName]);
-                }
-            }
-
-            if ($this->data[$fieldName] === null) {
-                unset($this->data[$fieldName]);
-            }
-        }
+        // Transform single-value array into a scalar value to prevent Data Handler error.
+        $this->reduceSingleValueArrayToScalar();
     }
 
     /**
@@ -756,5 +709,101 @@ abstract class AbstractRecordOperation
     public function getContentObjectRenderer(): ContentObjectRenderer
     {
         return $this->contentObjectRenderer;
+    }
+
+    /**
+     * Detects and adds pending relations to `$this->pendingRelations`.
+     *
+     * @param string $fieldName
+     * @param array $fieldValue
+     * @param bool $prefixWithTable
+     * @return void
+     */
+    private function detectPendingRelations(string $fieldName, array $fieldValue, bool $prefixWithTable)
+    {
+        $this->data[$fieldName] = [];
+        foreach ($fieldValue as $remoteIdRelation) {
+            if ($this->mappingRepository->exists($remoteIdRelation)) {
+                $uid = $this->mappingRepository->get($remoteIdRelation);
+
+                if ($prefixWithTable) {
+                    $uid = $this->mappingRepository->table($remoteIdRelation) . '_' . $uid;
+                }
+
+                $this->data[$fieldName][] = $uid;
+
+                continue;
+            }
+
+            $this->pendingRelations[$fieldName][] = $remoteIdRelation;
+        }
+    }
+
+    /**
+     * Returns true if the configuration specifies that the field supports records from multiple tables, meaning that
+     * the UID should be prefixed with the table name: table_name_123.
+     *
+     * @param $tcaConfiguration
+     * @return bool
+     */
+    protected function isPrefixWithTable(array $tcaConfiguration): bool
+    {
+        $prefixWithTable = false;
+        if (
+            $tcaConfiguration['type'] === 'group'
+            && (
+                $tcaConfiguration['allowed'] === '*'
+                || strpos(',', $tcaConfiguration['allowed']) !== false
+            )
+        ) {
+            $prefixWithTable = true;
+        }
+        return $prefixWithTable;
+    }
+
+    /**
+     * Ensures that inline fields have the UIDs of IRRE records as a commaseparated value string.
+     *
+     * @param $fieldName
+     * @param $type
+     * @return void
+     */
+    protected function convertInlineRelationsValueToCsv($fieldName, $type): void
+    {
+        if (
+            is_array($this->data[$fieldName])
+            && $this->contentObjectRenderer->stdWrap(
+                $type,
+                $this
+                    ->configurationProvider
+                    ->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.']
+                ?? []
+            ) === 'inline'
+        ) {
+            $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
+        }
+    }
+
+    /**
+     * Transform single-value array into scalar value to prevent Data Handler error.
+     *
+     * @return void
+     */
+    protected function reduceSingleValueArrayToScalar(): void
+    {
+        foreach ($this->data as $fieldName => $fieldValue) {
+            if (is_array($fieldValue) && count($fieldValue) <= 1) {
+                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
+
+                // Unset empty single-relation fields (1:n) in new records.
+                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
+                    unset($this->data[$fieldName]);
+                }
+            }
+
+            if ($this->data[$fieldName] === null) {
+                unset($this->data[$fieldName]);
+            }
+        }
     }
 }

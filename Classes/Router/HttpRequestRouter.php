@@ -34,6 +34,7 @@ class HttpRequestRouter
      * Route the request to correct handler.
      *
      * @return ResponseInterface
+     * @throws \Throwable
      */
     public static function route(ServerRequestInterface $request): ResponseInterface
     {
@@ -62,36 +63,7 @@ class HttpRequestRouter
 
             self::authenticateBearerToken($request);
 
-            try {
-                switch (strtoupper($request->getMethod())) {
-                    case 'POST':
-                        return GeneralUtility::makeInstance(
-                            CreateRequestHandler::class,
-                            $entryPointParts,
-                            $request
-                        )->handle();
-                    case 'PUT':
-                        return GeneralUtility::makeInstance(
-                            UpdateRequestHandler::class,
-                            $entryPointParts,
-                            $request
-                        )->handle();
-                    case 'PATCH':
-                        return GeneralUtility::makeInstance(
-                            CreateOrUpdateRequestHandler::class,
-                            $entryPointParts,
-                            $request
-                        )->handle();
-                    case 'DELETE':
-                        return GeneralUtility::makeInstance(
-                            DeleteRequestHandler::class,
-                            $entryPointParts,
-                            $request
-                        )->handle();
-                }
-            } catch (AbstractException $dataHandlingException) {
-                throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
-            }
+            self::handleByMethod($request, $entryPointParts);
         } catch (AbstractRequestHandlerException $requestHandlerException) {
             return GeneralUtility::makeInstance(
                 JsonResponse::class,
@@ -105,23 +77,7 @@ class HttpRequestRouter
             $trace = [];
 
             if (CompatibilityUtility::getApplicationContext()->isDevelopment()) {
-                $currentThrowable = $throwable;
-                do {
-                    $trace = array_merge(
-                        $trace,
-                        [
-                            $currentThrowable->getMessage() => array_merge([
-                                [
-                                    'file' => $currentThrowable->getFile(),
-                                    'line' => $currentThrowable->getLine(),
-                                ],
-                                $throwable->getTrace(),
-                            ]),
-                        ]
-                    );
-
-                    $currentThrowable = $throwable->getPrevious();
-                } while ($currentThrowable);
+                $trace = self::generateExceptionTrace($throwable);
             }
 
             return GeneralUtility::makeInstance(
@@ -190,5 +146,74 @@ class HttpRequestRouter
         Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
         ExtensionManagementUtility::loadExtTables();
         Bootstrap::initializeLanguageObject();
+    }
+
+    /**
+     * @param $throwable
+     * @param $trace
+     * @return array
+     */
+    protected static function generateExceptionTrace(\Throwable $throwable): array
+    {
+        $currentThrowable = $throwable;
+        do {
+            $trace = array_merge(
+                $trace,
+                [
+                    $currentThrowable->getMessage() => array_merge([
+                        [
+                            'file' => $currentThrowable->getFile(),
+                            'line' => $currentThrowable->getLine(),
+                        ],
+                        $throwable->getTrace(),
+                    ]),
+                ]
+            );
+
+            $currentThrowable = $throwable->getPrevious();
+        } while ($currentThrowable);
+        return $trace;
+    }
+
+    /**
+     * Handle a request depending on REST-compatible HTTP method.
+     *
+     * @param ServerRequestInterface $request
+     * @param array $entryPointParts
+     * @return ResponseInterface|void
+     * @throws \Throwable
+     */
+    protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts)
+    {
+        try {
+            switch (strtoupper($request->getMethod())) {
+                case 'POST':
+                    return GeneralUtility::makeInstance(
+                        CreateRequestHandler::class,
+                        $entryPointParts,
+                        $request
+                    )->handle();
+                case 'PUT':
+                    return GeneralUtility::makeInstance(
+                        UpdateRequestHandler::class,
+                        $entryPointParts,
+                        $request
+                    )->handle();
+                case 'PATCH':
+                    return GeneralUtility::makeInstance(
+                        CreateOrUpdateRequestHandler::class,
+                        $entryPointParts,
+                        $request
+                    )->handle();
+                case 'DELETE':
+                    return GeneralUtility::makeInstance(
+                        DeleteRequestHandler::class,
+                        $entryPointParts,
+                        $request
+                    )->handle();
+            }
+        } catch (AbstractException $dataHandlingException) {
+            throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
+        }
     }
 }

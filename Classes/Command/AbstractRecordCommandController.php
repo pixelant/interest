@@ -59,6 +59,27 @@ abstract class AbstractRecordCommandController extends Command
      */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
+        $this->handleStreamableData($input);
+
+        $this->parseData($input);
+
+        $this->parseMetaData($input);
+
+        Context::setDisableReferenceIndex($input->getOption('disableReferenceIndex'));
+
+        if (Context::isDisableReferenceIndex()) {
+            $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
+                'className' => RelationHandlerWithoutReferenceIndex::class,
+            ];
+        }
+    }
+
+    /**
+     * @param InputInterface $input
+     * @return void
+     */
+    protected function handleStreamableData(InputInterface $input)
+    {
         if ($input->getOption('data') === null && $input instanceof StreamableInputInterface) {
             $stream = $input->getStream() ?? STDIN;
 
@@ -75,7 +96,15 @@ abstract class AbstractRecordCommandController extends Command
                 $input->setOption('data', $rawData);
             }
         }
+    }
 
+    /**
+     * @param InputInterface $input
+     * @return void
+     * @throws InvalidOptionException
+     */
+    protected function parseData(InputInterface $input)
+    {
         if ($input->getOption('data') !== null) {
             $data = json_decode($input->getOption('data'), true);
 
@@ -93,7 +122,15 @@ abstract class AbstractRecordCommandController extends Command
                 $input->setOption('data', [$input->getArgument('remoteId') => $data]);
             }
         }
+    }
 
+    /**
+     * @param InputInterface $input
+     * @return void
+     * @throws InvalidOptionException
+     */
+    protected function parseMetaData(InputInterface $input)
+    {
         if ($input->getOption('metaData') !== null) {
             $data = json_decode($input->getOption('metaData'), true);
 
@@ -106,14 +143,6 @@ abstract class AbstractRecordCommandController extends Command
             }
 
             $input->setOption('metaData', $data);
-        }
-
-        Context::setDisableReferenceIndex($input->getOption('disableReferenceIndex'));
-
-        if (Context::isDisableReferenceIndex()) {
-            $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
-                'className' => RelationHandlerWithoutReferenceIndex::class,
-            ];
         }
     }
 }

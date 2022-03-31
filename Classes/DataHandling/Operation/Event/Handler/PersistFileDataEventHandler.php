@@ -40,11 +40,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * @param BeforeRecordOperationEvent $event
      * @throws InvalidFileNameException
-     * @throws ExistingTargetFileNameException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderReadPermissionsException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderWritePermissionsException
+     * @throws MissingArgumentException
+     * @throws IdentityConflictException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
@@ -189,7 +186,6 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param string $fileBaseName
      * @param bool $isCreateOperation
      * @return File
-     * @throws ExistingTargetFileNameException
      * @throws NotFoundException
      */
     protected function createFileObject(

@@ -15,7 +15,7 @@ class StopIfRepeatingPreviousRecordOperation implements BeforeRecordOperationEve
 {
     /**
      * @param BeforeRecordOperationEvent $event
-     * @throws Exception
+     * @throws StopRecordOperationException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {

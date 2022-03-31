@@ -47,24 +47,6 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
     /**
      * Correctly compiles the $data and $metaData.
-     *
-     * $data is compiled into a multidimensional array like this:
-     *
-     * $data = [
-     *     tableName => [
-     *         remoteId => [
-     *             language => [
-     *                 workspace => [
-     *                      // Key-value pairs of record data.
-     *                 ],
-     *                 ...
-     *             ],
-     *             ...
-     *         ],
-     *         ...
-     *     ],
-     *     ...
-     * ];
      */
     protected function compileData(): void
     {
@@ -96,55 +78,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             ?? $this->getRequest()->getQueryParams()['workspace']
             ?? null;
 
-        $layerCount = 0;
-
-        if ($table !== null) {
-            $layerCount++;
-        }
-
-        if ($remoteId !== null) {
-            $layerCount++;
-        }
-
-        if (!$this->isRecordData($data)) {
-            $currentLayer = $data;
-            do {
-                $layerCount++;
-
-                $currentLayer = next($currentLayer);
-            } while (!$this->isRecordData($currentLayer));
-
-            $data = $this->convertObjectToArrayRecursive((array)$data);
-
-            array_walk_recursive(
-                $data,
-                function (&$item) use ($layerCount, $workspace, $language) {
-                    $item = (array)$item;
-
-                    if ($layerCount < 4 || $workspace !== null) {
-                        $item = [(string)$workspace => $item];
-                    }
-
-                    if ($layerCount < 3 || $language !== null) {
-                        $item = [(string)$language => $item];
-                    }
-                }
-            );
-        } else {
-            $data = [
-                (string)$language => [
-                    (string)$workspace => (array)$data,
-                ],
-            ];
-        }
-
-        if ($remoteId !== null) {
-            $data = [$remoteId => $data];
-        }
-
-        if ($table !== null) {
-            $data = [$table => $data];
-        }
+        $data = $this->formatDataArray($data, $table, $remoteId, $workspace, $language);
 
         $this->data = $data;
     }
@@ -152,6 +86,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     /**
      * @return ResponseInterface
      * @throws \Throwable
+     * @throws OperationToRequestHandlerExceptionConverter
      */
     public function handle(): ResponseInterface
     {
@@ -284,5 +219,86 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         }
 
         return $values;
+    }
+
+    /**
+     * Compile $data into a multidimensional array like this:
+     *
+     * $data = [
+     *     tableName => [
+     *         remoteId => [
+     *             language => [
+     *                 workspace => [
+     *                      // Key-value pairs of record data.
+     *                 ],
+     *                 ...
+     *             ],
+     *             ...
+     *         ],
+     *         ...
+     *     ],
+     *     ...
+     * ];
+     *
+     * @param \stdClass $data
+     * @param string|null $table
+     * @param string|null $remoteId
+     * @param $workspace
+     * @param $language
+     * @return array
+     */
+    protected function formatDataArray(\stdClass $data, ?string $table, ?string $remoteId, $workspace, $language): array
+    {
+        $layerCount = 0;
+
+        if ($table !== null) {
+            $layerCount++;
+        }
+
+        if ($remoteId !== null) {
+            $layerCount++;
+        }
+
+        if (!$this->isRecordData($data)) {
+            $currentLayer = $data;
+            do {
+                $layerCount++;
+
+                $currentLayer = next($currentLayer);
+            } while (!$this->isRecordData($currentLayer));
+
+            $data = $this->convertObjectToArrayRecursive((array)$data);
+
+            array_walk_recursive(
+                $data,
+                function (&$item) use ($layerCount, $workspace, $language) {
+                    $item = (array)$item;
+
+                    if ($layerCount < 4 || $workspace !== null) {
+                        $item = [(string)$workspace => $item];
+                    }
+
+                    if ($layerCount < 3 || $language !== null) {
+                        $item = [(string)$language => $item];
+                    }
+                }
+            );
+        } else {
+            $data = [
+                (string)$language => [
+                    (string)$workspace => (array)$data,
+                ],
+            ];
+        }
+
+        if ($remoteId !== null) {
+            $data = [$remoteId => $data];
+        }
+
+        if ($table !== null) {
+            $data = [$table => $data];
+        }
+
+        return $data;
     }
 }
