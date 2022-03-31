@@ -39,7 +39,6 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
     /**
      * @param BeforeRecordOperationEvent $event
-     * @return void
      * @throws InvalidFileNameException
      * @throws ExistingTargetFileNameException
      * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException

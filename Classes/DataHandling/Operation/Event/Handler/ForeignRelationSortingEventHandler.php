@@ -27,7 +27,6 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 
     /**
      * @param AfterRecordOperationEvent $event
-     * @return void
      * @throws DataHandlerErrorException
      */
     public function __invoke(AfterRecordOperationEvent $event): void

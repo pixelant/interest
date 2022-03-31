@@ -55,7 +55,6 @@ abstract class AbstractRecordCommandController extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return void
      * @throws InvalidOptionException
      */
     protected function interact(InputInterface $input, OutputInterface $output)
