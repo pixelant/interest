@@ -12,12 +12,12 @@ class DataHandler extends Typo3DataHandler
     /**
      * @inheritDoc
      */
-    public function updateRefIndex($table, $id)
+    public function updateRefIndex($table, $uid, ?int $workspace = null): void
     {
         if (Context::isDisableReferenceIndex()) {
             return;
         }
 
-        parent::updateRefIndex($table, $id);
+        parent::updateRefIndex($table, $uid);
     }
 }
