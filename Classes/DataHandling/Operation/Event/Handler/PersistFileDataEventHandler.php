@@ -41,7 +41,6 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * @param BeforeRecordOperationEvent $event
      * @throws InvalidFileNameException
-     * @throws MissingArgumentException
      * @throws IdentityConflictException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
@@ -318,6 +317,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param $fileBaseName
      * @return array
      * @throws InvalidFileNameException
+     * @throws MissingArgumentException
      */
     protected function getFileWithContent(array $data, $downloadFolder, $fileBaseName): array
     {

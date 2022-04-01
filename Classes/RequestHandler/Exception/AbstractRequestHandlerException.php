@@ -27,6 +27,8 @@ abstract class AbstractRequestHandlerException extends GuzzleRequestException
 
     /**
      * @return RequestInterface
+     *
+     * phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod
      */
     public function getRequest(): RequestInterface
     {

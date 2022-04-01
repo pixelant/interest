@@ -71,6 +71,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      *
      * @throws \RuntimeException
      * @internal
+     *
+     * phpcs:disable Generic.Metrics.CyclomaticComplexity
      */
     public function checkAuthentication()
     {

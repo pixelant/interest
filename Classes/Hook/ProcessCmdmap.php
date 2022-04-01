@@ -13,6 +13,17 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class ProcessCmdmap
 {
+    /**
+     * @param string $command
+     * @param string $table
+     * @param $id
+     * @param $value
+     * @param DataHandler $dataHandler
+     * @param $pasteUpdate
+     * @param $pasteDatamap
+     *
+     * phpcs:disable PSR1.Methods.CamelCapsMethodName
+     */
     public function processCmdmap_postProcess(
         string $command,
         string $table,

@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
@@ -47,6 +48,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
     /**
      * Correctly compiles the $data and $metaData.
+     *
+     * phpcs:disable Generic.Metrics.CyclomaticComplexity
      */
     protected function compileData(): void
     {
@@ -105,7 +108,10 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         }
 
         if ($operationCount === 1 && count($exceptions)) {
-            throw OperationToRequestHandlerExceptionConverter::convert($exception, $this->getRequest());
+            throw OperationToRequestHandlerExceptionConverter::convert(
+                current(ArrayUtility::flattenPlain($exceptions)),
+                $this->getRequest()
+            );
         }
 
         $exceptionCount = 0;
