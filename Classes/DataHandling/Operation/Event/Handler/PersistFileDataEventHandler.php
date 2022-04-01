@@ -24,6 +24,7 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -51,8 +52,6 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $this->event = $event;
 
-        $isCreateOperation = get_class($this->event->getRecordOperation()) === CreateRecordOperation::class;
-
         if ($this->event->getRecordOperation()->getTable() !== 'sys_file') {
             return;
         }
@@ -79,40 +78,9 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $storage = $this->resourceFactory->getStorageObjectFromCombinedIdentifier($storagePath);
 
-        try {
-            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
-        } catch (FolderDoesNotExistException $exception) {
-            [, $folderPath] = explode(':', $storagePath);
+        $downloadFolder = $this->getDownloadFolder($storagePath, $storage, $settings['persistence.'], $fileBaseName);
 
-            $downloadFolder = $storage->createFolder($folderPath);
-        }
-
-        $hashedSubfolders = (int)$this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
-            $settings['persistence.']['hashedSubfolders'],
-            $settings['persistence.']['hashedSubfolders.'] ?? []
-        );
-
-        if ($hashedSubfolders > 0) {
-            if ($fileBaseName === '') {
-                $fileNameHash = bin2hex(random_bytes(18));
-            } else {
-                $fileNameHash = md5($fileBaseName);
-            }
-
-            for ($i = 0; $i < $hashedSubfolders; $i++) {
-                $subfolderName = substr($fileNameHash, $i, 1);
-
-                if ($downloadFolder->hasFolder($subfolderName)) {
-                    $downloadFolder = $downloadFolder->getSubfolder($subfolderName);
-
-                    continue;
-                }
-
-                $downloadFolder = $downloadFolder->createFolder($subfolderName);
-            }
-        }
-
-        if ($isCreateOperation) {
+        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
             if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
                 throw new IdentityConflictException(
                     'File "' . $fileBaseName . '" already exists in "' . $storagePath . '".',
@@ -123,52 +91,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
-        if (!empty($data['fileData'])) {
-            $fileContent = $this->handleBase64Input($data['fileData']);
-        } else {
-            if (empty($data['url']) && $isCreateOperation) {
-                throw new MissingArgumentException(
-                    'Cannot download file. Missing property "url" in the data.',
-                    1634667221986
-                );
-            }
-            if (!empty($data['url'])) {
-                $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
-
-                $file = $onlineMediaHelperRegistry->transformUrlToFile(
-                    $data['url'],
-                    $downloadFolder,
-                    $onlineMediaHelperRegistry->getSupportedFileExtensions()
-                );
-
-                if ($file !== null && $fileBaseName !== '') {
-                    $mediaFileName = pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension();
-
-                    if ($file->getName() !== $mediaFileName) {
-                        $file->rename($mediaFileName);
-                    }
-                }
-
-                if ($file === null) {
-                    $fileContent = $this->handleUrlInput($data['url']);
-                }
-            }
-        }
-
-        if ($fileBaseName === '' && $file === null) {
-            throw new InvalidFileNameException(
-                'Empty file name.',
-                1643987693168
-            );
-        }
-
-        if ($file === null) {
-            $file = $this->createFileObject($downloadFolder, $fileBaseName, $isCreateOperation);
-        }
-
-        if (!empty($fileContent)) {
-            $file->setContents($fileContent);
-        }
+        list($data, $file) = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
 
         unset($data['fileData']);
         unset($data['url']);
@@ -184,16 +107,14 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      *
      * @param Folder $downloadFolder
      * @param string $fileBaseName
-     * @param bool $isCreateOperation
      * @return File
      * @throws NotFoundException
      */
     protected function createFileObject(
         Folder $downloadFolder,
-        string $fileBaseName,
-        bool $isCreateOperation
+        string $fileBaseName
     ): File {
-        if ($isCreateOperation) {
+        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
             return $downloadFolder->createFile($fileBaseName);
         }
 
@@ -313,5 +234,128 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         if ($file->getStorage()->sanitizeFileName($fileName) !== $file->getName()) {
             $file->rename($fileName);
         }
+    }
+
+    /**
+     * @param string $storagePath
+     * @param ResourceStorage $storage
+     * @param $persistence
+     * @param $fileBaseName
+     * @return Folder|\TYPO3\CMS\Core\Resource\InaccessibleFolder|void
+     */
+    protected function getDownloadFolder(
+        string $storagePath,
+        ResourceStorage $storage,
+        $persistence,
+        $fileBaseName
+    ) {
+        try {
+            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
+        } catch (FolderDoesNotExistException $exception) {
+            [, $folderPath] = explode(':', $storagePath);
+
+            $downloadFolder = $storage->createFolder($folderPath);
+        }
+
+        $hashedSubfolders = (int)$this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
+            $persistence['hashedSubfolders'],
+            $persistence['hashedSubfolders.'] ?? []
+        );
+
+        if ($hashedSubfolders > 0) {
+            if ($fileBaseName === '') {
+                $fileNameHash = bin2hex(random_bytes(18));
+            } else {
+                $fileNameHash = md5($fileBaseName);
+            }
+
+            for ($i = 0; $i < $hashedSubfolders; $i++) {
+                $subfolderName = substr($fileNameHash, $i, 1);
+
+                if ($downloadFolder->hasFolder($subfolderName)) {
+                    $downloadFolder = $downloadFolder->getSubfolder($subfolderName);
+
+                    continue;
+                }
+
+                $downloadFolder = $downloadFolder->createFolder($subfolderName);
+            }
+        }
+        return $downloadFolder;
+    }
+
+    /**
+     * Retrieves a file from a MediaHelper-compatible URL.
+     *
+     * @param $url
+     * @param $downloadFolder
+     * @param $fileBaseName
+     * @return File|null
+     */
+    protected function getFileFromMediaUrl($url, $downloadFolder, $fileBaseName): ?File
+    {
+        $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
+
+        $file = $onlineMediaHelperRegistry->transformUrlToFile(
+            $url,
+            $downloadFolder,
+            $onlineMediaHelperRegistry->getSupportedFileExtensions()
+        );
+
+        if ($file !== null && $fileBaseName !== '') {
+            $mediaFileName = pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension();
+
+            if ($file->getName() !== $mediaFileName) {
+                $file->rename($mediaFileName);
+            }
+        }
+        return $file;
+    }
+
+    /**
+     * @param array $data
+     * @param $downloadFolder
+     * @param $fileBaseName
+     * @return array
+     * @throws InvalidFileNameException
+     */
+    protected function getFileWithContent(array $data, $downloadFolder, $fileBaseName): array
+    {
+        if (!empty($data['fileData'])) {
+            $fileContent = $this->handleBase64Input($data['fileData']);
+        } else {
+            if (
+                empty($data['url'])
+                && get_class($this->event->getRecordOperation()) === CreateRecordOperation::class
+            ) {
+                throw new MissingArgumentException(
+                    'Cannot download file. Missing property "url" in the data.',
+                    1634667221986
+                );
+            }
+            if (!empty($data['url'])) {
+                $file = $this->getFileFromMediaUrl($data['url'], $downloadFolder, $fileBaseName);
+
+                if ($file === null) {
+                    $fileContent = $this->handleUrlInput($data['url']);
+                }
+            }
+        }
+
+        if ($fileBaseName === '' && $file === null) {
+            throw new InvalidFileNameException(
+                'Empty file name.',
+                1643987693168
+            );
+        }
+
+        if ($file === null) {
+            $file = $this->createFileObject($downloadFolder, $fileBaseName);
+        }
+
+        if (!empty($fileContent)) {
+            $file->setContents($fileContent);
+        }
+        return array($data, $file);
     }
 }

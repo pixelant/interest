@@ -125,38 +125,9 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
                     )
                 );
 
-                $flattenedRelations = [];
-                foreach ($relations as $relationTable => $relation) {
-                    if (!$prefixTable) {
-                        $flattenedRelations = array_column($relation, 'uid');
+                $flattenedRelations = $this->flattenRelations($relations, $prefixTable);
 
-                        break;
-                    }
-
-                    $flattenedRelations = array_map(
-                        function (int $item) use ($relationTable) {
-                            return $relationTable . '_' . $item;
-                        },
-                        array_column($relation, 'uid')
-                    );
-                }
-
-                $orderedUids = [];
-                foreach ($orderingIntent as $remoteIdToOrder) {
-                    $uid = $this->mappingRepository->get($remoteIdToOrder);
-
-                    if ($uid === 0) {
-                        continue;
-                    }
-
-                    if (!$prefixTable) {
-                        $orderedUids[] = $uid;
-
-                        continue;
-                    }
-
-                    $orderedUids[] = $this->mappingRepository->table($remoteIdToOrder) . '_' . $uid;
-                }
+                $orderedUids = $this->convertOrderingIntentToOrderedUids($orderingIntent, $prefixTable);
 
                 $orderedRelations = array_merge(
                     $orderedUids,
@@ -230,7 +201,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     /**
      * @param array $data
      * @param AfterRecordOperationEvent $event
-     * @return void
+     * @throws DataHandlerErrorException
      */
     protected function persistData(array $data): void
     {
@@ -247,5 +218,58 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
                 1641480842077
             );
         }
+    }
+
+    /**
+     * @param array $relations
+     * @param bool $prefixTable
+     * @return array|string[]
+     */
+    protected function flattenRelations(array $relations, bool $prefixTable): array
+    {
+        $flattenedRelations = [];
+
+        foreach ($relations as $relationTable => $relation) {
+            if (!$prefixTable) {
+                $flattenedRelations = array_column($relation, 'uid');
+
+                break;
+            }
+
+            $flattenedRelations = array_map(
+                function (int $item) use ($relationTable) {
+                    return $relationTable . '_' . $item;
+                },
+                array_column($relation, 'uid')
+            );
+        }
+
+        return $flattenedRelations;
+    }
+
+    /**
+     * @param $orderingIntent
+     * @param bool $prefixTable
+     * @return array
+     */
+    protected function convertOrderingIntentToOrderedUids(array $orderingIntent, bool $prefixTable): array
+    {
+        $orderedUids = [];
+        foreach ($orderingIntent as $remoteIdToOrder) {
+            $uid = $this->mappingRepository->get($remoteIdToOrder);
+
+            if ($uid === 0) {
+                continue;
+            }
+
+            if (!$prefixTable) {
+                $orderedUids[] = $uid;
+
+                continue;
+            }
+
+            $orderedUids[] = $this->mappingRepository->table($remoteIdToOrder) . '_' . $uid;
+        }
+        return $orderedUids;
     }
 }

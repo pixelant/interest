@@ -717,7 +717,6 @@ abstract class AbstractRecordOperation
      * @param string $fieldName
      * @param array $fieldValue
      * @param bool $prefixWithTable
-     * @return void
      */
     private function detectPendingRelations(string $fieldName, array $fieldValue, bool $prefixWithTable)
     {
@@ -766,7 +765,6 @@ abstract class AbstractRecordOperation
      *
      * @param $fieldName
      * @param $type
-     * @return void
      */
     protected function convertInlineRelationsValueToCsv($fieldName, $type): void
     {
@@ -786,8 +784,6 @@ abstract class AbstractRecordOperation
 
     /**
      * Transform single-value array into scalar value to prevent Data Handler error.
-     *
-     * @return void
      */
     protected function reduceSingleValueArrayToScalar(): void
     {

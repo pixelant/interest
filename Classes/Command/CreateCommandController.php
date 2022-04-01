@@ -39,7 +39,6 @@ class CreateCommandController extends AbstractReceiveCommandController
      * @param OutputInterface $output
      * @return int
      *
-     * @throws \Throwable All exceptions that can't be handled are re-thrown.
      * @throws IdentityConflictException
      */
     protected function execute(InputInterface $input, OutputInterface $output)

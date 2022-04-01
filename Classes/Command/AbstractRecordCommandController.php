@@ -76,7 +76,6 @@ abstract class AbstractRecordCommandController extends Command
 
     /**
      * @param InputInterface $input
-     * @return void
      */
     protected function handleStreamableData(InputInterface $input)
     {
@@ -100,7 +99,6 @@ abstract class AbstractRecordCommandController extends Command
 
     /**
      * @param InputInterface $input
-     * @return void
      * @throws InvalidOptionException
      */
     protected function parseData(InputInterface $input)
@@ -126,7 +124,6 @@ abstract class AbstractRecordCommandController extends Command
 
     /**
      * @param InputInterface $input
-     * @return void
      * @throws InvalidOptionException
      */
     protected function parseMetaData(InputInterface $input)

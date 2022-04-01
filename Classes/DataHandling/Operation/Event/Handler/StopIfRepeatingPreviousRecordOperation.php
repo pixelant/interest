@@ -9,7 +9,6 @@ use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHan
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\Exception;
 
 class StopIfRepeatingPreviousRecordOperation implements BeforeRecordOperationEventHandlerInterface
 {
