@@ -91,7 +91,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
-        list($data, $file) = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
+        [$data, $file] = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
 
         unset($data['fileData']);
         unset($data['url']);
@@ -356,6 +356,6 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         if (!empty($fileContent)) {
             $file->setContents($fileContent);
         }
-        return array($data, $file);
+        return[$data, $file];
     }
 }

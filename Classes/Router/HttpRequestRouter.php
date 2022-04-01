@@ -181,7 +181,7 @@ class HttpRequestRouter
      * @param ServerRequestInterface $request
      * @param array $entryPointParts
      * @return ResponseInterface|void
-     * @throws \Throwable
+     * @throws OperationToRequestHandlerExceptionConverter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts)
     {

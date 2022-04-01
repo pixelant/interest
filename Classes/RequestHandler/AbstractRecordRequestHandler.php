@@ -85,32 +85,13 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
     /**
      * @return ResponseInterface
-     * @throws \Throwable
      * @throws OperationToRequestHandlerExceptionConverter
      */
     public function handle(): ResponseInterface
     {
-        $exceptions = [];
-
         $operationCount = 0;
 
-        $exception = null;
-
-        foreach ($this->data as $table => $tableData) {
-            foreach ($tableData as $remoteId => $remoteIdData) {
-                foreach ($remoteIdData as $language => $languageData) {
-                    foreach ($languageData as $workspace => $data) {
-                        $operationCount++;
-
-                        try {
-                            $this->handleSingleOperation($table, $remoteId, $language, $workspace, $data);
-                        } catch (AbstractException $exception) {
-                            $exceptions[$table][$remoteId][$language][$workspace] = $exception;
-                        }
-                    }
-                }
-            }
-        }
+        $exceptions = $this->handleOperations($operationCount);
 
         if (count($exceptions) === 0) {
             return GeneralUtility::makeInstance(
@@ -127,37 +108,9 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             throw OperationToRequestHandlerExceptionConverter::convert($exception, $this->getRequest());
         }
 
-        $statuses = [];
-
         $exceptionCount = 0;
-        foreach ($this->data as $table => $tableData) {
-            foreach ($tableData as $remoteId => $remoteIdData) {
-                foreach ($remoteIdData as $language => $languageData) {
-                    foreach ($languageData as $workspace => $data) {
-                        if (isset($exceptions[$table][$remoteId][$language][$workspace])) {
-                            $responseException = OperationToRequestHandlerExceptionConverter::convert(
-                                $exceptions[$table][$remoteId][$language][$workspace],
-                                $this->getRequest()
-                            );
 
-                            $status = [
-                                'success' => false,
-                                'code' => $responseException->getCode(),
-                                'message' => $responseException->getMessage(),
-                            ];
-
-                            $exceptionCount++;
-                        } else {
-                            $status = [
-                                'success' => true,
-                            ];
-                        }
-
-                        $statuses[$table][$remoteId][$language][$workspace] = $status;
-                    }
-                }
-            }
-        }
+        $statuses = $this->convertExceptionsToResponseStatuses($exceptions, $exceptionCount);
 
         return GeneralUtility::makeInstance(
             JsonResponse::class,
@@ -300,5 +253,72 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         }
 
         return $data;
+    }
+
+    /**
+     * @param array $exceptions
+     * @param int $exceptionCount Will be populated with the number of exceptions found.
+     * @return array
+     */
+    protected function convertExceptionsToResponseStatuses(array $exceptions, int &$exceptionCount = 0): array
+    {
+        $statuses = [];
+        foreach ($this->data as $table => $tableData) {
+            foreach ($tableData as $remoteId => $remoteIdData) {
+                foreach ($remoteIdData as $language => $languageData) {
+                    foreach ($languageData as $workspace => $data) {
+                        if (isset($exceptions[$table][$remoteId][$language][$workspace])) {
+                            $responseException = OperationToRequestHandlerExceptionConverter::convert(
+                                $exceptions[$table][$remoteId][$language][$workspace],
+                                $this->getRequest()
+                            );
+
+                            $status = [
+                                'success' => false,
+                                'code' => $responseException->getCode(),
+                                'message' => $responseException->getMessage(),
+                            ];
+
+                            $exceptionCount++;
+                        } else {
+                            $status = [
+                                'success' => true,
+                            ];
+                        }
+
+                        $statuses[$table][$remoteId][$language][$workspace] = $status;
+                    }
+                }
+            }
+        }
+
+        return $statuses;
+    }
+
+    /**
+     * @param int $operationCount Will be populated with the number of operations completed.
+     * @return array
+     */
+    protected function handleOperations(&$operationCount = 0): array
+    {
+        $exceptions = [];
+
+        foreach ($this->data as $table => $tableData) {
+            foreach ($tableData as $remoteId => $remoteIdData) {
+                foreach ($remoteIdData as $language => $languageData) {
+                    foreach ($languageData as $workspace => $data) {
+                        $operationCount++;
+
+                        try {
+                            $this->handleSingleOperation($table, $remoteId, $language, $workspace, $data);
+                        } catch (AbstractException $exception) {
+                            $exceptions[$table][$remoteId][$language][$workspace] = $exception;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $exceptions;
     }
 }

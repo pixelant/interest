@@ -159,30 +159,7 @@ class TcaUtility
             self::$inlineRelationsToTablesCache = $cache->get($cacheHash) ?: null;
 
             if (self::$inlineRelationsToTablesCache === null || !is_array(self::$inlineRelationsToTablesCache)) {
-                self::$inlineRelationsToTablesCache = [];
-
-                foreach ($GLOBALS['TCA'] as $table => $tableConfig) {
-                    $recordTypeKeys = array_keys($tableConfig['types']);
-
-                    foreach (array_keys($tableConfig['columns']) as $fieldName) {
-                        $typeFieldName = static::getTypeFieldForTable($table);
-
-                        foreach ($recordTypeKeys as $recordTypeKey) {
-                            $row = $typeFieldName === null ? [] : [$typeFieldName => $recordTypeKey];
-
-                            $fieldConfig = static::getTcaFieldConfigurationAndRespectColumnsOverrides(
-                                $table,
-                                $fieldName,
-                                $row
-                            );
-
-                            if ($fieldConfig['type'] === 'inline') {
-                                self::$inlineRelationsToTablesCache[$fieldConfig['foreign_table']][$table][$fieldName][]
-                                    = $recordTypeKey;
-                            }
-                        }
-                    }
-                }
+                self::populateInlineRelationsToTablesCache();
 
                 $cache->set($cacheHash, self::$inlineRelationsToTablesCache);
             }
@@ -200,5 +177,36 @@ class TcaUtility
     public static function getTypeFieldForTable(string $table): ?string
     {
         return $GLOBALS['TCA'][$table]['ctrl']['type'] ?? null;
+    }
+
+    /**
+     * Finds inline relations and adds them to self::$inlineRelationsToTablesCache.
+     */
+    protected static function populateInlineRelationsToTablesCache(): void
+    {
+        self::$inlineRelationsToTablesCache = [];
+
+        foreach ($GLOBALS['TCA'] as $table => $tableConfig) {
+            $recordTypeKeys = array_keys($tableConfig['types']);
+
+            foreach (array_keys($tableConfig['columns']) as $fieldName) {
+                $typeFieldName = static::getTypeFieldForTable($table);
+
+                foreach ($recordTypeKeys as $recordTypeKey) {
+                    $row = $typeFieldName === null ? [] : [$typeFieldName => $recordTypeKey];
+
+                    $fieldConfig = static::getTcaFieldConfigurationAndRespectColumnsOverrides(
+                        $table,
+                        $fieldName,
+                        $row
+                    );
+
+                    if ($fieldConfig['type'] === 'inline') {
+                        self::$inlineRelationsToTablesCache[$fieldConfig['foreign_table']][$table][$fieldName][]
+                            = $recordTypeKey;
+                    }
+                }
+            }
+        }
     }
 }
