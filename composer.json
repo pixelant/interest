@@ -1,12 +1,12 @@
 {
 	"name": "pixelant/interest",
-	"type": "typo3-cms-extension",
 	"description": "REST API for read/write access to database",
+	"license": "GPL-2.0-or-later",
+	"type": "typo3-cms-extension",
 	"keywords": [
 		"typo3",
 		"TYPO3 CMS"
 	],
-	"license": "GPL-2.0-or-later",
 	"authors": [
 		{
 			"name": "Pixelant",
@@ -16,19 +16,13 @@
 		}
 	],
 	"require": {
+		"ext-json": "*",
+		"ext-pdo": "*",
+		"doctrine/dbal": "~2.13.1",
 		"typo3/cms-core": "^9.5.8 || ^10.4.6",
 		"typo3/cms-extbase": "^9.5.8 || ^10.4.6",
 		"typo3/cms-fluid": "^9.5.8 || ^10.4.6",
-		"typo3/cms-frontend": "^9.5.8 || ^10.4.6",
-		"doctrine/dbal": "~2.13.1",
-		"ext-json": "*",
-		"ext-pdo": "*"
-	},
-	"replace": {
-		"typo3-ter/tea": "self.version"
-	},
-	"conflict": {
-		"typo3/class-alias-loader": "< 1.1.0"
+		"typo3/cms-frontend": "^9.5.8 || ^10.4.6"
 	},
 	"require-dev": {
 		"codeception/codeception": "^4.1.30",
@@ -49,6 +43,23 @@
 		"typo3/coding-standards": "^0.5.0",
 		"typo3/testing-framework": "^6.15.3"
 	},
+	"replace": {
+		"typo3-ter/tea": "self.version"
+	},
+	"conflict": {
+		"typo3/class-alias-loader": "< 1.1.0"
+	},
+	"prefer-stable": true,
+	"autoload": {
+		"psr-4": {
+			"Pixelant\\Interest\\": "Classes/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Pixelant\\Interest\\Tests\\": "Tests/"
+		}
+	},
 	"config": {
 		"allow-plugins": {
 			"ergebnis/composer-normalize": true,
@@ -68,21 +79,10 @@
 		},
 		"typo3/cms": {
 			"app-dir": ".Build",
-			"web-dir": ".Build/public",
-			"extension-key": "interest"
+			"extension-key": "interest",
+			"web-dir": ".Build/public"
 		}
 	},
-	"autoload": {
-		"psr-4": {
-			"Pixelant\\Interest\\": "Classes/"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Pixelant\\Interest\\Tests\\": "Tests/"
-		}
-	},
-	"prefer-stable": true,
 	"scripts": {
 		"post-autoload-dump": [
 			"@link-extension"
