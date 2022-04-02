@@ -64,7 +64,6 @@ jobs:
           - "php:copypaste"
           - "php:cs-fixer"
           - "php:sniff"
-          - "php:stan"
           - "ts:lint"
           - "yaml:lint"
         php-version:
@@ -78,7 +77,7 @@ jobs:
       - name: "Run the xliff lint"
         uses: TYPO3-Continuous-Integration/TYPO3-CI-Xliff-Lint@v1
   unit-tests:
-    name: "Unit tests"
+    name: "Unit tests and PHPStan"
     runs-on: ubuntu-20.04
     needs: php-lint
     steps:
@@ -114,6 +113,8 @@ jobs:
         run: |
           composer update --no-ansi --no-interaction --no-progress --with-dependencies
           composer show
+      - name: "Run PHPStan"
+        run: "composer ci:php:stan"
       - name: "Run unit tests"
         run: "composer ci:tests:unit"
     strategy:
