@@ -109,7 +109,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
         if ($operationCount === 1 && count($exceptions)) {
             throw OperationToRequestHandlerExceptionConverter::convert(
-                current(ArrayUtility::flattenPlain($exceptions)),
+                current(ArrayUtility::flatten($exceptions)),
                 $this->getRequest()
             );
         }
