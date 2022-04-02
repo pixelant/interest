@@ -34,7 +34,7 @@ final class AbstractRecordRequestHandlerTest extends UnitTestCase
         );
 
         $mock
-            ->expects($this->exactly(1))
+            ->expects(self::exactly(1))
             ->method('handleSingleOperation')
             ->with(
                 'tableName',
