@@ -10,7 +10,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
-use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
 /**
  * Repository for interaction with the database table tx_interest_remote_id_mapping.
@@ -41,6 +40,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @return int Local ID. Zero if it doesn't exist.
+     * @throws InvalidQueryResultException
      */
     public function get(string $remoteId, ?AbstractRecordOperation $recordOperation = null): int
     {
@@ -278,12 +278,13 @@ class RemoteIdMappingRepository extends AbstractRepository
      * @param string $table
      * @param int $uid Must be base language UID (language UID equals zero).
      * @return string|bool
+     * @throws InvalidQueryResultException
      */
     public function getRemoteId(string $table, int $uid)
     {
         $queryBuilder = $this->getQueryBuilder();
 
-        return $queryBuilder
+        $result = $queryBuilder
             ->select('remote_id')
             ->from(self::TABLE_NAME)
             ->where(
@@ -292,8 +293,16 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->expr()->eq('uid_local', $queryBuilder->createNamedParameter($uid))
                 )
             )
-            ->execute()
-            ->fetchOne();
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648881689774
+            );
+        }
+
+        return $result->fetchOne();
     }
 
     /**
@@ -322,7 +331,7 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param AbstractRecordOperation $recordOperation
      * @return bool
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws InvalidQueryResultException
      */
     public function isSameAsPrevious(AbstractRecordOperation $recordOperation): bool
     {
@@ -334,7 +343,7 @@ class RemoteIdMappingRepository extends AbstractRepository
 
         $queryBuilder = $this->getQueryBuilder();
 
-        return (bool)$queryBuilder
+        $result = $queryBuilder
             ->count('remote_id')
             ->from(self::TABLE_NAME)
             ->where(
@@ -347,8 +356,16 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($this->hashRecordOperation($recordOperation))
                 )
             )
-            ->execute()
-            ->fetchOne();
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648881720215
+            );
+        }
+
+        return (bool)$result->fetchOne();
     }
 
     /**
@@ -356,12 +373,13 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @return array
+     * @throws InvalidQueryResultException
      */
     public function getMetaData(string $remoteId): array
     {
         $queryBuilder = $this->getQueryBuilder();
 
-        $metaData = $queryBuilder
+        $result = $queryBuilder
             ->select('metadata')
             ->from(self::TABLE_NAME)
             ->where(
@@ -370,8 +388,16 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
                 )
             )
-            ->execute()
-            ->fetchOne();
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648879655137
+            );
+        }
+
+        $metaData = $result->fetchOne();
 
         if ($metaData === false) {
             return [];

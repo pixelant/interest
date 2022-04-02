@@ -197,7 +197,6 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 
     /**
      * @param array $data
-     * @param AfterRecordOperationEvent $event
      * @throws DataHandlerErrorException
      */
     protected function persistData(array $data): void
@@ -206,7 +205,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         $dataHandler->start($data, []);
         $dataHandler->process_datamap();
 
-        if (!empty($this->dataHandler->errorLog)) {
+        if (!empty($dataHandler->errorLog)) {
             throw new DataHandlerErrorException(
                 'Error occurred during foreign-side relation ordering in remote ID based on relations'
                 . ' from remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '": '

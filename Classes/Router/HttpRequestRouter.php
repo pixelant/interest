@@ -184,6 +184,7 @@ class HttpRequestRouter
      * @param ServerRequestInterface $request
      * @param array $entryPointParts
      * @return ResponseInterface|void
+     * phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts)
     {

@@ -65,9 +65,9 @@ abstract class AbstractRecordOperation
     protected ?SiteLanguage $language;
 
     /**
-     * @var int|null
+     * @var string|null
      */
-    protected ?int $workspace;
+    protected ?string $workspace;
 
     /**
      * @var ContentObjectRenderer

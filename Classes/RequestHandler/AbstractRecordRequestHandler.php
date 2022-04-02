@@ -88,6 +88,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
     /**
      * @return ResponseInterface
+     * phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
      */
     public function handle(): ResponseInterface
     {
@@ -211,8 +212,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         ?string $remoteId,
         ?string $language,
         ?int $workspace
-    ): array
-    {
+    ): array {
         $layerCount = 0;
 
         if ($table !== null) {

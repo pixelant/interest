@@ -19,6 +19,7 @@ class PendingRelationsRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @return array
+     * @throws InvalidQueryResultException
      */
     public function get(string $remoteId): array
     {

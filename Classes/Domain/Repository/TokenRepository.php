@@ -22,6 +22,7 @@ class TokenRepository extends AbstractRepository
      *
      * @param string $token
      * @return int
+     * @throws InvalidQueryResultException
      */
     public function findBackendUserIdByToken(string $token): int
     {

@@ -171,7 +171,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      *
      * @param string $url
      * @return string|null
-     *
+     * @throws ClientException
      * @throws NotFoundException
      */
     protected function handleUrlInput(string $url): ?string

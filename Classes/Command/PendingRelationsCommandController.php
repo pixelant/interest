@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Command;
 
 use Doctrine\DBAL\Driver\ResultStatement;
 use Pixelant\Interest\DataHandling\DataHandler;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\RelationUtility;
@@ -44,6 +45,12 @@ class PendingRelationsCommandController extends Command
             );
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws InvalidQueryResultException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $counts = [
@@ -158,7 +165,10 @@ class PendingRelationsCommandController extends Command
             ->execute();
 
         if (!($resolvableRelations instanceof ResultStatement)) {
-            return 255;
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648879655137
+            );
         }
 
         $progressBar = new ProgressBar($output);

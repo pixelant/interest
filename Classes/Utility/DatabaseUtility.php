@@ -21,6 +21,7 @@ class DatabaseUtility
      * @param int $uid UID of record
      * @param array $fields List of fields to select
      * @return array|null Returns the row if found, otherwise NULL
+     * @throws InvalidQueryResultException
      */
     public static function getRecord(string $table, int $uid, array $fields = ['*'])
     {

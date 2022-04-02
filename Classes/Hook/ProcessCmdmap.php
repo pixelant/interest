@@ -23,15 +23,20 @@ class ProcessCmdmap
      * @param $pasteDatamap
      *
      * phpcs:disable PSR1.Methods.CamelCapsMethodName
+     * phpcs:disable Squiz.Commenting.PostStatementComment
      */
     public function processCmdmap_postProcess(
         string $command,
         string $table,
-        $id, // @phpstan-ignore-line
-        $value, // @phpstan-ignore-line
+        // @phpstan-ignore-next-line
+        $id,
+        // @phpstan-ignore-next-line
+        $value,
         DataHandler $dataHandler,
-        $pasteUpdate, // @phpstan-ignore-line
-        $pasteDatamap // @phpstan-ignore-line
+        // @phpstan-ignore-next-line
+        $pasteUpdate,
+        // @phpstan-ignore-next-line
+        $pasteDatamap
     ) {
         if ($command === 'delete') {
             /** @var RemoteIdMappingRepository $mappingRepository */
