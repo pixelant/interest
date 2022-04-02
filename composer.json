@@ -44,7 +44,7 @@
 		"typo3/testing-framework": "^6.15.3"
 	},
 	"replace": {
-		"typo3-ter/tea": "self.version"
+		"typo3-ter/interest": "self.version"
 	},
 	"conflict": {
 		"typo3/class-alias-loader": "< 1.1.0"
@@ -144,7 +144,7 @@
 		"fix:php:sniff": "phpcbf Classes Configuration Tests",
 		"link-extension": [
 			"@php -r 'is_dir($extFolder=__DIR__.\"/.Build/public/typo3conf/ext/\") || mkdir($extFolder, 0777, true);'",
-			"@php -r 'file_exists($extFolder=__DIR__.\"/.Build/public/typo3conf/ext/tea\") || symlink(__DIR__,$extFolder);'"
+			"@php -r 'file_exists($extFolder=__DIR__.\"/.Build/public/typo3conf/ext/interest\") || symlink(__DIR__,$extFolder);'"
 		],
 		"phpstan:baseline": ".Build/vendor/bin/phpstan  --generate-baseline=phpstan-baseline.neon",
 		"prepare-release": [
