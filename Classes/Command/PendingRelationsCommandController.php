@@ -66,7 +66,7 @@ class PendingRelationsCommandController extends Command
             ->count('*')
             ->from(PendingRelationsRepository::TABLE_NAME)
             ->execute()
-            ->fetchColumn(0);
+            ->fetchFirstColumn();
 
         if ($counts['_total']['count'] === 0) {
             $output->writeln('<info>No pending relations found.</info>');
@@ -84,7 +84,7 @@ class PendingRelationsCommandController extends Command
                 $queryBuilder->quoteIdentifier('m.remote_id')
             ))
             ->execute()
-            ->fetchColumn(0);
+            ->fetchFirstColumn();
 
         $queryBuilder = $this->getQueryBuilder();
 
@@ -94,7 +94,7 @@ class PendingRelationsCommandController extends Command
                 ->from(PendingRelationsRepository::TABLE_NAME)
                 ->groupBy('table')
                 ->execute()
-                ->fetchAll(),
+                ->fetchAllNumeric(),
             'table'
         );
 
@@ -118,7 +118,7 @@ class PendingRelationsCommandController extends Command
                     $queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table))
                 )
                 ->execute()
-                ->fetchColumn(0);
+                ->fetchFirstColumn();
 
             $queryBuilder = $this->getQueryBuilder();
 
@@ -133,7 +133,7 @@ class PendingRelationsCommandController extends Command
                     $queryBuilder->expr()->eq('p.table', $queryBuilder->createNamedParameter($table))
                 )
                 ->execute()
-                ->fetchColumn(0);
+                ->fetchFirstColumn();
 
             $rows[] = [
                 $table,

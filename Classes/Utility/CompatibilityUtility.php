@@ -27,6 +27,7 @@ class CompatibilityUtility
     public static function getApplicationContext()
     {
         if (self::typo3VersionIsLessThan('10.2')) {
+            // @phpstan-ignore-next-line
             return GeneralUtility::getApplicationContext();
         }
 
