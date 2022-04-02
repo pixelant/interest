@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Utility;
 
+use Doctrine\DBAL\Driver\ResultStatement;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -36,7 +38,17 @@ class DatabaseUtility
                 ->from($table)
                 ->where($queryBuilder->expr()->eq('uid', (int)$uid));
 
-            $row = $queryBuilder->execute()->fetchAssociative();
+            $result = $queryBuilder->execute();
+
+            if (!($result instanceof ResultStatement)) {
+                throw new InvalidQueryResultException(
+                    'Query result was not an instance of ' . ResultStatement::class,
+                    1648880491980
+                );
+            }
+
+            $row = $result->fetchAssociative();
+
             if ($row) {
                 return $row;
             }

@@ -17,7 +17,6 @@ abstract class AbstractRequestHandlerException extends GuzzleRequestException
     /**
      * @param string $message
      * @param RequestInterface $request
-     * @param GuzzleRequestException $previous
      */
     public function __construct(string $message, RequestInterface $request)
     {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Driver\ResultStatement;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Crypto\Random;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -25,7 +27,7 @@ class TokenRepository extends AbstractRepository
     {
         $queryBuilder = $this->getQueryBuilder();
 
-        return (int)$queryBuilder
+        $result = $queryBuilder
             ->select('be_user')
             ->from(self::TABLE_NAME)
             ->where(
@@ -35,8 +37,16 @@ class TokenRepository extends AbstractRepository
                     $queryBuilder->expr()->lt('expiry', time())
                 )
             )
-            ->execute()
-            ->fetchOne();
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648879886671
+            );
+        }
+
+        return (int)$result->fetchOne();
     }
 
     /**

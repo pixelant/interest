@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Driver\ResultStatement;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
+
 /**
  * Database operations relating to pending relations to remote IDs that do not yet exist in the database.
  */
@@ -21,15 +24,23 @@ class PendingRelationsRepository extends AbstractRepository
     {
         $queryBuilder = $this->getQueryBuilder();
 
-        return $queryBuilder
+        $result = $queryBuilder
             ->select('*')
             ->from(self::TABLE_NAME)
             ->where($queryBuilder->expr()->eq(
                 'remote_id',
                 $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
             ))
-            ->execute()
-            ->fetchAllAssociative() ?? [];
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648879655137
+            );
+        }
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -75,18 +86,15 @@ class PendingRelationsRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'table',
-                    $queryBuilder->createNamedParameter($table),
-                    \PDO::PARAM_STR
+                    $queryBuilder->createNamedParameter($table)
                 ),
                 $queryBuilder->expr()->eq(
                     'field',
-                    $queryBuilder->createNamedParameter($field),
-                    \PDO::PARAM_STR
+                    $queryBuilder->createNamedParameter($field)
                 ),
                 $queryBuilder->expr()->eq(
                     'record_uid',
-                    $queryBuilder->createNamedParameter($uid),
-                    \PDO::PARAM_INT
+                    $queryBuilder->createNamedParameter($uid)
                 ),
             )
             ->execute();
@@ -106,8 +114,7 @@ class PendingRelationsRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'remote_id',
-                    $queryBuilder->createNamedParameter($remoteId),
-                    \PDO::PARAM_STR
+                    $queryBuilder->createNamedParameter($remoteId)
                 )
             )
             ->execute();

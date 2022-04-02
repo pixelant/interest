@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Driver\ResultStatement;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
@@ -38,7 +40,6 @@ class RemoteIdMappingRepository extends AbstractRepository
      * Get the local ID equivalent for $remoteId.
      *
      * @param string $remoteId
-     * @param SiteLanguage|null $language
      * @return int Local ID. Zero if it doesn't exist.
      */
     public function get(string $remoteId, ?AbstractRecordOperation $recordOperation = null): int
@@ -51,7 +52,7 @@ class RemoteIdMappingRepository extends AbstractRepository
 
         $queryBuilder = $this->getQueryBuilder();
 
-        $row = $queryBuilder
+        $result = $queryBuilder
             ->select('uid_local', 'table')
             ->from(self::TABLE_NAME)
             ->where(
@@ -60,8 +61,16 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
                 )
             )
-            ->execute()
-            ->fetchAssociative();
+            ->execute();
+
+        if (!($result instanceof ResultStatement)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . ResultStatement::class,
+                1648879827875
+            );
+        }
+
+        $row = $result->fetchAssociative();
 
         self::$remoteToLocalIdCache[$remoteId] = (int)$row['uid_local'];
         self::$remoteIdToTableCache[$remoteId] = $row['table'];

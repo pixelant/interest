@@ -65,6 +65,11 @@ abstract class AbstractRecordOperation
     protected ?SiteLanguage $language;
 
     /**
+     * @var int|null
+     */
+    protected ?int $workspace;
+
+    /**
      * @var ContentObjectRenderer
      */
     protected ContentObjectRenderer $contentObjectRenderer;
@@ -109,11 +114,16 @@ abstract class AbstractRecordOperation
     protected bool $operationStopped = false;
 
     /**
+     * @var array|null
+     */
+    protected static ?array $getTypeValueCache = null;
+
+    /**
      * @param array $data
      * @param string $table
      * @param string $remoteId
      * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
-     * @param string|null $workspaceRemoteId workspace represented with a remote ID.
+     * @param string|null $workspace workspace represented with a remote ID.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
      *
      * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
@@ -130,6 +140,7 @@ abstract class AbstractRecordOperation
         $this->remoteId = $remoteId;
         $this->data = $data;
         $this->metaData = $metaData ?? [];
+        $this->workspace = $workspace;
 
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
@@ -356,7 +367,7 @@ abstract class AbstractRecordOperation
     /**
      * Resolves the UID for the remote ID.
      *
-     * @return int|null
+     * @return int
      * @throws ConflictException
      */
     protected function resolveUid(): int
@@ -421,9 +432,6 @@ abstract class AbstractRecordOperation
      * information is temporarily added to $this->pendingRelations and persisted using persistPendingRelations().
      *
      * @see persistPendingRelations()
-     * @param string $tableName
-     * @param string $remoteId
-     * @param array $importData Referenced array of import data (record fieldName => value pairs).
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     protected function prepareRelations()
@@ -483,12 +491,12 @@ abstract class AbstractRecordOperation
         }
 
         if (!$this->mappingRepository->exists($remoteId)) {
-            $this->getTypeValueCache[$table . '_' . $remoteId] = '0';
+            self::$getTypeValueCache[$table . '_' . $remoteId] = '0';
 
             return '0';
         }
 
-        $this->getTypeValueCache[$table . '_' . $remoteId] = BackendUtility::getTCAtypeValue(
+        self::$getTypeValueCache[$table . '_' . $remoteId] = BackendUtility::getTCAtypeValue(
             $table,
             DatabaseUtility::getRecord(
                 $table,
@@ -496,7 +504,7 @@ abstract class AbstractRecordOperation
             )
         );
 
-        return $this->getTypeValueCache[$table . '_' . $remoteId];
+        return self::$getTypeValueCache[$table . '_' . $remoteId];
     }
 
     /**
@@ -742,12 +750,13 @@ abstract class AbstractRecordOperation
      * Returns true if the configuration specifies that the field supports records from multiple tables, meaning that
      * the UID should be prefixed with the table name: table_name_123.
      *
-     * @param $tcaConfiguration
+     * @param array $tcaConfiguration
      * @return bool
      */
     protected function isPrefixWithTable(array $tcaConfiguration): bool
     {
         $prefixWithTable = false;
+
         if (
             $tcaConfiguration['type'] === 'group'
             && (
@@ -757,16 +766,17 @@ abstract class AbstractRecordOperation
         ) {
             $prefixWithTable = true;
         }
+
         return $prefixWithTable;
     }
 
     /**
      * Ensures that inline fields have the UIDs of IRRE records as a commaseparated value string.
      *
-     * @param $fieldName
-     * @param $type
+     * @param string $fieldName
+     * @param string|int $type
      */
-    protected function convertInlineRelationsValueToCsv($fieldName, $type): void
+    protected function convertInlineRelationsValueToCsv(string $fieldName, $type): void
     {
         if (
             is_array($this->data[$fieldName])

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Command;
 
+use Doctrine\DBAL\Driver\ResultStatement;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -155,6 +156,10 @@ class PendingRelationsCommandController extends Command
                 $queryBuilder->quoteIdentifier('m.remote_id')
             ))
             ->execute();
+
+        if (!($resolvableRelations instanceof ResultStatement)) {
+            return 255;
+        }
 
         $progressBar = new ProgressBar($output);
         $progressBar->setMaxSteps($counts['_total']['resolvable']);

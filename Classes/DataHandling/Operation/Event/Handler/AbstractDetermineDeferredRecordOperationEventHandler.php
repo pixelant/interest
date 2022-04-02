@@ -37,7 +37,7 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler implements E
     /**
      * Returns true if the current record operation should be deferred.
      *
-     * @return bool
+     * @return string|null
      */
     abstract protected function getDependentRemoteId(): ?string;
 

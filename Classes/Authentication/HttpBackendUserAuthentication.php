@@ -76,6 +76,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      */
     public function checkAuthentication()
     {
+        $tempuser = null;
+
         $authenticated = false;
         // The info array provide additional information for auth services
         $authInfo = $this->getAuthInfoArray();

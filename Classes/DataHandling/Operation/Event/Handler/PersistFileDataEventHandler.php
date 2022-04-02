@@ -147,7 +147,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * Decode base64-encoded file data.
      *
      * @param string $fileData
-     * @return false|string
+     * @return string
      */
     protected function handleBase64Input(string $fileData): string
     {
@@ -203,6 +203,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                     1634667759711
                 );
             }
+
+            throw $exception;
         }
 
         if ($response->getStatusCode() === 304) {
@@ -238,15 +240,15 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * @param string $storagePath
      * @param ResourceStorage $storage
-     * @param $persistence
-     * @param $fileBaseName
+     * @param array $persistenceSettings
+     * @param string $fileBaseName
      * @return Folder|\TYPO3\CMS\Core\Resource\InaccessibleFolder|void
      */
     protected function getDownloadFolder(
         string $storagePath,
         ResourceStorage $storage,
-        $persistence,
-        $fileBaseName
+        array $persistenceSettings,
+        string $fileBaseName
     ) {
         try {
             $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($storagePath);
@@ -257,8 +259,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         }
 
         $hashedSubfolders = (int)$this->event->getRecordOperation()->getContentObjectRenderer()->stdWrap(
-            $persistence['hashedSubfolders'],
-            $persistence['hashedSubfolders.'] ?? []
+            $persistenceSettings['hashedSubfolders'],
+            $persistenceSettings['hashedSubfolders.'] ?? []
         );
 
         if ($hashedSubfolders > 0) {
@@ -286,12 +288,12 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * Retrieves a file from a MediaHelper-compatible URL.
      *
-     * @param $url
-     * @param $downloadFolder
-     * @param $fileBaseName
+     * @param string $url
+     * @param Folder $downloadFolder
+     * @param string $fileBaseName
      * @return File|null
      */
-    protected function getFileFromMediaUrl($url, $downloadFolder, $fileBaseName): ?File
+    protected function getFileFromMediaUrl(string $url, Folder $downloadFolder, string $fileBaseName): ?File
     {
         $onlineMediaHelperRegistry = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class);
 
@@ -313,14 +315,16 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
     /**
      * @param array $data
-     * @param $downloadFolder
-     * @param $fileBaseName
+     * @param Folder $downloadFolder
+     * @param string $fileBaseName
      * @return array
      * @throws InvalidFileNameException
      * @throws MissingArgumentException
      */
-    protected function getFileWithContent(array $data, $downloadFolder, $fileBaseName): array
+    protected function getFileWithContent(array $data, Folder $downloadFolder, string $fileBaseName): array
     {
+        $file = null;
+
         if (!empty($data['fileData'])) {
             $fileContent = $this->handleBase64Input($data['fileData']);
         } else {

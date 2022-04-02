@@ -81,14 +81,13 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             ?? $this->getRequest()->getQueryParams()['workspace']
             ?? null;
 
-        $data = $this->formatDataArray($data, $table, $remoteId, $workspace, $language);
+        $data = $this->formatDataArray($data, $table, $remoteId, $language, $workspace);
 
         $this->data = $data;
     }
 
     /**
      * @return ResponseInterface
-     * @throws OperationToRequestHandlerExceptionConverter
      */
     public function handle(): ResponseInterface
     {
@@ -202,11 +201,17 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      * @param \stdClass $data
      * @param string|null $table
      * @param string|null $remoteId
-     * @param $workspace
-     * @param $language
+     * @param string|null $language
+     * @param int|null $workspace
      * @return array
      */
-    protected function formatDataArray(\stdClass $data, ?string $table, ?string $remoteId, $workspace, $language): array
+    protected function formatDataArray(
+        \stdClass $data,
+        ?string $table,
+        ?string $remoteId,
+        ?string $language,
+        ?int $workspace
+    ): array
     {
         $layerCount = 0;
 

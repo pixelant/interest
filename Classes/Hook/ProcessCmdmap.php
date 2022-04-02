@@ -27,11 +27,11 @@ class ProcessCmdmap
     public function processCmdmap_postProcess(
         string $command,
         string $table,
-        $id,
-        $value,
+        $id, // @phpstan-ignore-line
+        $value, // @phpstan-ignore-line
         DataHandler $dataHandler,
-        $pasteUpdate,
-        $pasteDatamap
+        $pasteUpdate, // @phpstan-ignore-line
+        $pasteDatamap // @phpstan-ignore-line
     ) {
         if ($command === 'delete') {
             /** @var RemoteIdMappingRepository $mappingRepository */

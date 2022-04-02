@@ -149,13 +149,15 @@ class HttpRequestRouter
     }
 
     /**
-     * @param $throwable
-     * @param $trace
+     * @param \Throwable $throwable
      * @return array
      */
     protected static function generateExceptionTrace(\Throwable $throwable): array
     {
+        $trace = [];
+
         $currentThrowable = $throwable;
+
         do {
             $trace = array_merge(
                 $trace,
@@ -172,6 +174,7 @@ class HttpRequestRouter
 
             $currentThrowable = $throwable->getPrevious();
         } while ($currentThrowable);
+
         return $trace;
     }
 
@@ -181,7 +184,6 @@ class HttpRequestRouter
      * @param ServerRequestInterface $request
      * @param array $entryPointParts
      * @return ResponseInterface|void
-     * @throws OperationToRequestHandlerExceptionConverter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts)
     {

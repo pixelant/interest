@@ -23,6 +23,8 @@ class DeleteRecordOperation extends AbstractRecordOperation
         ?string $language = null,
         ?string $workspace = null
     ) {
+        $this->workspace = $workspace;
+
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         if (!$this->mappingRepository->exists($remoteId)) {

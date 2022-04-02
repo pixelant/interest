@@ -51,7 +51,6 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     /**
      * Returns the names of fields with an MM relation table.
      *
-     * @param string $tableName
      * @return array
      */
     protected function getMmFieldConfigurations(): array
@@ -153,8 +152,6 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     }
 
     /**
-     * @param AfterRecordOperationEvent $event
-     * @param $data
      * @return array
      */
     protected function generateSortingData(): array
@@ -213,8 +210,8 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
             throw new DataHandlerErrorException(
                 'Error occurred during foreign-side relation ordering in remote ID based on relations'
                 . ' from remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '": '
-                . implode(', ', $this->dataHandler->errorLog)
-                . ' Datamap: ' . json_encode($this->dataHandler->datamap),
+                . implode(', ', $dataHandler->errorLog)
+                . ' Datamap: ' . json_encode($dataHandler->datamap),
                 1641480842077
             );
         }
@@ -248,7 +245,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     }
 
     /**
-     * @param $orderingIntent
+     * @param array $orderingIntent
      * @param bool $prefixTable
      * @return array
      */
