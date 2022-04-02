@@ -223,7 +223,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             $layerCount++;
         }
 
-        if (!$this->isRecordData($data)) {
+        if (!$this->isRecordData($data) && (array)$data !== []) {
             $currentLayer = $data;
             do {
                 $layerCount++;
