@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
-use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Driver\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Crypto\Random;
@@ -40,9 +40,9 @@ class TokenRepository extends AbstractRepository
             )
             ->execute();
 
-        if (!($result instanceof ResultStatement)) {
+        if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648879886671
             );
         }

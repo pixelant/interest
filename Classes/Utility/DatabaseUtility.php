@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Utility;
 
-use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Driver\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -41,9 +40,9 @@ class DatabaseUtility
 
             $result = $queryBuilder->execute();
 
-            if (!($result instanceof ResultStatement)) {
+            if (!($result instanceof Result)) {
                 throw new InvalidQueryResultException(
-                    'Query result was not an instance of ' . ResultStatement::class,
+                    'Query result was not an instance of ' . Result::class,
                     1648880491980
                 );
             }
