@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
@@ -63,9 +64,9 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute();
 
-        if (!($result instanceof ResultStatement)) {
+        if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648879827875
             );
         }
@@ -295,9 +296,9 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute();
 
-        if (!($result instanceof ResultStatement)) {
+        if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648881689774
             );
         }
@@ -358,9 +359,9 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute();
 
-        if (!($result instanceof ResultStatement)) {
+        if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648881720215
             );
         }
@@ -390,9 +391,9 @@ class RemoteIdMappingRepository extends AbstractRepository
             )
             ->execute();
 
-        if (!($result instanceof ResultStatement)) {
+        if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648879655137
             );
         }

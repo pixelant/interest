@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Command;
 
+use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
@@ -164,9 +165,9 @@ class PendingRelationsCommandController extends Command
             ))
             ->execute();
 
-        if (!($resolvableRelations instanceof ResultStatement)) {
+        if (!($resolvableRelations instanceof Result)) {
             throw new InvalidQueryResultException(
-                'Query result was not an instance of ' . ResultStatement::class,
+                'Query result was not an instance of ' . Result::class,
                 1648879655137
             );
         }
