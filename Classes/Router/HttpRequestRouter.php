@@ -140,6 +140,7 @@ class HttpRequestRouter
                 'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationBeforeTypo3v11.php'
             );
 
+            // @phpstan-ignore-next-line
             Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationBeforeTypo3v11::class);
         } else {
             Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);

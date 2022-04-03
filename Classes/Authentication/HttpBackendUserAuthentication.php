@@ -40,8 +40,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
     public function start(?ServerRequestInterface $request = null)
     {
         $this->logger->debug('## Beginning of auth logging.');
-        // svConfig is unused, but we set it, as the property is public and might be used by extensions
-        $this->svConfig = $GLOBALS['TYPO3_CONF_VARS']['SVCONF']['auth'] ?? [];
     }
 
     /**
@@ -101,10 +99,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
                     $this->userid_column => $row[$this->userid_column],
                     $this->username_column => $row[$this->username_column],
                 ]);
-                // User found, just stop to search for more if not configured to go on
-                if (empty($this->svConfig['setup'][$this->loginType . '_fetchAllUsers'])) {
-                    break;
-                }
+
+                break;
             }
         }
 
@@ -151,10 +147,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
 
         // If user is authenticated a valid user is in $tempuser
         if ($authenticated) {
-            // Reset failure flag
-            $this->loginFailure = false;
-            // Insert session record if needed:
-
             $this->user = $tempuser;
             // The login session is started.
             $this->loginSessionStarted = true;
@@ -185,8 +177,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
                 . GeneralUtility::getIndpEnv('REMOTE_ADDR')
             );
         } else {
-            $this->loginFailure = true;
-
             if (empty($tempuserArr)) {
                 $logData = [
                     'loginData' => $this->removeSensitiveLoginDataForLoggingInfo($loginData),
