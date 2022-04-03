@@ -48,3 +48,9 @@ services:
       - name: event.listener
         identifier: foreignRelationSorting
         event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+
+  Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFileEventHandler:
+    tags:
+      - name: event.listener
+        identifier: deleteRemoteIdForDeletedFile
+        event: TYPO3\CMS\Core\Resource\Event\AfterFileDeletedEvent
