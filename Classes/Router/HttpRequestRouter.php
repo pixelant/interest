@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Router;
 
 use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
-use Pixelant\Interest\DynamicCompatibility\Authentication\HttpBackendUserAuthenticationBeforeTypo3v11;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
+use Pixelant\Interest\DynamicCompatibility\Authentication\HttpBackendUserAuthenticationBeforeTypo3v11;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateOrUpdateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateRequestHandler;
