@@ -64,7 +64,7 @@ class HttpRequestRouter
 
             self::authenticateBearerToken($request);
 
-            self::handleByMethod($request, $entryPointParts);
+            return self::handleByMethod($request, $entryPointParts);
         } catch (AbstractRequestHandlerException $requestHandlerException) {
             return GeneralUtility::makeInstance(
                 JsonResponse::class,
@@ -91,15 +91,6 @@ class HttpRequestRouter
                 500
             );
         }
-
-        return GeneralUtility::makeInstance(
-            JsonResponse::class,
-            [
-                'success' => false,
-                'message' => 'Method not allowed.',
-            ],
-            405
-        );
     }
 
     /**
@@ -193,10 +184,10 @@ class HttpRequestRouter
      *
      * @param ServerRequestInterface $request
      * @param array $entryPointParts
-     * @return ResponseInterface|void
+     * @return ResponseInterface
      * phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
      */
-    protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts)
+    protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
         try {
             switch (strtoupper($request->getMethod())) {
@@ -228,5 +219,14 @@ class HttpRequestRouter
         } catch (AbstractException $dataHandlingException) {
             throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
         }
+
+        return GeneralUtility::makeInstance(
+            JsonResponse::class,
+            [
+                'success' => false,
+                'message' => 'Method not allowed.',
+            ],
+            405
+        );
     }
 }
