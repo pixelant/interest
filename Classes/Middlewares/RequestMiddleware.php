@@ -16,10 +16,15 @@ class RequestMiddleware implements MiddlewareInterface
     {
         $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
+        $entryPoint
+            = getenv('APP_INTEREST_ENTRY_POINT') !== false
+            ? getenv('APP_INTEREST_ENTRY_POINT')
+            : $extensionConfiguration->get('interest', 'entryPoint');
+
         if (
             strpos(
                 $request->getRequestTarget(),
-                '/' . trim($extensionConfiguration->get('interest', 'entryPoint'), '/') . '/'
+                '/' . trim($entryPoint, '/') . '/'
             ) === 0
         ) {
             return HttpRequestRouter::route($request);
