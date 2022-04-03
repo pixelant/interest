@@ -59,6 +59,12 @@ class TokenRepository extends AbstractRepository
         $token = GeneralUtility::makeInstance(Random::class)
             ->generateRandomHexString(32);
 
+        $tokenLifetime
+            = getenv('APP_INTEREST_TOKEN_TTL') !== false
+            ? (int)getenv('APP_INTEREST_TOKEN_TTL')
+            : (int)GeneralUtility::makeInstance(ExtensionConfiguration::class)
+                ->get('interest', 'tokenLifetime');
+
         $queryBuilder = $this->getQueryBuilder();
 
         $queryBuilder
@@ -69,8 +75,7 @@ class TokenRepository extends AbstractRepository
                 'crdate' => time(),
                 'token' => $token,
                 'be_user' => $id,
-                'expiry' => (int)GeneralUtility::makeInstance(ExtensionConfiguration::class)
-                    ->get('interest', 'tokenLifetime'),
+                'expiry' => time() + $tokenLifetime,
             ])
             ->execute();
 
