@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Router;
 
 use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
+use Pixelant\Interest\DynamicCompatibility\Authentication\HttpBackendUserAuthenticationBeforeTypo3v11;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
@@ -143,7 +144,16 @@ class HttpRequestRouter
      */
     protected static function initialize()
     {
-        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+        if (CompatibilityUtility::typo3VersionIsLessThan('11')) {
+            require_once GeneralUtility::getFileAbsFileName(
+                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationBeforeTypo3v11.php'
+            );
+
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationBeforeTypo3v11::class);
+        } else {
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+        }
+
         ExtensionManagementUtility::loadExtTables();
         Bootstrap::initializeLanguageObject();
     }

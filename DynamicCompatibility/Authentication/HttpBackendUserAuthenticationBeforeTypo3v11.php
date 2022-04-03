@@ -1,14 +1,14 @@
-<?php
+<?php /** @noinspection PhpHierarchyChecksInspection */
+/** @noinspection PhpSignatureMismatchDuringInheritanceInspection */
 
 declare(strict_types=1);
 
-namespace Pixelant\Interest\Authentication;
+namespace Pixelant\Interest\DynamicCompatibility\Authentication;
 
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class HttpBackendUserAuthentication extends BackendUserAuthentication
+class HttpBackendUserAuthenticationBeforeTypo3v11 extends BackendUserAuthentication
 {
     protected $loginFormData = [];
 
@@ -34,10 +34,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      *
      * We do not need support for sessions, cookies, $_GET-modes, the postUserLookup hook or
      * a database connectiona during CLI Bootstrap
-     *
-     * @param ServerRequestInterface|null $request
      */
-    public function start(?ServerRequestInterface $request = null)
+    public function start()
     {
         $this->logger->debug('## Beginning of auth logging.');
         // svConfig is unused, but we set it, as the property is public and might be used by extensions
@@ -72,12 +70,12 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
     /**
      * Checks if a submission of username and password is present or use other authentication by auth services
      *
-     * @param ServerRequestInterface|null $request
+     * @throws \RuntimeException
      * @internal
      *
      * phpcs:disable Generic.Metrics.CyclomaticComplexity
      */
-    public function checkAuthentication(?ServerRequestInterface $request = null)
+    public function checkAuthentication()
     {
         $tempuser = null;
 
@@ -209,7 +207,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      *
      * @return bool True if $GLOBALS[TYPO3_CONF_VARS][BE][adminOnly] is zero.
      */
-    public function isUserAllowedToLogin()
+    protected function isUserAllowedToLogin()
     {
         return (int)$GLOBALS['TYPO3_CONF_VARS']['BE']['adminOnly'] === 0;
     }
