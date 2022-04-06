@@ -1,10 +1,10 @@
-.. include:: ../Includes.txt
+.. include:: ../../Includes.txt
 
 .. _extension-conf:
 
-=========
-Extension
-=========
+=======================
+Extension Configuration
+=======================
 
 The extension configuration is global and affects the Interest extension across
 the entire TYPO3 instance.
