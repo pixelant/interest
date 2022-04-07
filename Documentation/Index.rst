@@ -60,4 +60,5 @@ Table of Contents
    :glob:
 
    Introduction/Index
+   Configuration/Index
    Sitemap
