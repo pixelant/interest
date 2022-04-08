@@ -72,8 +72,8 @@ class RemoteIdMappingRepository extends AbstractRepository
 
         $row = $result->fetchAssociative();
 
-        self::$remoteToLocalIdCache[$remoteId] = (int)$row['uid_local'];
-        self::$remoteIdToTableCache[$remoteId] = $row['table'];
+        self::$remoteToLocalIdCache[$remoteId] = $row === false ? 0 : (int)$row['uid_local'];
+        self::$remoteIdToTableCache[$remoteId] = $row === false ? null : $row['table'];
 
         if (
             self::$remoteToLocalIdCache[$remoteId] > 0
