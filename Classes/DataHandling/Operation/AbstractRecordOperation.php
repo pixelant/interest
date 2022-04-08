@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
+use Doctrine\DBAL\Exception\DeadlockException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
@@ -188,7 +189,22 @@ abstract class AbstractRecordOperation
         }
 
         if (count($this->dataHandler->datamap) > 0) {
-            $this->dataHandler->process_datamap();
+            $deadlockException = null;
+            $retryCount = 0;
+
+            do {
+                try {
+                    $this->dataHandler->process_datamap();
+                } catch (DeadlockException $deadlockException) {
+                    $retryCount++;
+
+                    if ($retryCount < 10) {
+                        continue;
+                    }
+
+                    throw $deadlockException;
+                }
+            } while ($deadlockException !== null);
         }
 
         if (count($this->dataHandler->cmdmap) > 0) {
