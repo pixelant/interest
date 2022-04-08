@@ -184,7 +184,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 $queryBuilder->createNamedParameter($remoteId)
             ))
             ->execute()
-            ->fetchColumn();
+            ->fetchOne();
     }
 
     /**
@@ -209,7 +209,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->select('remote_id')
             ->from(self::TABLE_NAME)
             ->execute()
-            ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
+            ->fetchFirstColumn();
     }
 
     /**
@@ -234,7 +234,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->select('remote_id')
             ->from(self::TABLE_NAME)
             ->execute()
-            ->fetchAll(\PDO::FETCH_COLUMN, 0) ?: [];
+            ->fetchFirstColumn();
     }
 
     /**

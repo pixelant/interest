@@ -7,6 +7,7 @@ namespace Pixelant\Interest\DataHandling\Operation;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Performs an update operation on a record.
@@ -19,7 +20,8 @@ class UpdateRecordOperation extends AbstractRecordOperation
         string $remoteId,
         ?string $language = null,
         ?string $workspace = null,
-        ?array $metaData = []
+        ?array $metaData = [],
+        ?ContentObjectRenderer $contentObjectRenderer = null
     ) {
         if (!GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
             throw new NotFoundException(
@@ -28,7 +30,7 @@ class UpdateRecordOperation extends AbstractRecordOperation
             );
         }
 
-        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
+        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData, $contentObjectRenderer);
 
         $this->dataHandler->datamap[$table][$this->getUid()] = $this->getData();
     }

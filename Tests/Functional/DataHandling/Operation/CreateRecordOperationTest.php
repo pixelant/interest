@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
+use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 class CreateRecordOperationTest extends FunctionalTestCase
@@ -40,5 +42,37 @@ class CreateRecordOperationTest extends FunctionalTestCase
      */
     public function creatingPageResultsInPageRecord(): void
     {
+        $data = [
+            'pid' => 'ParentPage',
+            'title' => 'INTEREST'
+        ];
+
+        $remoteIdMappingRepositoryMock = $this->createMock(RemoteIdMappingRepository::class);
+
+        $remoteIdMappingRepositoryMock
+            ->method('exists')
+            ->with('ParentPage')
+            ->willReturn(true);
+
+        $remoteIdMappingRepositoryMock
+            ->method('exists')
+            ->with('Page-1')
+            ->willReturn(false);
+
+        GeneralUtility::addInstance(RemoteIdMappingRepository::class, $remoteIdMappingRepositoryMock);
+
+        $contentObjectRendererMock = $this->createMock(ContentObjectRenderer::class);
+
+        $operation = new CreateRecordOperation(
+            $data,
+            'pages',
+            'Page-1',
+            null,
+            null,
+            [],
+            $contentObjectRendererMock
+        );
+
+        $operation();
     }
 }
