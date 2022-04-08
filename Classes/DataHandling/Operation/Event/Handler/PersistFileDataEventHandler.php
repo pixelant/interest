@@ -303,12 +303,12 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $onlineMediaHelperRegistry->getSupportedFileExtensions()
         );
 
-        if ($file !== null && $fileBaseName !== '') {
-            $mediaFileName = pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension();
+        if ($file !== null && $fileBaseName !== '' && $file->exists()) {
+            $mediaFileName = $downloadFolder->getStorage()->sanitizeFileName(
+                pathinfo($fileBaseName, PATHINFO_FILENAME) . '.' . $file->getExtension()
+            );
 
-            if ($file->getName() !== $mediaFileName) {
-                $file->rename($mediaFileName);
-            }
+            $file->rename($mediaFileName);
         }
         return $file;
     }
