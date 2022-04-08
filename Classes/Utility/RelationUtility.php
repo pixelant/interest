@@ -29,6 +29,12 @@ class RelationUtility
         /** @var RelationHandler $relationHandler */
         $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
 
+        $row = DatabaseUtility::getRecord($pendingRelation['table'], $pendingRelation['record_uid']);
+
+        if ($row === null) {
+            return;
+        }
+
         $relationHandler->start(
             '',
             $foreignTable,
@@ -38,7 +44,7 @@ class RelationUtility
             TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
                 $pendingRelation['table'],
                 $pendingRelation['field'],
-                DatabaseUtility::getRecord($pendingRelation['table'], $pendingRelation['record_uid'])
+                $row
             )
         );
 
