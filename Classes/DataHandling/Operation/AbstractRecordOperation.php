@@ -453,7 +453,11 @@ abstract class AbstractRecordOperation
                 continue;
             }
 
-            $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            if ($fieldName === 'pid') {
+                $tcaConfiguration = TcaUtility::getFakePidTcaConfiguration();
+            } else {
+                $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            }
 
             if (!is_array($fieldValue)) {
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);

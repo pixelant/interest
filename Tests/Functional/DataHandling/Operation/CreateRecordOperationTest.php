@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
@@ -35,6 +36,14 @@ class CreateRecordOperationTest extends FunctionalTestCase
         $this->setUpFrontendRootPage(1);
 
         GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', 'http://www.example.com/');
+
+        $languageServiceMock = $this->createMock(LanguageService::class);
+
+        $languageServiceMock
+            ->method('sL')
+            ->willReturnArgument(0);
+
+        $GLOBALS['LANG'] = $languageServiceMock;
     }
 
     /**
@@ -44,35 +53,42 @@ class CreateRecordOperationTest extends FunctionalTestCase
     {
         $data = [
             'pid' => 'ParentPage',
-            'title' => 'INTEREST'
+            'title' => 'INTEREST',
         ];
 
-        $remoteIdMappingRepositoryMock = $this->createMock(RemoteIdMappingRepository::class);
+        $mappingRepository = new RemoteIdMappingRepository();
 
-        $remoteIdMappingRepositoryMock
-            ->method('exists')
-            ->with('ParentPage')
-            ->willReturn(true);
+        $mappingRepository->add('ParentPage', 'pages', 1);
 
-        $remoteIdMappingRepositoryMock
-            ->method('exists')
-            ->with('Page-1')
-            ->willReturn(false);
+        $contentObjectRenderer = new ContentObjectRenderer();
 
-        GeneralUtility::addInstance(RemoteIdMappingRepository::class, $remoteIdMappingRepositoryMock);
-
-        $contentObjectRendererMock = $this->createMock(ContentObjectRenderer::class);
-
-        $operation = new CreateRecordOperation(
+        (new CreateRecordOperation(
             $data,
             'pages',
             'Page-1',
             null,
             null,
             [],
-            $contentObjectRendererMock
-        );
+            $contentObjectRenderer
+        ))();
 
-        $operation();
+        $createdPageUid = $mappingRepository->get('Page-1');
+
+        self::assertGreaterThan(0, $createdPageUid);
+
+        $connection = $this
+            ->getConnectionPool()
+            ->getConnectionForTable('pages');
+
+        $databaseRow = $connection
+            ->select(['*'], 'pages', ['uid' => $createdPageUid])
+            ->fetchAllAssociative();
+
+        var_dump($databaseRow);
+        die();
+
+        self::assertIsArray($databaseRow);
+
+        self::assertSame($data['title'], $databaseRow['title']);
     }
 }

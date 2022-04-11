@@ -87,15 +87,7 @@ class TcaUtility
         ?string $remoteId = null
     ): array {
         if ($field === 'pid') {
-            return [
-                'type' => 'group',
-                'internal_type' => 'db',
-                'allowed' => 'pages',
-                'size' => 1,
-                'maxitems' => 1,
-                'minitems' => 1,
-                'default' => 0,
-            ];
+            return self::getFakePidTcaConfiguration();
         }
 
         /** @var RemoteIdMappingRepository $mappingRepository */
@@ -208,5 +200,21 @@ class TcaUtility
                 }
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getFakePidTcaConfiguration(): array
+    {
+        return [
+            'type' => 'group',
+            'internal_type' => 'db',
+            'allowed' => 'pages',
+            'size' => 1,
+            'maxitems' => 1,
+            'minitems' => 1,
+            'default' => 0,
+        ];
     }
 }
