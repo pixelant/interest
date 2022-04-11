@@ -1,8 +1,9 @@
 <?php
 
-/** @noinspection SqlNoDataSourceInspection */
-/** @noinspection SqlDialectInspection */
-/** @noinspection SqlDialectInspection */
+/**
+ * @noinspection SqlNoDataSourceInspection
+ * @noinspection SqlDialectInspection
+ */
 
 declare(strict_types=1);
 
