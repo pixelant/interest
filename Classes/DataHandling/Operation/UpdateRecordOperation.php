@@ -20,8 +20,7 @@ class UpdateRecordOperation extends AbstractRecordOperation
         string $remoteId,
         ?string $language = null,
         ?string $workspace = null,
-        ?array $metaData = [],
-        ?ContentObjectRenderer $contentObjectRenderer = null
+        ?array $metaData = []
     ) {
         if (!GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
             throw new NotFoundException(
@@ -30,7 +29,7 @@ class UpdateRecordOperation extends AbstractRecordOperation
             );
         }
 
-        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData, $contentObjectRenderer);
+        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
         $this->dataHandler->datamap[$table][$this->getUid()] = $this->getData();
     }

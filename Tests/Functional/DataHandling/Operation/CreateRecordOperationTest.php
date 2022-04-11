@@ -69,8 +69,7 @@ class CreateRecordOperationTest extends FunctionalTestCase
             'Page-1',
             null,
             null,
-            [],
-            $contentObjectRenderer
+            []
         ))();
 
         $createdPageUid = $mappingRepository->get('Page-1');

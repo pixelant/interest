@@ -8,7 +8,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
-use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Handle a record creation operation.
@@ -21,8 +20,7 @@ class CreateRecordOperation extends AbstractRecordOperation
         string $remoteId,
         ?string $language = null,
         ?string $workspace = null,
-        ?array $metaData = [],
-        ?ContentObjectRenderer $contentObjectRenderer = null
+        ?array $metaData = []
     ) {
         if (GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
             throw new IdentityConflictException(
@@ -31,7 +29,7 @@ class CreateRecordOperation extends AbstractRecordOperation
             );
         }
 
-        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData, $contentObjectRenderer);
+        parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
         $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
 

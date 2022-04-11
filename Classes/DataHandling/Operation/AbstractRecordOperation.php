@@ -21,6 +21,7 @@ use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -276,7 +277,7 @@ abstract class AbstractRecordOperation
      */
     private function resolveStoragePid(): int
     {
-        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] === 1) {
+        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null === 1) {
             return 0;
         }
 
@@ -392,11 +393,15 @@ abstract class AbstractRecordOperation
      */
     private function createContentObjectRenderer(): ContentObjectRenderer
     {
-        /** @var ContentObjectRenderer $contentObjectRenderer */
-        $contentObjectRenderer = GeneralUtility::makeInstance(
-            ContentObjectRenderer::class,
-            GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
-        );
+        if (CompatibilityUtility::typo3VersionIsLessThan('10')) {
+            /** @var ContentObjectRenderer $contentObjectRenderer */
+            $contentObjectRenderer = GeneralUtility::makeInstance(
+                ContentObjectRenderer::class,
+                GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
+            );
+        } else {
+            $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        }
 
         $contentObjectRenderer->data = [
             'table' => $this->getTable(),
@@ -442,7 +447,11 @@ abstract class AbstractRecordOperation
                 continue;
             }
 
-            $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            if ($fieldName === 'pid') {
+                $tcaConfiguration = TcaUtility::getFakePidTcaConfiguration();
+            } else {
+                $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            }
 
             if (!is_array($fieldValue)) {
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
