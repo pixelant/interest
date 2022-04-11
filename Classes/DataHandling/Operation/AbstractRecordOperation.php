@@ -126,7 +126,6 @@ abstract class AbstractRecordOperation
      * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
      * @param string|null $workspace workspace represented with a remote ID.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
-     * @param ContentObjectRenderer|null $contentObjectRenderer
      *
      * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
      */
@@ -136,8 +135,7 @@ abstract class AbstractRecordOperation
         string $remoteId,
         ?string $language = null,
         ?string $workspace = null,
-        ?array $metaData = [],
-        ?ContentObjectRenderer $contentObjectRenderer = null
+        ?array $metaData = []
     ) {
         $this->table = strtolower($table);
         $this->remoteId = $remoteId;
@@ -157,7 +155,7 @@ abstract class AbstractRecordOperation
 
         $this->uid = $this->resolveUid();
 
-        $this->contentObjectRenderer = $contentObjectRenderer ?? $this->createContentObjectRenderer();
+        $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
         $this->storagePid = $this->resolveStoragePid();
 
@@ -191,16 +189,7 @@ abstract class AbstractRecordOperation
         }
 
         if (count($this->dataHandler->datamap) > 0) {
-            $deadlockException = null;
-            $retryCount = 0;
-
-            do {
-                try {
-                    $this->dataHandler->process_datamap();
-                } catch (DeadlockException $deadlockException) {
-                    $retryCount++;
-                }
-            } while ($deadlockException !== null && $retryCount < 10);
+            $this->dataHandler->process_datamap();
         }
 
         if (count($this->dataHandler->cmdmap) > 0) {
@@ -287,7 +276,7 @@ abstract class AbstractRecordOperation
      */
     private function resolveStoragePid(): int
     {
-        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null === 1) {
+        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] === 1) {
             return 0;
         }
 
@@ -453,11 +442,7 @@ abstract class AbstractRecordOperation
                 continue;
             }
 
-            if ($fieldName === 'pid') {
-                $tcaConfiguration = TcaUtility::getFakePidTcaConfiguration();
-            } else {
-                $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
-            }
+            $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
 
             if (!is_array($fieldValue)) {
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
