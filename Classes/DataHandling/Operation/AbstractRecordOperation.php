@@ -158,7 +158,9 @@ abstract class AbstractRecordOperation
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
-        $this->storagePid = $this->resolveStoragePid();
+        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+            $this->storagePid = $this->resolveStoragePid();
+        }
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
@@ -180,7 +182,9 @@ abstract class AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        $this->data['pid'] = $this->storagePid;
+        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+            $this->data['pid'] = $this->storagePid;
+        }
     }
 
     public function __invoke()
