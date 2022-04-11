@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection SqlNoDataSourceInspection */
+/** @noinspection SqlDialectInspection */
 
 declare(strict_types=1);
 
@@ -76,16 +77,11 @@ class CreateRecordOperationTest extends FunctionalTestCase
 
         self::assertGreaterThan(0, $createdPageUid);
 
-        $connection = $this
+        $databaseRow = $this
             ->getConnectionPool()
-            ->getConnectionForTable('pages');
-
-        $databaseRow = $connection
-            ->select(['*'], 'pages', ['uid' => $createdPageUid])
-            ->fetchAllAssociative();
-
-        var_dump($databaseRow);
-        die();
+            ->getConnectionForTable('pages')
+            ->executeQuery('SELECT * FROM pages WHERE uid = ' . $createdPageUid)
+            ->fetchAssociative();
 
         self::assertIsArray($databaseRow);
 
