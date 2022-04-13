@@ -45,7 +45,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * @param BeforeRecordOperationEvent $event
      * @throws InvalidFileNameException
-     * @throws IdentityConflictException
+     * @throws \RuntimeException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
@@ -118,6 +118,13 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         unset($data['fileData']);
         unset($data['url']);
         unset($data['name']);
+
+        if (!$file instanceof File) {
+            throw new \RuntimeException(
+                'File object is not instance of "' . File::class . '".',
+                1649851198001
+            );
+        }
 
         $this->event->getRecordOperation()->setUid($file->getUid());
 

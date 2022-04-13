@@ -452,7 +452,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                         ],
                     ],
                 ],
-            ]
+            ],
         ];
     }
 }
