@@ -9,39 +9,34 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
-use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 
-class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
+class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
     /**
      * @test
      */
-    public function creatingPageResultsInPageRecord(): void
+    public function updatingPageChangesFields()
     {
         $data = [
-            'pid' => 'ParentPage',
             'title' => 'INTEREST',
         ];
 
         $mappingRepository = new RemoteIdMappingRepository();
 
-        $mappingRepository->add('ParentPage', 'pages', 1);
+        $mappingRepository->add('RootPage', 'pages', 1);
 
-        (new CreateRecordOperation(
+        (new UpdateRecordOperation(
             $data,
             'pages',
-            'Page-1'
+            'RootPage'
         ))();
-
-        $createdPageUid = $mappingRepository->get('Page-1');
-
-        self::assertGreaterThan(0, $createdPageUid);
 
         $databaseRow = $this
             ->getConnectionPool()
             ->getConnectionForTable('pages')
-            ->executeQuery('SELECT * FROM pages WHERE uid = ' . $createdPageUid)
+            ->executeQuery('SELECT * FROM pages WHERE uid = 1')
             ->fetchAssociative();
 
         self::assertIsArray($databaseRow);

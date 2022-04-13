@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
-use Doctrine\DBAL\Exception\DeadlockException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
@@ -157,7 +156,9 @@ abstract class AbstractRecordOperation
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
-        $this->storagePid = $this->resolveStoragePid();
+        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+            $this->storagePid = $this->resolveStoragePid();
+        }
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
@@ -179,7 +180,9 @@ abstract class AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        $this->data['pid'] = $this->storagePid;
+        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+            $this->data['pid'] = $this->storagePid;
+        }
     }
 
     public function __invoke()
@@ -189,22 +192,7 @@ abstract class AbstractRecordOperation
         }
 
         if (count($this->dataHandler->datamap) > 0) {
-            $deadlockException = null;
-            $retryCount = 0;
-
-            do {
-                try {
-                    $this->dataHandler->process_datamap();
-                } catch (DeadlockException $deadlockException) {
-                    $retryCount++;
-
-                    if ($retryCount < 10) {
-                        continue;
-                    }
-
-                    throw $deadlockException;
-                }
-            } while ($deadlockException !== null);
+            $this->dataHandler->process_datamap();
         }
 
         if (count($this->dataHandler->cmdmap) > 0) {
@@ -291,7 +279,7 @@ abstract class AbstractRecordOperation
      */
     private function resolveStoragePid(): int
     {
-        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] === 1) {
+        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null === 1) {
             return 0;
         }
 
@@ -407,11 +395,15 @@ abstract class AbstractRecordOperation
      */
     private function createContentObjectRenderer(): ContentObjectRenderer
     {
-        /** @var ContentObjectRenderer $contentObjectRenderer */
-        $contentObjectRenderer = GeneralUtility::makeInstance(
-            ContentObjectRenderer::class,
-            GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
-        );
+        if (CompatibilityUtility::typo3VersionIsLessThan('10')) {
+            /** @var ContentObjectRenderer $contentObjectRenderer */
+            $contentObjectRenderer = GeneralUtility::makeInstance(
+                ContentObjectRenderer::class,
+                GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
+            );
+        } else {
+            $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        }
 
         $contentObjectRenderer->data = [
             'table' => $this->getTable(),
@@ -457,7 +449,11 @@ abstract class AbstractRecordOperation
                 continue;
             }
 
-            $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            if ($fieldName === 'pid') {
+                $tcaConfiguration = TcaUtility::getFakePidTcaConfiguration();
+            } else {
+                $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
+            }
 
             if (!is_array($fieldValue)) {
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);

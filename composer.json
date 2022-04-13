@@ -19,10 +19,10 @@
 		"ext-json": "*",
 		"ext-pdo": "*",
 		"doctrine/dbal": "~2.11.2 || >2.13.1",
-		"typo3/cms-core": "^9.5.8 || ^10.4.6 || ^11.5.2",
-		"typo3/cms-extbase": "^9.5.8 || ^10.4.6 || ^11.5.2",
-		"typo3/cms-fluid": "^9.5.8 || ^10.4.6 || ^11.5.2",
-		"typo3/cms-frontend": "^9.5.8 || ^10.4.6 || ^11.5.2"
+		"typo3/cms-core": "^9.5.8 || ^10.4.6 || ^11.5.5",
+		"typo3/cms-extbase": "^9.5.8 || ^10.4.6 || ^11.5.5",
+		"typo3/cms-fluid": "^9.5.8 || ^10.4.6 || ^11.5.5",
+		"typo3/cms-frontend": "^9.5.8 || ^10.4.6 || ^11.5.5"
 	},
 	"require-dev": {
 		"codeception/codeception": "^4.1.30",

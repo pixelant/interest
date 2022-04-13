@@ -16,6 +16,8 @@ use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Resource\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
@@ -26,6 +28,8 @@ use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
  * Intercepts a sys_file request to store the file data in the filesystem.
@@ -41,7 +45,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     /**
      * @param BeforeRecordOperationEvent $event
      * @throws InvalidFileNameException
-     * @throws IdentityConflictException
+     * @throws \RuntimeException
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
@@ -79,22 +83,48 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $downloadFolder = $this->getDownloadFolder($storagePath, $storage, $settings['persistence.'], $fileBaseName);
 
-        if (get_class($this->event->getRecordOperation()) === CreateRecordOperation::class) {
-            if ($storage->hasFileInFolder($fileBaseName, $downloadFolder)) {
-                throw new IdentityConflictException(
-                    'File "' . $fileBaseName . '" already exists in "' . $storagePath . '".',
-                    1634666560886
-                );
-            }
+        $replaceFile = null;
+
+        if (
+            get_class($this->event->getRecordOperation()) === CreateRecordOperation::class
+            && $storage->hasFileInFolder($fileBaseName, $downloadFolder)
+        ) {
+            [$fileBaseName, $replaceFile] = $this->handleExistingFile(
+                $fileBaseName,
+                $downloadFolder
+            );
         }
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
+        if ($replaceFile) {
+            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier('0:');
+        }
+
+        /** @var File $file */
         [$data, $file] = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
+
+        if ($replaceFile) {
+            $temporaryFile = $file;
+
+            $file = $storage->replaceFile(
+                $replaceFile,
+                $file->getForLocalProcessing()
+            );
+
+            $temporaryFile->delete();
+        }
 
         unset($data['fileData']);
         unset($data['url']);
         unset($data['name']);
+
+        if (!$file instanceof File) {
+            throw new \RuntimeException(
+                'File object is not instance of "' . File::class . '".',
+                1649851198001
+            );
+        }
 
         $this->event->getRecordOperation()->setUid($file->getUid());
 
@@ -360,6 +390,80 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         if (!empty($fileContent)) {
             $file->setContents($fileContent);
         }
+
         return[$data, $file];
+    }
+
+    /**
+     * Returns a unique file name within $folder.
+     *
+     * @param string $fileName
+     * @param Folder $folder
+     * @return string
+     * @throws \RuntimeException
+     */
+    protected function getUniqueFileName(string $fileName, Folder $folder): string
+    {
+        $maxNumber = 99;
+
+        if (!$folder->hasFile($fileName)) {
+            return $fileName;
+        }
+
+        $fileInfo = PathUtility::pathinfo($fileName);
+
+        $originalExtension = ($fileInfo['extension'] ?? '') ? '.' . $fileInfo['extension'] : '';
+
+        $fileName = $fileInfo['filename'];
+
+        for ($a = 1; $a <= $maxNumber + 1; $a++) {
+            if ($a <= $maxNumber) {
+                $insert = '_' . sprintf('%02d', $a);
+            } else {
+                $insert = '_' . substr(md5(StringUtility::getUniqueId()), 0, 6);
+            }
+
+            $newFileName = $fileName . $insert . $originalExtension;
+
+            if (!$folder->getStorage()->hasFileInFolder($newFileName, $folder)) {
+                return $newFileName;
+            }
+        }
+
+        throw new \RuntimeException(
+            'Last possible name "' . $newFileName . '" is already taken.',
+            1649841992746
+        );
+    }
+
+    /**
+     * @param string $fileBaseName
+     * @param Folder $downloadFolder
+     * @return array
+     * @throws IdentityConflictException
+     */
+    protected function handleExistingFile(string $fileBaseName, Folder $downloadFolder): array
+    {
+        $handleExistingFile = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+                ->get('interest', 'handleExistingFile') ?? DuplicationBehavior::CANCEL;
+
+        if ($handleExistingFile === DuplicationBehavior::CANCEL) {
+            throw new IdentityConflictException(
+                'File "' . $fileBaseName . '" already exists in "' . $downloadFolder->getReadablePath() . '".',
+                1634666560886
+            );
+        }
+
+        if ($handleExistingFile === DuplicationBehavior::RENAME) {
+            $fileBaseName = $this->getUniqueFileName($fileBaseName, $downloadFolder);
+        }
+
+        $replaceFile = null;
+
+        if ($handleExistingFile === DuplicationBehavior::REPLACE) {
+            $replaceFile = $downloadFolder->getStorage()->getFileInFolder($fileBaseName, $downloadFolder);
+        }
+
+        return [$fileBaseName, $replaceFile];
     }
 }

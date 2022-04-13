@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
+use Doctrine\DBAL\Driver\Result;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
+use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 
 class DeferredRecordOperationRepository extends AbstractRepository
 {
@@ -36,12 +38,13 @@ class DeferredRecordOperationRepository extends AbstractRepository
      *
      * @param string $dependentRemoteId
      * @return array
+     * @throws InvalidQueryResultException
      */
     public function get(string $dependentRemoteId): array
     {
         $queryBuilder = $this->getQueryBuilder();
 
-        $rows = $queryBuilder
+        $result = $queryBuilder
             ->select('*')
             ->from(self::TABLE_NAME)
             ->where(
@@ -51,8 +54,16 @@ class DeferredRecordOperationRepository extends AbstractRepository
                 )
             )
             ->orderBy('crdate')
-            ->execute()
-            ->fetchAll(\PDO::FETCH_ASSOC);
+            ->execute();
+
+        if (!($result instanceof Result)) {
+            throw new InvalidQueryResultException(
+                'Query result was not an instance of ' . Result::class,
+                1649683955507
+            );
+        }
+
+        $rows = $result->fetchAllAssociative();
 
         if ($rows === false) {
             return [];
