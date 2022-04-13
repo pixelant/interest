@@ -98,7 +98,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         if ($replaceFile) {
-            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier('0:typo3temp');
+            $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier('0:fileadmin/_temp_/');
         }
 
         /** @var File $file */
