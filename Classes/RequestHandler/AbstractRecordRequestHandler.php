@@ -170,7 +170,9 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     {
         foreach ($values as &$value) {
             $valueCopy = (array)$value;
-            if (!is_array($valueCopy[array_key_first($valueCopy)]) || is_object($value)) {
+            if (!is_object($valueCopy[array_key_first($valueCopy)])) {
+                continue;
+            } elseif (!is_array($valueCopy[array_key_first($valueCopy)]) || is_object($value)) {
                 $value = (array)$value;
             } elseif (is_array($value)) {
                 $value = $this->convertObjectToArrayRecursive($value);
@@ -228,7 +230,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             do {
                 $layerCount++;
 
-                $currentLayer = next($currentLayer);
+                $currentLayer = current($currentLayer);
             } while ($currentLayer !== false && !$this->isRecordData($currentLayer));
 
             $data = $this->convertObjectToArrayRecursive((array)$data);

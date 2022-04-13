@@ -47,9 +47,31 @@ REST
 
    The authentication token's lifetime in seconds. Zero means no expiry.
 
+.. _extension-conf-properties-behavior:
+
+Behavior
+--------
+
+.. confval:: Handle Existing Files
+
+   :Required: true
+   :Type: string from :php:`TYPO3\CMS\Core\Resource\DuplicationBehavior`
+   :Default: cancel
+   :Key: `handleExistingFile`
+
+   How to handle files that already exist in the filesystem. Uses the same
+   configuration options as :php:`TYPO3\CMS\Core\Resource\DuplicationBehavior`:
+
+   **cancel**
+      Fail with exception.
+   **rename**
+      Rename the new file.
+   **replace**
+      Replace the existing file.
+
 .. _extension-conf-properties-log:
 
-LOG
+Log
 ---
 
 Logging of REST calls, including request and response data and execution time.
