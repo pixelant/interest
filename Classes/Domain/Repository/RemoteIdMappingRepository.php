@@ -134,7 +134,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'remote_id' => $remoteId,
                 'table' => $tableName,
                 'uid_local' => $uid,
-                'record_hash' => $recordOperation === null ? '' : $this->hashRecordOperation($recordOperation),
+                'record_hash' => $recordOperation === null ? '' : $recordOperation->getHash(),
                 'crdate' => time(),
                 'tstamp' => time(),
                 'touched' => time(),
@@ -316,7 +316,7 @@ class RemoteIdMappingRepository extends AbstractRepository
 
         $queryBuilder
             ->update(self::TABLE_NAME)
-            ->set('record_hash', $this->hashRecordOperation($recordOperation))
+            ->set('record_hash', $recordOperation->getHash())
             ->set('tstamp', time())
             ->set('touched', time())
             ->where($queryBuilder->expr()->eq(
@@ -353,7 +353,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 ),
                 $queryBuilder->expr()->eq(
                     'record_hash',
-                    $queryBuilder->createNamedParameter($this->hashRecordOperation($recordOperation))
+                    $queryBuilder->createNamedParameter($recordOperation->getHash())
                 )
             )
             ->execute();
@@ -461,17 +461,6 @@ class RemoteIdMappingRepository extends AbstractRepository
                 $queryBuilder->createNamedParameter($remoteId)
             ))
             ->execute();
-    }
-
-    /**
-     * Returns and MD5 hash of a record operation.
-     *
-     * @param AbstractRecordOperation $recordOperation
-     * @return string
-     */
-    protected function hashRecordOperation(AbstractRecordOperation $recordOperation): string
-    {
-        return md5(get_class($recordOperation) . serialize($recordOperation->getArguments()));
     }
 
     /**

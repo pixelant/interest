@@ -70,6 +70,8 @@ class DeferredRecordOperationRepository extends AbstractRepository
         }
 
         foreach ($rows as &$row) {
+            $row['_hash'] = md5($row['dependent_remote_id'] . $row['class'] . $row['arguments']);
+
             $row['arguments'] = unserialize($row['arguments']);
         }
 

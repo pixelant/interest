@@ -31,6 +31,10 @@ class CreateRecordOperation extends AbstractRecordOperation
 
         parent::__construct($data, $table, $remoteId, $language, $workspace, $metaData);
 
+        if (!isset($this->getData()['pid'])) {
+            $this->setData(array_merge($this->getData(), ['pid' => $this->getStoragePid()]));
+        }
+
         $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
 
         $this->dataHandler->datamap[$table][$uid] = $this->getData();

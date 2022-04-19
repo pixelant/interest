@@ -156,7 +156,7 @@ abstract class AbstractRecordOperation
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
-        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+        if (isset($this->getData()['pid']) || $this instanceof CreateRecordOperation) {
             $this->storagePid = $this->resolveStoragePid();
         }
 
@@ -180,7 +180,7 @@ abstract class AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        if (isset($this->getData()['pid']) || $this instanceof ContentObjectRenderer) {
+        if (!isset($this->getData()['pid']) && $this instanceof ContentObjectRenderer) {
             $this->data['pid'] = $this->storagePid;
         }
     }
@@ -208,6 +208,10 @@ abstract class AbstractRecordOperation
             );
         }
 
+        if ($this instanceof CreateRecordOperation && $this->getUid() === 0) {
+            $this->setUid($this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)]);
+        }
+
         if (
             $this instanceof CreateRecordOperation
             || (
@@ -221,8 +225,7 @@ abstract class AbstractRecordOperation
                 $this->getTable(),
                 // This assumes we have only done a single operation and there is only one NEW key.
                 // The UID might have been set by another operation already, even though this is CreateRecordOperation.
-                $this->getUid()
-                    ?: $this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)],
+                $this->getUid(),
                 $this
             );
 
@@ -729,6 +732,16 @@ abstract class AbstractRecordOperation
     public function getContentObjectRenderer(): ContentObjectRenderer
     {
         return $this->contentObjectRenderer;
+    }
+
+    /**
+     * Returns a standardized hash string representing the values of this invocation.
+     *
+     * @return string
+     */
+    public function getHash()
+    {
+        return md5(get_class($this) . serialize($this->getArguments()));
     }
 
     /**
