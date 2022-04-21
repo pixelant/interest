@@ -30,8 +30,8 @@ Some commands share CLI options. These are explained here.
 
 .. confval:: -b | --batch
 
-   :Name: --batch
-   :Shortcut: -b
+   :Name: `--batch`
+   :Shortcut: `-b`
    :Type: boolean
 
    Enables batch operations. The `REMOTE_ID` argument will be ignored, but has
@@ -46,8 +46,8 @@ Some commands share CLI options. These are explained here.
 
 .. confval:: -d | --data
 
-   :Name: --data
-   :Shortcut: -d
+   :Name: `--data`
+   :Shortcut: `-d`
    :Type: JSON string
 
    Record data as a JSON string. This string can also be piped in.
@@ -62,8 +62,8 @@ Some commands share CLI options. These are explained here.
 
 .. confval:: --disableReferenceIndex
 
-   :Name: --metaData
-   :Shortcut: -m
+   :Name: `--disableReferenceIndex`
+   :Shortcut: *none*
    :Type: Boolean
 
    Disable updating the reference index during the request. This has a positive
@@ -76,8 +76,8 @@ Some commands share CLI options. These are explained here.
 
 .. confval:: -m | --metaData
 
-   :Name: --metaData
-   :Shortcut: -m
+   :Name: `--metaData`
+   :Shortcut: `-m`
    :Type: JSON string
 
    Meta data for the operation.
@@ -119,8 +119,8 @@ Options
 
 .. confval:: -c | --contains
 
-   :Name: --contains
-   :Shortcut: -c
+   :Name: `--contains`
+   :Shortcut: `-c`
    :Type: boolean
 
    Interpret `REMOTE_ID` as a partial remote ID and match any remote ID
@@ -144,8 +144,8 @@ Additional options
 
 .. confval:: -u | --update
 
-   :Name: --update
-   :Shortcut: -u
+   :Name: `--update`
+   :Shortcut: `-u`
    :Type: boolean
 
    If the record already exists, update it instead.
@@ -183,8 +183,8 @@ Options
 
 .. confval:: -r | --resolve
 
-   :Name: --resolve
-   :Shortcut: -r
+   :Name: `--resolve`
+   :Shortcut: `-r`
    :Type: boolean
 
    Try to resolve any resolvable pending relations in addition to showing
@@ -208,8 +208,8 @@ Additional options
 
 .. confval:: -c | --create
 
-   :Name: --update
-   :Shortcut: -u
+   :Name: `--update`
+   :Shortcut: `-u`
    :Type: boolean
 
    If the record doesn't exist, create it instead.

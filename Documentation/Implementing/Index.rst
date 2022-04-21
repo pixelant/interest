@@ -7,7 +7,7 @@ Implementing
 ============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 5
    :titlesonly:
    :glob:
 
