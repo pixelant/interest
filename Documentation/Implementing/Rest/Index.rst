@@ -41,6 +41,58 @@ They can also be supplied in the query string:
 
    http://www.example.org/[endpoint]/[table]/[remoteId]?language=[language]&workspace=[workspace]
 
+.. _implementing-rest-authentication:
+
+Authentication
+==============
+
+.. _implementing-rest-authentication-basic:
+
+Scheme: basic
+-------------
+
+Initial authentication is done using the `basic` HTTP authentication schema,
+where a Base64-encoded string is submitted to the server. The string is a TYPO3
+backend username and the corresponding password, separated by a colon: `:`.
+
+Given the username "testuser" and password "test1234", the concatenated string
+will be "testuser:test1234" and the Base64-encoded version:
+"dGVzdHVzZXI6dGVzdDEyMzQ=".
+
+.. code-block:: bash
+
+   curl -XPOST \
+        -H 'Authorization: basic dGVzdHVzZXI6dGVzdDEyMzQ=' \
+        -v 'https://example.org/rest/authenticate'
+
+.. info::
+
+   `authenticate` is a special endpoint used only for basic authentication
+   requests.
+
+This request will return a JSON response body including a token that can be
+used on subsequent requests:
+
+.. code-block:: json
+
+   {"success":true,"token":"f3c0946fb05aae4ad50897e9060ab4e8"}
+
+.. _implementing-rest-authentication-bearer:
+
+Scheme: bearer (OAuth)
+----------------------
+
+For any other request, you must use `bearer` HTTP authentication scheme,
+supplying an authentication token, such as the one supplied by the `basic`
+authentication request mentioned above:
+
+.. code-block:: bash
+
+   curl -XPOST \
+        -H 'Authorization: bearer f3c0946fb05aae4ad50897e9060ab4e8' \
+        -v 'https://example.org/rest/pages/testPage' \
+        -d '{"data":{"title":"Test Name","pid":"siteRootPage"}}'
+
 .. _implementing-rest-batch:
 
 Batch requests
@@ -143,3 +195,42 @@ layer to the data:
             }
          },
       }
+
+.. _implementing-rest-methods:
+
+HTTP Methods
+============
+
+.. _implementing-rest-methods-post:
+
+POST
+----
+
+Create a record.
+
+.. _implementing-rest-methods-put:
+
+PUT
+---
+
+Update a record.
+
+.. _implementing-rest-methods-patch:
+
+PATCH
+-----
+
+Update a record if it exists, otherwise create it.
+
+.. _implementing-rest-methods-delete:
+
+DELETE
+------
+
+Delete a record.
+
+.. code-block:: bash
+
+   curl -XDELETE \
+        -H 'Authorization: bearer f3c0946fb05aae4ad50897e9060ab4e8' \
+        -v 'https://example.org/rest/pages/testPage'
