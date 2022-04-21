@@ -6,14 +6,6 @@
 Implementing
 ============
 
-.. toctree::
-   :maxdepth: 5
-   :titlesonly:
-   :glob:
-
-   Cli/Index
-   Rest/Index
-
 .. _choosing-rest-or-cli:
 
 Choosing REST or CLI?
