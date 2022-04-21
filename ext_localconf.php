@@ -1,28 +1,71 @@
 <?php
+
 defined('TYPO3_MODE') or die('Access denied.');
 
 (static function () {
-    // Register eID
-    $GLOBALS['TYPO3_CONF_VARS']['FE']['eID_include']['rest'] = \Pixelant\Interest\BootstrapDispatcher::class . '::processRequest';
+    $GLOBALS ['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass']['interest']
+        = \Pixelant\Interest\Hook\ProcessCmdmap::class;
 
-    // Detect and "hijack" REST requests
-    if (isset($_SERVER['REQUEST_URI'])) {
-        $restRequestBasePath = (string)(getenv(
-            'TYPO3_REST_REQUEST_BASE_PATH'
-        ) ?: getenv(
-            'REDIRECT_TYPO3_REST_REQUEST_BASE_PATH'
-        ));
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addUserTSConfig(
+        '@import \'EXT:interest/Configuration/TSconfig/User/setup.tsconfig\''
+    );
 
-        if ($restRequestBasePath) {
-            $restRequestBasePath = '/' . trim($restRequestBasePath, '/');
-        }
-
-        $restRequestPrefix = $restRequestBasePath . '/rest/';
-        $restRequestPrefixLength = strlen($restRequestPrefix);
-        $requestUri = $_SERVER['REQUEST_URI'];
-
-        if (substr($requestUri, 0, $restRequestPrefixLength) === $restRequestPrefix) {
-            $_GET['eID'] = 'rest';
-        }
+    if (\Pixelant\Interest\Utility\CompatibilityUtility::typo3VersionIsGreaterThanOrEqualTo('10')) {
+        return;
     }
+
+    // TYPO3 v9 compatibility beyond this point.
+
+    $signalSlotDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
+        \TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class
+    );
+
+    /** @noinspection PhpUndefinedClassConstantInspection */
+    $signalSlotDispatcher->connect(
+        \TYPO3\CMS\Core\Resource\ResourceStorage::class,
+        \TYPO3\CMS\Core\Resource\ResourceStorage::SIGNAL_PostFileDelete,
+        \Pixelant\Interest\Slot\DeleteRemoteIdForDeletedFileSlot::class,
+        '__invoke'
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileReferenceRecordOperationEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaDataEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler
+            ::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler::class
+    );
+
+    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
+        \Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent::class,
+        \Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler::class
+    );
+
+    /** @noinspection PhpUndefinedClassInspection */
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Console\CommandRequestHandler::class] = [
+        'className' => \Pixelant\Interest\Console\OptimizedCommandRequestHandler::class,
+    ];
 })();

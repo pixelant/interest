@@ -1,0 +1,56 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Pixelant\Interest\:
+    resource: '../Classes/*'
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation:
+    tags:
+      - name: event.listener
+        identifier: stopIfRepeatingPreviousRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler:
+    tags:
+      - name: event.listener
+        identifier: persistFileDataEventHandler
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileReferenceRecordOperationEventHandler:
+    tags:
+      - name: event.listener
+        identifier: deferSysFileReferenceRecordOperation
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaDataEventHandler:
+    tags:
+      - name: event.listener
+        identifier: relationSortingAsMetaData
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler:
+    tags:
+      - name: event.listener
+        identifier: updateCountOnForeignSideOfInlineRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: processDeferredRecordOperations
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler:
+    tags:
+      - name: event.listener
+        identifier: foreignRelationSorting
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+
+  Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFileEventHandler:
+    tags:
+      - name: event.listener
+        identifier: deleteRemoteIdForDeletedFile
+        event: TYPO3\CMS\Core\Resource\Event\AfterFileDeletedEvent
