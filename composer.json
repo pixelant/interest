@@ -157,6 +157,7 @@
 			"rm .editorconfig",
 			"rm .gitattributes",
 			"rm .php-cs-fixer.php",
+			"rm -rf Documentation-GENERATED-temp",
 			"rm Resources/Private/.eslintignore",
 			"rm Resources/Private/.eslintrc.json",
 			"rm Resources/Private/.prettierrc.js",
