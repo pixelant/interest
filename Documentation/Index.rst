@@ -49,7 +49,7 @@ For Contributors
 
 You are welcome to help improve this guide if you missing something.
 Just click on "Edit me on GitHub" on the top right to submit your change request
-or `report a problem <https://github.com/TYPO3-Documentation/tea/issues/new>`__
+or `report a problem <https://github.com/pixelant/interest/issues/new>`__.
 
 Table of Contents
 =================
