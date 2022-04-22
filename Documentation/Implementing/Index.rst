@@ -24,7 +24,7 @@ Which one you use depends on your needs, but here's the way we usually keep
 them apart:
 
 * Use **REST** when the data source is external and supports REST export.
-  `DataCater<https://datacater.io/?utm_source=ext_interest>`__ is an ETA
+  `DataCater <https://datacater.io/?utm_source=ext_interest>`__ is an ETA
   (Extract Transform Load) service that integrates well with the Interest
   extension's REST API.
 * Use **CLI** when the service sending data to the extension is in the same
