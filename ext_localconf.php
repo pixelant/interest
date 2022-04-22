@@ -10,6 +10,26 @@ defined('TYPO3_MODE') or die('Access denied.');
         '@import \'EXT:interest/Configuration/TSconfig/User/setup.tsconfig\''
     );
 
+    if (\Pixelant\Interest\Utility\CompatibilityUtility::typo3VersionIsGreaterThanOrEqualTo('11')) {
+        return;
+    }
+
+    $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
+        \TYPO3\CMS\Core\Imaging\IconRegistry::class
+    );
+
+    $iconRegistry->registerIcon(
+        'ext-interest-mapping',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:interest/Resources/Public/Icons/RemoteIdMapping.svg']
+    );
+
+    $iconRegistry->registerIcon(
+        'ext-interest-mapping-manual',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:interest/Resources/Public/Icons/ManualRemoteIdMapping.svg']
+    );
+
     if (\Pixelant\Interest\Utility\CompatibilityUtility::typo3VersionIsGreaterThanOrEqualTo('10')) {
         return;
     }

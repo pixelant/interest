@@ -13,6 +13,8 @@ return [
         'rootLevel' => -1,
         'default_sortby' => 'ORDER BY uid',
         'enablecolumns' => [],
+        'iconfile' => 'EXT:interest/Resources/Public/Icons/RemoteIdMapping.svg',
+        'typeicon_column' => 'manual',
         'typeicon_classes' => [
             '0' => 'ext-interest-mapping',
             '1' => 'ext-interest-mapping-manual',
