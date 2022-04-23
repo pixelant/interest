@@ -13,7 +13,10 @@ tx_interest {
   # Override TCA's relation definition by explicitly setting a field as being a relation or not.
   # `relationOverrides.<table>.<field> = 0|1`
   relationOverrides {
-
+    sys_file_reference {
+      uid_local = 1
+      uid_foreign = 1
+    }
   }
 
   # Override the TCA type of the field. E.g.: change "text" to "inline".
