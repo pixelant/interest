@@ -43,15 +43,21 @@ class HttpRequestRouter
 
         $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
-        $entryPointParts = explode(
-            '/',
-            substr(
-                $request->getRequestTarget(),
-                strlen(
-                    '/' . trim($extensionConfiguration->get('interest', 'entryPoint'), '/') . '/'
-                )
+        $entryPoint = substr(
+            $request->getRequestTarget(),
+            strlen(
+                '/' . trim($extensionConfiguration->get('interest', 'entryPoint'), '/') . '/'
             )
         );
+
+        if ($entryPoint === '') {
+            $entryPointParts = [];
+        } else {
+            $entryPointParts = explode(
+                '/',
+                $entryPoint
+            );
+        }
 
         try {
             if ($entryPointParts[0] === 'authenticate') {
