@@ -30,14 +30,14 @@ class CreateOrUpdateRequestHandler extends AbstractRecordRequestHandler
                 $this->metaData
             ))();
         } catch (NotFoundException $exception) {
-            new CreateRecordOperation(
+            (new CreateRecordOperation(
                 $data,
                 $table,
                 $remoteId,
                 $language !== '' ? $language : null,
                 $workspace !== '' ? $workspace : null,
                 $this->metaData
-            );
+            ))();
         }
     }
 }
