@@ -63,7 +63,15 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
         $decodedContent = json_decode($body) ?? [];
 
+        if (is_string($decodedContent->metaData ?? null)) {
+            $decodedContent->metaData = json_decode($body) ?? [];
+        }
+
         $this->metaData = $this->convertObjectToArrayRecursive((array)($decodedContent->metaData ?? []));
+
+        if (is_string($decodedContent->data ?? null)) {
+            $decodedContent->data = json_decode($body) ?? new \stdClass();
+        }
 
         $data = $decodedContent->data ?? new \stdClass();
 
