@@ -460,6 +460,8 @@ abstract class AbstractRecordOperation
 
             if (!is_array($fieldValue)) {
                 $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
+            } else {
+                $fieldValue = array_filter($fieldValue);
             }
 
             $this->detectPendingRelations(
