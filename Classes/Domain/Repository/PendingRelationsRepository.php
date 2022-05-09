@@ -56,19 +56,35 @@ class PendingRelationsRepository extends AbstractRepository
     {
         $this->removeLocal($table, $field, $uid);
 
-        foreach ($remoteIds as $remoteId) {
-            $queryBuilder = $this->getQueryBuilder();
+        $remoteIds = array_filter($remoteIds);
 
-            $queryBuilder
-                ->insert(self::TABLE_NAME)
-                ->values([
-                    'remote_id' => $remoteId,
-                    'table' => $table,
-                    'field' => $field,
-                    'record_uid' => $uid,
-                ])
-                ->execute();
+        foreach ($remoteIds as $remoteId) {
+            $this->setSingle($table, $field, $uid, $remoteId);
         }
+    }
+
+    /**
+     * Sets a relation for $field in record $uid in $table. Does NOT remove any existing records.
+     *
+     * @param string $table
+     * @param string $field
+     * @param int $uid
+     * @param string $remoteId
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function setSingle(string $table, string $field, int $uid, string $remoteId)
+    {
+        $queryBuilder = $this->getQueryBuilder();
+
+        $queryBuilder
+            ->insert(self::TABLE_NAME)
+            ->values([
+                'remote_id' => $remoteId,
+                'table' => $table,
+                'field' => $field,
+                'record_uid' => $uid,
+            ])
+            ->execute();
     }
 
     /**

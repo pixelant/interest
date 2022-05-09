@@ -10,6 +10,11 @@ defined('TYPO3_MODE') or die('Access denied.');
         '@import \'EXT:interest/Configuration/TSconfig/User/setup.tsconfig\''
     );
 
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][
+        \Pixelant\Interest\Updates\RemovePendingRelationsWithEmptyRemoteIdUpdateWizard::IDENTIFIER
+    ] = \Pixelant\Interest\Updates\RemovePendingRelationsWithEmptyRemoteIdUpdateWizard::class;
+
+
     if (\Pixelant\Interest\Utility\CompatibilityUtility::typo3VersionIsGreaterThanOrEqualTo('11')) {
         return;
     }
@@ -40,7 +45,6 @@ defined('TYPO3_MODE') or die('Access denied.');
         \TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class
     );
 
-    /** @noinspection PhpUndefinedClassConstantInspection */
     $signalSlotDispatcher->connect(
         \TYPO3\CMS\Core\Resource\ResourceStorage::class,
         \TYPO3\CMS\Core\Resource\ResourceStorage::SIGNAL_PostFileDelete,
@@ -84,7 +88,6 @@ defined('TYPO3_MODE') or die('Access denied.');
         \Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler::class
     );
 
-    /** @noinspection PhpUndefinedClassInspection */
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Console\CommandRequestHandler::class] = [
         'className' => \Pixelant\Interest\Console\OptimizedCommandRequestHandler::class,
     ];
