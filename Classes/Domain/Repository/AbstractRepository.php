@@ -6,9 +6,10 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-abstract class AbstractRepository
+abstract class AbstractRepository implements SingletonInterface
 {
     public const TABLE_NAME = '';
 
