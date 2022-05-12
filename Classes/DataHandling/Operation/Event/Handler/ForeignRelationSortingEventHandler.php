@@ -185,7 +185,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
                     $foreignTable = implode('_', $parts);
                 }
 
-                $data = array_merge_recursive(
+                ArrayUtility::mergeRecursiveWithOverrule(
                     $data,
                     $this->orderOnForeignSideOfRelation($foreignTable, (int)$relationId)
                 );
