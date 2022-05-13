@@ -13,6 +13,7 @@ use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -78,77 +79,103 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         return $fieldConfigurations;
     }
 
+    /**
+     * Returns ordered relations for a single field in a record.
+     *
+     * A remote ID can only occur once in one record, and not in multiple fields in the same record. Therefore, this
+     * method will only return an empty array (remote ID is not in a sorted field) or a single-leaf array:
+     *
+     * [
+     *     table => [
+     *         relationId => [
+     *             fieldName => [ uid, ... ]
+     *         ]
+     *     ]
+     * ]
+     *
+     * @param string $table The table of the record.
+     * @param int $relationId The UID of the record.
+     * @return array
+     */
     protected function orderOnForeignSideOfRelation(string $table, int $relationId): array
     {
         $foreignRemoteId = $this->mappingRepository->getRemoteId($table, $relationId);
-        $localRemoteId = $this->event->getRecordOperation()->getRemoteId();
 
         if ($foreignRemoteId === false) {
             return [];
         }
+
+        $localRemoteId = $this->event->getRecordOperation()->getRemoteId();
 
         $orderingIntents = $this->mappingRepository->getMetaDataValue(
             $foreignRemoteId,
             RelationSortingAsMetaDataEventHandler::class
         ) ?? [];
 
+        $fieldName = null;
+        $orderingIntent = null;
+
         foreach ($orderingIntents as $fieldName => $orderingIntent) {
             if (in_array($localRemoteId, $orderingIntent)) {
-                $fieldConfiguration = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
-                    $table,
-                    $fieldName,
-                    DatabaseUtility::getRecord($table, $relationId)
-                );
-
-                /** @var RelationHandler $relationHandler */
-                $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
-
-                $relationHandler->start(
-                    '',
-                    $fieldConfiguration['type'] === 'group'
-                        ? $fieldConfiguration['allowed']
-                        : $fieldConfiguration['foreign_table'],
-                    $fieldConfiguration['MM'],
-                    $relationId,
-                    $table,
-                    $fieldConfiguration
-                );
-
-                $relations = $relationHandler->getFromDB();
-
-                $prefixTable = (
-                    $fieldConfiguration['type'] === 'group'
-                    && (
-                        $fieldConfiguration['allowed'] === '*'
-                        || strpos($fieldConfiguration['foreign_table'], ',') !== false
-                    )
-                );
-
-                $flattenedRelations = $this->flattenRelations($relations, $prefixTable);
-
-                $orderedUids = $this->convertOrderingIntentToOrderedUids($orderingIntent, $prefixTable);
-
-                $orderedRelations = array_merge(
-                    $orderedUids,
-                    array_diff($orderedUids, $flattenedRelations)
-                );
-
-                // Save some time by not updating correctly ordered arrays.
-                if ($orderedUids === array_slice($orderedRelations, 0, count($orderedUids))) {
-                    return [];
-                }
-
-                return [
-                    $table => [
-                        (string)$relationId => [
-                            $fieldName => $orderedRelations,
-                        ],
-                    ],
-                ];
+                break;
             }
         }
 
-        return [];
+        if ($orderingIntent === null) {
+            return [];
+        }
+
+        $fieldConfiguration = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $table,
+            $fieldName,
+            DatabaseUtility::getRecord($table, $relationId)
+        );
+
+        /** @var RelationHandler $relationHandler */
+        $relationHandler = GeneralUtility::makeInstance(RelationHandler::class);
+
+        $relationHandler->start(
+            '',
+            $fieldConfiguration['type'] === 'group'
+                ? $fieldConfiguration['allowed']
+                : $fieldConfiguration['foreign_table'],
+            $fieldConfiguration['MM'],
+            $relationId,
+            $table,
+            $fieldConfiguration
+        );
+
+        $relations = $relationHandler->getFromDB();
+
+        $prefixTable = (
+            $fieldConfiguration['type'] === 'group'
+            && (
+                $fieldConfiguration['allowed'] === '*'
+                || strpos($fieldConfiguration['foreign_table'], ',') !== false
+            )
+        );
+
+        $flattenedRelations = $this->flattenRelations($relations, $prefixTable);
+
+        $orderedUids = $this->convertOrderingIntentToOrderedUids($orderingIntent, $prefixTable);
+
+        $orderedRelations = array_merge(
+            $orderedUids,
+            array_diff($orderedUids, $flattenedRelations)
+        );
+
+        // Save some time by not updating correctly ordered arrays.
+        if ($orderedUids === array_slice($orderedRelations, 0, count($orderedUids))) {
+            return [];
+        }
+
+        return [
+            $table => [
+                (string)$relationId => [
+                    $fieldName => $orderedRelations,
+                ],
+            ],
+        ];
     }
 
     /**
@@ -180,12 +207,12 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 
             foreach ($relationIds as $relationId) {
                 if ($fieldConfiguration['type'] === 'group' && $foreignTable === null) {
-                    $parts = explode('_', $relationId);
+                    $parts = explode('_', (string)$relationId);
                     $relationId = array_pop($parts);
                     $foreignTable = implode('_', $parts);
                 }
 
-                $data = array_merge_recursive(
+                ArrayUtility::mergeRecursiveWithOverrule(
                     $data,
                     $this->orderOnForeignSideOfRelation($foreignTable, (int)$relationId)
                 );
@@ -217,9 +244,12 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     }
 
     /**
-     * @param array $relations
+     * Provided a multidimensional relation array, this method returns a single-dimensional array of UIDs or combined
+     * table_UID strings.
+     *
+     * @param array $relations as [tableName => [ relationRecord => [ ... ], ... ] ].
      * @param bool $prefixTable
-     * @return array|string[]
+     * @return int[]|string[]
      */
     protected function flattenRelations(array $relations, bool $prefixTable): array
     {
@@ -244,6 +274,8 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
     }
 
     /**
+     * Converts a list of remote IDs to an array of UID integers or combines table_UID strings.
+     *
      * @param array $orderingIntent
      * @param bool $prefixTable
      * @return array
@@ -266,6 +298,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
 
             $orderedUids[] = $this->mappingRepository->table($remoteIdToOrder) . '_' . $uid;
         }
+
         return $orderedUids;
     }
 }
