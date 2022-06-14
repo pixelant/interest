@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\Domain\Repository;
 
 use Pixelant\Interest\Domain\Repository\TokenRepository;
-use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 class TokenRepositoryTest extends FunctionalTestCase
