@@ -46,7 +46,8 @@
 		"typo3-ter/interest": "self.version"
 	},
 	"conflict": {
-		"typo3/class-alias-loader": "< 1.1.0"
+		"typo3/class-alias-loader": "< 1.1.0",
+		"phpstan/phpstan": "1.7.12 || 1.7.13"
 	},
 	"prefer-stable": true,
 	"autoload": {
