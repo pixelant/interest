@@ -35,7 +35,7 @@ class TokenRepository extends AbstractRepository
                 $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($token)),
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->eq('expiry', 0),
-                    $queryBuilder->expr()->lt('expiry', time())
+                    $queryBuilder->expr()->gt('expiry', time())
                 )
             )
             ->execute();
