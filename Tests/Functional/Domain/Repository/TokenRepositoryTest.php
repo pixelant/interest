@@ -25,22 +25,6 @@ class TokenRepositoryTest extends FunctionalTestCase
     {
         parent::setUp();
 
-        $this->setUpBackendUserFromFixture(1);
-
-        $this->importDataSet('PACKAGE:typo3/testing-framework/Resources/Core/Functional/Fixtures/pages.xml');
-
-        $this->setUpFrontendRootPage(1);
-
-        GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', 'http://www.example.com/');
-
-        $languageServiceMock = $this->createMock(LanguageService::class);
-
-        $languageServiceMock
-            ->method('sL')
-            ->willReturnArgument(0);
-
-        $GLOBALS['LANG'] = $languageServiceMock;
-
         $this->subject = new TokenRepository();
     }
 
