@@ -6,6 +6,7 @@ namespace Pixelant\Interest\RequestHandler;
 
 use Pixelant\Interest\Context;
 use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Psr\Http\Message\ResponseInterface;
@@ -335,6 +336,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
                         try {
                             $this->handleSingleOperation($table, $remoteId, $language, $workspace, $data);
+                        } catch (StopRecordOperationException $exception) {
+                            continue;
                         } catch (AbstractException $exception) {
                             $exceptions[$table][$remoteId][$language][$workspace] = $exception;
                         }
