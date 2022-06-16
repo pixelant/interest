@@ -64,14 +64,20 @@ class CreateCommandController extends AbstractReceiveCommandController
                     throw $exception;
                 }
 
-                (new UpdateRecordOperation(
-                    $data,
-                    $input->getArgument('endpoint'),
-                    $remoteId,
-                    $input->getArgument('language'),
-                    $input->getArgument('workspace'),
-                    $input->getOption('metaData')
-                ))();
+                try {
+                    (new UpdateRecordOperation(
+                        $data,
+                        $input->getArgument('endpoint'),
+                        $remoteId,
+                        $input->getArgument('language'),
+                        $input->getArgument('workspace'),
+                        $input->getOption('metaData')
+                    ))();
+                } catch (StopRecordOperationException $exception) {
+                    $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+                    continue;
+                }
             } catch (\Throwable $exception) {
                 $exceptions[] = $exception;
             }
