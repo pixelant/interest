@@ -119,6 +119,13 @@ abstract class AbstractRecordOperation
     protected static ?array $getTypeValueCache = null;
 
     /**
+     * The hash of this operation when it was initialized. Used to avoid repetition.
+     *
+     * @var string
+     */
+    protected string $hash;
+
+    /**
      * @param array $data
      * @param string $table
      * @param string $remoteId
@@ -159,6 +166,8 @@ abstract class AbstractRecordOperation
         if (isset($this->getData()['pid']) || $this instanceof CreateRecordOperation) {
             $this->storagePid = $this->resolveStoragePid();
         }
+
+        $this->hash = md5(get_class($this) . serialize($this->getArguments()));
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
@@ -743,7 +752,7 @@ abstract class AbstractRecordOperation
      */
     public function getHash()
     {
-        return md5(get_class($this) . serialize($this->getArguments()));
+        return $this->hash;
     }
 
     /**
