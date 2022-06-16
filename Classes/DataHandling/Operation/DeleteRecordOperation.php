@@ -1,4 +1,7 @@
-<?php /** @noinspection PhpMissingParentConstructorInspection */
+<?php
+/**
+ * @noinspection PhpMissingParentConstructorInspection
+ */
 
 declare(strict_types=1);
 
