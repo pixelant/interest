@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpMissingParentConstructorInspection */
 
 declare(strict_types=1);
 
@@ -43,6 +43,8 @@ class DeleteRecordOperation extends AbstractRecordOperation
 
         $this->language = $this->resolveLanguage((string)$language);
         $this->uid = $this->resolveUid();
+
+        $this->hash = md5(get_class($this) . serialize($this->getArguments()));
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
