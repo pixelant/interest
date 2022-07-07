@@ -16,14 +16,10 @@ class ProcessCmdmap
     /**
      * @param string $command
      * @param string $table
-     * @phpstan-ignore-next-line
      * @param $id
-     * @phpstan-ignore-next-line
      * @param $value
      * @param DataHandler $dataHandler
-     * @phpstan-ignore-next-line
      * @param $pasteUpdate
-     * @phpstan-ignore-next-line
      * @param $pasteDatamap
      *
      * phpcs:disable PSR1.Methods.CamelCapsMethodName
