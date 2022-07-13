@@ -7,6 +7,7 @@ namespace Pixelant\Interest\RequestHandler;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 
 class CreateOrUpdateRequestHandler extends AbstractRecordRequestHandler
 {
@@ -14,28 +15,16 @@ class CreateOrUpdateRequestHandler extends AbstractRecordRequestHandler
      * @inheritDoc
      */
     protected function handleSingleOperation(
-        string $table,
-        string $remoteId,
-        string $language,
-        string $workspace,
-        array $data
+        RecordRepresentation $recordRepresentation
     ): void {
         try {
             (new UpdateRecordOperation(
-                $data,
-                $table,
-                $remoteId,
-                $language !== '' ? $language : null,
-                $workspace !== '' ? $workspace : null,
+                $recordRepresentation,
                 $this->metaData
             ))();
         } catch (NotFoundException $exception) {
             (new CreateRecordOperation(
-                $data,
-                $table,
-                $remoteId,
-                $language !== '' ? $language : null,
-                $workspace !== '' ? $workspace : null,
+                $recordRepresentation,
                 $this->metaData
             ))();
         }

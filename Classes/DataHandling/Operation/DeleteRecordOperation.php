@@ -12,6 +12,7 @@ use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
@@ -23,14 +24,13 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class DeleteRecordOperation extends AbstractRecordOperation
 {
     public function __construct(
-        string $remoteId,
-        ?string $language = null,
-        ?string $workspace = null
+        RecordRepresentation $recordRepresentation
     ) {
-        $this->workspace = $workspace;
+        $this->workspace = $recordRepresentation->getRecordInstanceIdentifier()->getWorkspace();
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
+        $remoteId = $recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
         if (!$this->mappingRepository->exists($remoteId)) {
             throw new NotFoundException(
                 'The remote ID "' . $remoteId . '" doesn\'t exist.',
@@ -41,11 +41,11 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->remoteId = $remoteId;
         $this->metaData = [];
         $this->data = [];
-        $this->table = $this->mappingRepository->table($remoteId);
+        $this->table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->language = $this->resolveLanguage((string)$language);
+        $this->language = $recordRepresentation->getRecordInstanceIdentifier()->getLanguage();
         $this->uid = $this->resolveUid();
 
         $this->hash = md5(get_class($this) . serialize($this->getArguments()));

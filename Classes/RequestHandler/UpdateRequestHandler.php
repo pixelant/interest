@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\RequestHandler;
 
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 
 class UpdateRequestHandler extends AbstractRecordRequestHandler
 {
@@ -12,18 +13,10 @@ class UpdateRequestHandler extends AbstractRecordRequestHandler
      * @inheritDoc
      */
     protected function handleSingleOperation(
-        string $table,
-        string $remoteId,
-        string $language,
-        string $workspace,
-        array $data
+        RecordRepresentation $recordRepresentation
     ): void {
         (new UpdateRecordOperation(
-            $data,
-            $table,
-            $remoteId,
-            $language !== '' ? $language : null,
-            $workspace !== '' ? $workspace : null,
+            $recordRepresentation,
             $this->metaData
         ))();
     }

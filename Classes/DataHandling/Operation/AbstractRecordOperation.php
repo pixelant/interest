@@ -13,6 +13,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
@@ -126,6 +127,11 @@ abstract class AbstractRecordOperation
     protected string $hash;
 
     /**
+     * @var RecordRepresentation
+     */
+    protected RecordRepresentation $recordRepresentation;
+
+    /**
      * @param array $data
      * @param string $table
      * @param string $remoteId
@@ -136,18 +142,15 @@ abstract class AbstractRecordOperation
      * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
      */
     public function __construct(
-        array $data,
-        string $table,
-        string $remoteId,
-        ?string $language = null,
-        ?string $workspace = null,
+        RecordRepresentation $recordRepresentation,
         ?array $metaData = []
     ) {
-        $this->table = strtolower($table);
-        $this->remoteId = $remoteId;
-        $this->data = $data;
+        $this->recordRepresentation = $recordRepresentation;
+        $this->table = strtolower($this->recordRepresentation->getRecordInstanceIdentifier()->getTable());
+        $this->remoteId = $this->recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
+        $this->data = $this->recordRepresentation->getData();
         $this->metaData = $metaData ?? [];
-        $this->workspace = $workspace;
+        $this->workspace = $this->recordRepresentation->getRecordInstanceIdentifier()->getWorkspace();
 
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
@@ -155,7 +158,7 @@ abstract class AbstractRecordOperation
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->language = $this->resolveLanguage((string)$language);
+        $this->language = $this->recordRepresentation->getRecordInstanceIdentifier()->getLanguage();
 
         $this->createTranslationFields();
 
