@@ -42,7 +42,10 @@
 			"*": "dist"
 		},
 		"sort-packages": true,
-		"vendor-dir": ".Build/vendor"
+		"vendor-dir": ".Build/vendor",
+		"allow-plugins": {
+			"typo3/cms-composer-installers": true
+		}
 	},
 	"extra": {
 		"branch-alias": {
