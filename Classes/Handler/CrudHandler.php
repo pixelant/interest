@@ -334,7 +334,7 @@ class CrudHandler implements HandlerInterface
 
                 $importData[$fieldName] = [];
                 foreach ($fieldValue as $remoteIdRelation) {
-                    if ($this->mappingRepository->exists($remoteIdRelation)) {
+                    if ($remoteIdRelation !== null && $this->mappingRepository->exists($remoteIdRelation)) {
                         $importData[$fieldName][] = $this->mappingRepository->get($remoteIdRelation);
 
                         continue;
