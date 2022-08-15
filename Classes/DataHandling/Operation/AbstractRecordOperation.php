@@ -612,6 +612,8 @@ abstract class AbstractRecordOperation
      */
     protected function getTcaFieldConfigurationAndRespectColumnsOverrides(string $field): array
     {
+        // Make sure single-value array is transformed into scalar value to prevent Data Handler error.
+        $this->reduceFieldSingleValueArrayToScalar($field);
         return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
             $this->getTable(),
             $field,
@@ -835,6 +837,16 @@ abstract class AbstractRecordOperation
      * Transform single-value array into scalar value to prevent Data Handler error.
      */
     protected function reduceSingleValueArrayToScalar(): void
+    {
+        foreach (array_keys($this->data) as $fieldName) {
+            $this->reduceFieldSingleValueArrayToScalar($fieldName);
+        }
+    }
+
+    /**
+     * Transform single-value array into scalar value to prevent Data Handler error.
+     */
+    protected function reduceFieldSingleValueArrayToScalar(string $fieldName): void
     {
         foreach ($this->data as $fieldName => $fieldValue) {
             if (is_array($fieldValue) && count($fieldValue) <= 1) {
