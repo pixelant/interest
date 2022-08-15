@@ -167,7 +167,7 @@ abstract class AbstractRecordOperation
             $this->storagePid = $this->resolveStoragePid();
         }
 
-        $this->hash = md5(get_class($this) . serialize($this->getArguments()));
+        $this->hash = md5(static::class . serialize($this->getArguments()));
 
         try {
             CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
@@ -563,13 +563,13 @@ abstract class AbstractRecordOperation
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
         return (
-                $tca['type'] === 'group'
-                && $tca['internal_type'] === 'db'
-            )
-            || (
-                in_array($tca['type'], ['inline', 'select'], true)
-                && isset($tca['foreign_table'])
-            );
+            $tca['type'] === 'group'
+            && $tca['internal_type'] === 'db'
+        )
+        || (
+            in_array($tca['type'], ['inline', 'select'], true)
+            && isset($tca['foreign_table'])
+        );
     }
 
     /**
