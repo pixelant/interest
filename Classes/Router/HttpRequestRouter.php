@@ -114,7 +114,7 @@ class HttpRequestRouter
 
         [$scheme, $token] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
 
-        if (strtolower($scheme ?? '') === 'bearer') {
+        if (is_string($scheme) && strtolower($scheme) === 'bearer') {
             $backendUserId = GeneralUtility::makeInstance(TokenRepository::class)
                 ->findBackendUserIdByToken($token);
 
