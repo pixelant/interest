@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 
 class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
@@ -29,9 +31,13 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         $mappingRepository->add('ParentPage', 'pages', 1);
 
         (new CreateRecordOperation(
-            $data,
-            'pages',
-            'Page-1'
+            new RecordRepresentation(
+                $data,
+                new RecordInstanceIdentifier(
+                    'pages',
+                    'Page-1'
+                )
+            )
         ))();
 
         $createdPageUid = $mappingRepository->get('Page-1');

@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 
 class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
@@ -28,9 +30,13 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         $mappingRepository->add('RootPage', 'pages', 1);
 
         (new UpdateRecordOperation(
-            $data,
-            'pages',
-            'RootPage'
+            new RecordRepresentation(
+                $data,
+                new RecordInstanceIdentifier(
+                    'pages',
+                    'RootPage'
+                )
+            )
         ))();
 
         $databaseRow = $this

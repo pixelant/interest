@@ -56,7 +56,6 @@ class RecordInstanceIdentifier
     ) {
         $this->table = strtolower($table);
         $this->remoteId = $remoteId;
-        $this->metaData = $metaData ?? [];
         $this->workspace = $workspace;
         $this->language = $this->resolveLanguage((string)$language);
     }
@@ -78,6 +77,16 @@ class RecordInstanceIdentifier
     }
 
     /**
+     * Returns true if a SiteLanguage is set.
+     *
+     * @return bool
+     */
+    public function hasLanguage(): bool
+    {
+        return $this->language !== null;
+    }
+
+    /**
      * Returns original unmodified remote id set in construct.
      *
      * @return string
@@ -90,11 +99,21 @@ class RecordInstanceIdentifier
     /**
      * Returns workspace.
      *
-     * @return string
+     * @return string|null
      */
-    public function getWorkspace(): string
+    public function getWorkspace(): ?string
     {
         return $this->workspace;
+    }
+
+    /**
+     * Returns true if workspace is set.
+     *
+     * @return bool
+     */
+    public function hasWorkspace(): bool
+    {
+        return $this->workspace !== null;
     }
 
     /**

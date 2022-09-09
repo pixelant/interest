@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 
 class DeleteRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
@@ -23,7 +25,15 @@ class DeleteRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
 
         $mappingRepository->add('Dummy1234', 'pages', 4);
 
-        (new DeleteRecordOperation('Dummy1234'))();
+        (new DeleteRecordOperation(
+            new RecordRepresentation(
+                [],
+                new RecordInstanceIdentifier(
+                    'pages',
+                    'Dummy1234'
+                )
+            )
+        ))();
 
         $databaseRow = $this
             ->getConnectionPool()
