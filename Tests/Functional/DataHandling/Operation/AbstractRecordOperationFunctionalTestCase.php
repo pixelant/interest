@@ -19,9 +19,9 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
     {
         parent::setUp();
 
-        $this->setUpBackendUserFromFixture(1);
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Records.csv');
 
-        $this->importDataSet('PACKAGE:typo3/testing-framework/Resources/Core/Functional/Fixtures/pages.xml');
+        $this->setUpBackendUser(1);
 
         $this->setUpFrontendRootPage(1);
 

@@ -22,13 +22,11 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
     public function creatingPageResultsInPageRecord(): void
     {
         $data = [
-            'pid' => 'ParentPage',
+            'pid' => 'RootPage',
             'title' => 'INTEREST',
         ];
 
         $mappingRepository = new RemoteIdMappingRepository();
-
-        $mappingRepository->add('ParentPage', 'pages', 1);
 
         (new CreateRecordOperation(
             new RecordRepresentation(
@@ -53,5 +51,91 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         self::assertIsArray($databaseRow);
 
         self::assertSame($data['title'], $databaseRow['title']);
+    }
+
+    /**
+     * @dataProvider recordRepresentationAndCorrespondingRowDataProvider
+     * @test
+     */
+    public function createOperationResultsInCorrectRecord(RecordRepresentation $recordRepresentation, array $expectedRow)
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        (new CreateRecordOperation($recordRepresentation))();
+
+        $queryFields = implode(',', array_keys($expectedRow));
+        $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
+        $uid = $mappingRepository->get($recordRepresentation->getRecordInstanceIdentifier()->getRemoteId());
+
+        $createdRecord = $this
+            ->getConnectionPool()
+            ->getConnectionForTable($table)
+            ->executeQuery(
+                'SELECT ' . $queryFields . ' FROM ' . $table . ' WHERE uid = ' . $uid
+            )
+            ->fetchAssociative();
+
+        self::assertEquals($createdRecord, $expectedRow, 'Comparing created record with expected data.');
+    }
+
+    public function recordRepresentationAndCorrespondingRowDataProvider()
+    {
+        return [
+            'Base language record' => [
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'header' => 'TEST',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'ContentA',
+                        ''
+                    )
+                ),
+                [
+                    'pid' => 0,
+                    'header' => 'TEST',
+                ],
+            ],
+            'Record with language' => [
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'header' => 'TEST',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'ContentB',
+                        'german'
+                    )
+                ),
+                [
+                    'pid' => 0,
+                    'header' => 'TEST',
+                    'sys_language_uid' => 1,
+                ],
+            ],
+            'Translation of base language record' => [
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'header' => 'Translated TEST',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'ContentElement',
+                        'german'
+                    )
+                ),
+                [
+                    'pid' => 0,
+                    'header' => 'Translated TEST',
+                    'sys_language_uid' => 1,
+                    'l18n_parent' => 297,
+                ],
+            ],
+
+        ];
     }
 }
