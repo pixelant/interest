@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\RequestHandler;
 
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\RequestHandler\AbstractRecordRequestHandler;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -64,13 +66,17 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        '',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                '',
+                                ''
+                            )
+                        ),
                     ],
                 ],
             ],
@@ -87,14 +93,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Single record with language in data' => [
@@ -111,14 +121,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Single record with remote ID in data' => [
@@ -134,14 +148,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        '',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                '',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Single record with remote ID and language in data' => [
@@ -159,14 +177,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Single record with table and remote ID in data' => [
@@ -182,14 +204,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        '',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                '',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Single record with table, remote ID and language in data' => [
@@ -207,14 +233,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language',
-                        '',
-                        [
-                            'title' => 'TEST',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Multiple records with same table' => [
@@ -233,23 +263,31 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId1',
-                        '',
-                        '',
-                        [
-                            'title' => 'TEST1',
-                        ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST1',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId1',
+                                '',
+                                ''
+                            )
+                        ),
                     ],
                     [
-                        'table',
-                        'remoteId2',
-                        '',
-                        '',
-                        [
-                            'title' => 'TEST2',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST2',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId2',
+                                '',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Multiple records with same remoteId and multiple languages' => [
@@ -269,23 +307,31 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language1',
-                        '',
-                        [
-                            'title' => 'TEST1',
-                        ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST1',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language1',
+                                ''
+                            )
+                        ),
                     ],
                     [
-                        'table',
-                        'remoteId',
-                        'language2',
-                        '',
-                        [
-                            'title' => 'TEST2',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST2',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language2',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
             ],
             'Multiple records with same table and remote ID and multiple languages' => [
@@ -306,87 +352,111 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                 ],
                 [
                     [
-                        'table',
-                        'remoteId',
-                        'language1',
-                        '',
-                        [
-                            'title' => 'TEST1',
-                        ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST1',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language1',
+                                ''
+                            )
+                        ),
                     ],
                     [
-                        'table',
-                        'remoteId',
-                        'language2',
-                        '',
-                        [
-                            'title' => 'TEST2',
-                        ],
-                    ],
+                        new RecordRepresentation(
+                            [
+                                'title' => 'TEST2',
+                            ],
+                            new RecordInstanceIdentifier(
+                                'table',
+                                'remoteId',
+                                'language2',
+                                ''
+                            )
+                        ),
+                    ]
                 ],
                 'Single record with multiple remote IDs and multiple languages in data' => [
-                [
-                    'table',
-                ],
-                [
-                    'data' => [
-                        'remoteId1' => [
-                            'language1' => [
-                                'title' => 'TEST1',
+                    [
+                        'table',
+                    ],
+                    [
+                        'data' => [
+                            'remoteId1' => [
+                                'language1' => [
+                                    'title' => 'TEST1',
+                                ],
+                                'language2' => [
+                                    'title' => 'TEST2',
+                                ],
                             ],
-                            'language2' => [
-                                'title' => 'TEST2',
+                            'remoteId2' => [
+                                'language3' => [
+                                    'title' => 'TEST1',
+                                ],
+                                'language4' => [
+                                    'title' => 'TEST2',
+                                ],
                             ],
-                        ],
-                        'remoteId2' => [
-                            'language3' => [
-                                'title' => 'TEST1',
-                            ],
-                            'language4' => [
-                                'title' => 'TEST2',
-                            ],
-                        ],
 
-                    ],
-                ],
-                [
-                    [
-                        'table',
-                        'remoteId1',
-                        'language1',
-                        '',
-                        [
-                            'title' => 'TEST1',
                         ],
                     ],
                     [
-                        'table',
-                        'remoteId1',
-                        'language2',
-                        '',
                         [
-                            'title' => 'TEST2',
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST1',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table',
+                                    'remoteId1',
+                                    'language1',
+                                    ''
+                                )
+                            ),
                         ],
-                    ],
-                    [
-                        'table',
-                        'remoteId2',
-                        'language3',
-                        '',
                         [
-                            'title' => 'TEST1',
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST2',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table',
+                                    'remoteId1',
+                                    'language2',
+                                    ''
+                                )
+                            ),
                         ],
-                    ],
-                    [
-                        'table',
-                        'remoteId2',
-                        'language4',
-                        '',
                         [
-                            'title' => 'TEST2',
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST1',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table',
+                                    'remoteId2',
+                                    'language3',
+                                    ''
+                                )
+                            ),
                         ],
+                        [
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST2',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table',
+                                    'remoteId2',
+                                    'language4',
+                                    ''
+                                )
+                            ),
+                        ]
                     ],
-                ],
                 ],
                 'Single record with table and remote ID in data' => [
                     [],
@@ -401,14 +471,18 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                     ],
                     [
                         [
-                            'table',
-                            'remoteId',
-                            '',
-                            '',
-                            [
-                                'title' => 'TEST',
-                            ],
-                        ],
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table',
+                                    'remoteId',
+                                    '',
+                                    ''
+                                )
+                            ),
+                        ]
                     ],
                 ],
                 'Single record with table, remote ID and language in data' => [
@@ -433,23 +507,31 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                     ],
                     [
                         [
-                            'table1',
-                            'remoteId1',
-                            'language1',
-                            '',
-                            [
-                                'title' => 'TEST1',
-                            ],
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST1',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table1',
+                                    'remoteId1',
+                                    'language1',
+                                    ''
+                                )
+                            ),
                         ],
                         [
-                            'table2',
-                            'remoteId2',
-                            'language2',
-                            '',
-                            [
-                                'title' => 'TEST2',
-                            ],
-                        ],
+                            new RecordRepresentation(
+                                [
+                                    'title' => 'TEST2',
+                                ],
+                                new RecordInstanceIdentifier(
+                                    'table2',
+                                    'remoteId2',
+                                    'language2',
+                                    ''
+                                )
+                            ),
+                        ]
                     ],
                 ],
             ],
