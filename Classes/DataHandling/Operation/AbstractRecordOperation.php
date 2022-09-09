@@ -316,6 +316,10 @@ abstract class AbstractRecordOperation
             $settings['persistence.']['storagePid.'] ?? []
         );
 
+        if ($pid === '') {
+            $pid = 0;
+        }
+
         if (!MathUtility::canBeInterpretedAsInteger($pid)) {
             throw new InvalidArgumentException(
                 'The PID "' . $pid . '" is invalid and must be an integer.',
