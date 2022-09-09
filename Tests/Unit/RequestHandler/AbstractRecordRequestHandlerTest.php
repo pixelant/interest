@@ -104,7 +104,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Single record with language in data' => [
@@ -132,7 +132,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Single record with remote ID in data' => [
@@ -159,7 +159,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Single record with remote ID and language in data' => [
@@ -188,7 +188,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Single record with table and remote ID in data' => [
@@ -215,7 +215,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Single record with table, remote ID and language in data' => [
@@ -244,7 +244,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Multiple records with same table' => [
@@ -287,7 +287,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Multiple records with same remoteId and multiple languages' => [
@@ -331,7 +331,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
             ],
             'Multiple records with same table and remote ID and multiple languages' => [
@@ -376,7 +376,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                 ''
                             )
                         ),
-                    ]
+                    ],
                 ],
                 'Single record with multiple remote IDs and multiple languages in data' => [
                     [
@@ -455,7 +455,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                     ''
                                 )
                             ),
-                        ]
+                        ],
                     ],
                 ],
                 'Single record with table and remote ID in data' => [
@@ -482,7 +482,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                     ''
                                 )
                             ),
-                        ]
+                        ],
                     ],
                 ],
                 'Single record with table, remote ID and language in data' => [
@@ -531,7 +531,7 @@ class AbstractRecordRequestHandlerTest extends UnitTestCase
                                     ''
                                 )
                             ),
-                        ]
+                        ],
                     ],
                 ],
             ],
