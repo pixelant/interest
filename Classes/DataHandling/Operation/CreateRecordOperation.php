@@ -20,6 +20,7 @@ class CreateRecordOperation extends AbstractRecordOperation
         ?array $metaData = []
     ) {
         $remoteId = $recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
+
         if (GeneralUtility::makeInstance(RemoteIdMappingRepository::class)->exists($remoteId)) {
             throw new IdentityConflictException(
                 'The remote ID "' . $remoteId . '" already exists.',

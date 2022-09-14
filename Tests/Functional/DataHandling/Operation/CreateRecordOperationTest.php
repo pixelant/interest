@@ -13,9 +13,27 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
+use TYPO3\CMS\Core\Configuration\SiteConfiguration;
+use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        ExtensionManagementUtility::loadExtTables();
+
+        $siteConfiguration = new SiteConfiguration(
+            'EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'
+        );
+
+        GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
+    }
+
     /**
      * @test
      */
@@ -54,11 +72,23 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
     }
 
     /**
-     * @dataProvider recordRepresentationAndCorrespondingRowDataProvider
      * @test
      */
-    public function createOperationResultsInCorrectRecord(RecordRepresentation $recordRepresentation, array $expectedRow)
+    public function createOperationResultsInCorrectRecord()
     {
+        $data = $this->recordRepresentationAndCorrespondingRowDataProvider();
+
+        foreach ($data as $key => $value) {
+            $this->setName($key);
+
+            $this->createOperationResultsInCorrectRecordDataIteration(...$value);
+        }
+    }
+
+    protected function createOperationResultsInCorrectRecordDataIteration(
+        RecordRepresentation $recordRepresentation,
+        array $expectedRow
+    ) {
         $mappingRepository = new RemoteIdMappingRepository();
 
         (new CreateRecordOperation($recordRepresentation))();
@@ -107,7 +137,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     new RecordInstanceIdentifier(
                         'tt_content',
                         'ContentB',
-                        'german'
+                        'de'
                     )
                 ),
                 [
@@ -125,7 +155,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     new RecordInstanceIdentifier(
                         'tt_content',
                         'ContentElement',
-                        'german'
+                        'de'
                     )
                 ),
                 [
