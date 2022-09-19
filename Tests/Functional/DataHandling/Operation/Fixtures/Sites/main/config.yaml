@@ -54,6 +54,6 @@ languages:
     fallbackType: strict
     fallbacks: ''
     flag: fr
-    languageId: 1
+    languageId: 3
 rootPageId: 1
 websiteTitle: RootPage

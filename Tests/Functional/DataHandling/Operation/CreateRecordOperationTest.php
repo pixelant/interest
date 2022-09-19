@@ -13,9 +13,12 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Cache\Backend\NullBackend;
+use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
 use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -28,7 +31,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         ExtensionManagementUtility::loadExtTables();
 
         $siteConfiguration = new SiteConfiguration(
-            'EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'
+            GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites')
         );
 
         GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
@@ -78,8 +81,10 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
     {
         $data = $this->recordRepresentationAndCorrespondingRowDataProvider();
 
+        $originalName = $this->getName();
+
         foreach ($data as $key => $value) {
-            $this->setName($key);
+            $this->setName($originalName . ' (' . $key . ')');
 
             $this->createOperationResultsInCorrectRecordDataIteration(...$value);
         }
@@ -95,7 +100,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
 
         $queryFields = implode(',', array_keys($expectedRow));
         $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
-        $uid = $mappingRepository->get($recordRepresentation->getRecordInstanceIdentifier()->getRemoteId());
+        $uid = $mappingRepository->get($recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects());
 
         $createdRecord = $this
             ->getConnectionPool()
@@ -124,7 +129,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     )
                 ),
                 [
-                    'pid' => 0,
+                    'pid' => 1,
                     'header' => 'TEST',
                 ],
             ],
@@ -141,7 +146,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     )
                 ),
                 [
-                    'pid' => 0,
+                    'pid' => 1,
                     'header' => 'TEST',
                     'sys_language_uid' => 1,
                 ],
@@ -159,7 +164,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     )
                 ),
                 [
-                    'pid' => 0,
+                    'pid' => 1,
                     'header' => 'Translated TEST',
                     'sys_language_uid' => 1,
                     'l18n_parent' => 297,

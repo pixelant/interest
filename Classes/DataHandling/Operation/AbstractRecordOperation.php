@@ -605,7 +605,7 @@ abstract class AbstractRecordOperation
 
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
-        return $tca['maxitems'] === 1 && empty($tca['foreign_table']);
+        return $tca['maxitems'] ?? 0 === 1 && empty($tca['foreign_table']);
     }
 
     /**
@@ -854,6 +854,18 @@ abstract class AbstractRecordOperation
     {
         foreach ($this->data as $fieldName => $fieldValue) {
             if (is_array($fieldValue) && count($fieldValue) <= 1) {
+                if (
+                    $fieldValue === []
+                    && (
+                        $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
+                        || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
+                    )
+                ) {
+                    $this->data[$fieldName] = 0;
+
+                    continue;
+                }
+
                 $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
 
                 // Unset empty single-relation fields (1:n) in new records.
