@@ -13,9 +13,25 @@ use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Configuration\SiteConfiguration;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        ExtensionManagementUtility::loadExtTables();
+
+        $siteConfiguration = new SiteConfiguration(
+            GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites')
+        );
+
+        GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
+    }
+
     /**
      * @test
      */
@@ -46,5 +62,84 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         self::assertIsArray($databaseRow);
 
         self::assertSame($data['title'], $databaseRow['title']);
+    }
+
+    /**
+     * @test
+     */
+    public function updateOperationResultsInCorrectRecord()
+    {
+        $data = $this->recordRepresentationAndCorrespondingRowDataProvider();
+
+        $originalName = $this->getName();
+
+        foreach ($data as $key => $value) {
+            $this->setName($originalName . ' (' . $key . ')');
+
+            $this->updateOperationResultsInCorrectRecordDataIteration(...$value);
+        }
+    }
+
+    protected function updateOperationResultsInCorrectRecordDataIteration(
+        RecordRepresentation $recordRepresentation,
+        array $expectedRow
+    ) {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        (new UpdateRecordOperation($recordRepresentation))();
+
+        $queryFields = implode(',', array_keys($expectedRow));
+        $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
+        $uid = $mappingRepository->get($recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects());
+
+        $createdRecord = $this
+            ->getConnectionPool()
+            ->getConnectionForTable($table)
+            ->executeQuery(
+                'SELECT ' . $queryFields . ' FROM ' . $table . ' WHERE uid = ' . $uid
+            )
+            ->fetchAssociative();
+
+        self::assertEquals($createdRecord, $expectedRow, 'Comparing created record with expected data.');
+    }
+
+    public function recordRepresentationAndCorrespondingRowDataProvider()
+    {
+        return [
+            'Base language record' => [
+                new RecordRepresentation(
+                    [
+                        'bodytext' => 'base language text',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'TranslatedContentElement',
+                        ''
+                    )
+                ),
+                [
+                    'pid' => 1,
+                    'uid' => 298,
+                    'bodytext' => 'base language text',
+                ],
+            ],
+            'Translated record' => [
+                new RecordRepresentation(
+                    [
+                        'bodytext' => 'translated text',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'TranslatedContentElement',
+                        'de'
+                    )
+                ),
+                [
+                    'pid' => 1,
+                    'uid' => 299,
+                    'bodytext' => 'translated text',
+                ],
+            ],
+        ];
     }
 }
