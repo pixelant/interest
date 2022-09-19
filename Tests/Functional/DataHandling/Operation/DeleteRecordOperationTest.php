@@ -45,4 +45,61 @@ class DeleteRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
 
         self::assertSame(1, $databaseRow['deleted']);
     }
+
+    /**
+     * @test
+     */
+    public function deletingContentSetsDeletedField()
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        (new DeleteRecordOperation(
+            new RecordRepresentation(
+                [],
+                new RecordInstanceIdentifier(
+                    'tt_content',
+                    'TranslatedContentElement'
+                )
+            )
+        ))();
+
+        $databaseRow = $this
+            ->getConnectionPool()
+            ->getConnectionForTable('tt_content')
+            ->executeQuery('SELECT * FROM tt_content WHERE uid = 298')
+            ->fetchAssociative();
+
+        self::assertIsArray($databaseRow);
+
+        self::assertSame(1, $databaseRow['deleted']);
+    }
+
+    /**
+     * @test
+     */
+    public function deletingTranslationOfContentSetsDeletedField()
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        (new DeleteRecordOperation(
+            new RecordRepresentation(
+                [],
+                new RecordInstanceIdentifier(
+                    'tt_content',
+                    'TranslatedContentElement',
+                    'de'
+                )
+            )
+        ))();
+
+        $databaseRow = $this
+            ->getConnectionPool()
+            ->getConnectionForTable('tt_content')
+            ->executeQuery('SELECT * FROM tt_content WHERE uid = 299')
+            ->fetchAssociative();
+
+        self::assertIsArray($databaseRow);
+
+        self::assertSame(1, $databaseRow['deleted']);
+    }
 }

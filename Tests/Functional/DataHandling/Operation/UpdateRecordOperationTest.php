@@ -19,19 +19,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        ExtensionManagementUtility::loadExtTables();
-
-        $siteConfiguration = new SiteConfiguration(
-            GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites')
-        );
-
-        GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
-    }
-
     /**
      * @test
      */
