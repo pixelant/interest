@@ -27,8 +27,6 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
 
         $mappingRepository = new RemoteIdMappingRepository();
 
-        $mappingRepository->add('RootPage', 'pages', 1);
-
         (new UpdateRecordOperation(
             new RecordRepresentation(
                 $data,
