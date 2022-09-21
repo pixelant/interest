@@ -294,7 +294,7 @@ abstract class AbstractRecordOperation
      */
     private function resolveStoragePid(): int
     {
-        if ($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null === 1) {
+        if (($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null) === 1) {
             return 0;
         }
 
