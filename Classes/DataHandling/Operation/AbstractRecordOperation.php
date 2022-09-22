@@ -571,7 +571,10 @@ abstract class AbstractRecordOperation
 
         return (
             $tca['type'] === 'group'
-            && $tca['internal_type'] === 'db'
+            && (
+                ($tca['internal_type'] ?? null) === 'db'
+                || isset($tca['allowed'])
+            )
         )
         || (
             in_array($tca['type'], ['inline', 'select'], true)
