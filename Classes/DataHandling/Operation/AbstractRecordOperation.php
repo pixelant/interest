@@ -331,63 +331,6 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * Resolves a site language. If no language is defined, the sites's default language will be returned. If the
-     * storagePid has no site, null will be returned.
-     *
-     * @param string|null $language
-     * @return SiteLanguage|null
-     * @throws InvalidArgumentException
-     */
-    protected function resolveLanguage(?string $language): ?SiteLanguage
-    {
-        if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
-            return null;
-        }
-
-        /** @var SiteFinder $siteFinder */
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-
-        $sites = $siteFinder->getAllSites();
-
-        $siteLanguages = [];
-
-        foreach ($sites as $site) {
-            $siteLanguages = array_merge($siteLanguages, $site->getAllLanguages());
-        }
-
-        // This is the equivalent of running array_unique, but supports objects.
-        $siteLanguages = array_reduce($siteLanguages, function (array $uniqueSiteLanguages, SiteLanguage $item) {
-            /** @var SiteLanguage $siteLanguage */
-            foreach ($uniqueSiteLanguages as $siteLanguage) {
-                if ($siteLanguage->getLanguageId() === $item->getLanguageId()) {
-                    return $uniqueSiteLanguages;
-                }
-            }
-
-            $uniqueSiteLanguages[] = $item;
-
-            return $uniqueSiteLanguages;
-        }, []);
-
-        foreach ($siteLanguages as $siteLanguage) {
-            $hreflang = $siteLanguage->getHreflang();
-
-            // In case this is the short form, e.g. "nb" or "sv", not "nb-NO" or "sv-SE".
-            if (strlen($language) === 2) {
-                $hreflang = substr($hreflang, 0, 2);
-            }
-
-            if (strtolower($hreflang) === strtolower($language)) {
-                return $siteLanguage;
-            }
-        }
-
-        throw new InvalidArgumentException(
-            'The language "' . $language . '" is not defined in this TYPO3 instance.'
-        );
-    }
-
-    /**
      * Resolves the UID for the remote ID.
      *
      * @return int
