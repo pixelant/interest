@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Model\Dto;
 
+use Pixelant\Interest\Domain\Model\Dto\Exception\InvalidArgumentException;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use Pixelant\Interest\Domain\Model\Dto\Exception\InvalidArgumentException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -46,7 +46,6 @@ class RecordInstanceIdentifier
      * @param string $remoteId
      * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
      * @param string|null $workspace workspace represented with a remote ID.
-     *
      */
     public function __construct(
         string $table,

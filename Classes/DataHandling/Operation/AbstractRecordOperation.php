@@ -132,11 +132,7 @@ abstract class AbstractRecordOperation
     protected RecordRepresentation $recordRepresentation;
 
     /**
-     * @param array $data
-     * @param string $table
-     * @param string $remoteId
-     * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
-     * @param string|null $workspace workspace represented with a remote ID.
+     * @param RecordRepresentation $recordRepresentation to perform the operation on.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
      *
      * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers

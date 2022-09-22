@@ -13,9 +13,6 @@ use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use TYPO3\CMS\Core\Configuration\SiteConfiguration;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {

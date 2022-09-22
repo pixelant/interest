@@ -13,14 +13,6 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use TYPO3\CMS\Core\Cache\Backend\NullBackend;
-use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
-use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
-use TYPO3\CMS\Core\Configuration\SiteConfiguration;
-use TYPO3\CMS\Core\Core\Bootstrap;
-use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
@@ -173,7 +165,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 [
                     'CType' => 'shortcut',
                     'records' => '297,298',
-                ]
+                ],
             ],
         ];
     }

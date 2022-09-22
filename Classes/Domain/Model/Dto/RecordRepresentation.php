@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Model\Dto;
 
-use Pixelant\Interest\Utility\TcaUtility;
-use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
-use TYPO3\CMS\Core\Site\SiteFinder;
-use Pixelant\Interest\Domain\Model\Dto\Exception\InvalidArgumentException;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-
 /**
  * DTO to handle record representation.
  */
