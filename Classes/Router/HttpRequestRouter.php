@@ -60,7 +60,7 @@ class HttpRequestRouter
         }
 
         try {
-            if ($entryPointParts[0] ?? null === 'authenticate') {
+            if (($entryPointParts[0] ?? null) === 'authenticate') {
                 return GeneralUtility::makeInstance(
                     AuthenticateRequestHandler::class,
                     $entryPointParts,
