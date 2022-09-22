@@ -127,6 +127,36 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     'bodytext' => 'translated text',
                 ],
             ],
+            'Remove one of multiple relations' => [
+                new RecordRepresentation(
+                    [
+                        'records' => 'TranslatedContentElement',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'MultipleReferences',
+                        ''
+                    )
+                ),
+                [
+                    'records' => '298',
+                ],
+            ],
+            'Add one of multiple relations first' => [
+                new RecordRepresentation(
+                    [
+                        'records' => 'ContentElement2,TranslatedContentElement',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'MultipleReferences',
+                        ''
+                    )
+                ),
+                [
+                    'records' => '296,298',
+                ],
+            ],
         ];
     }
 }
