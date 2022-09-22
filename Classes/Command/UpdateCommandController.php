@@ -8,6 +8,8 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -48,11 +50,15 @@ class UpdateCommandController extends AbstractReceiveCommandController
         foreach ($input->getOption('data') as $remoteId => $data) {
             try {
                 (new UpdateRecordOperation(
-                    $data,
-                    $input->getArgument('endpoint'),
-                    $remoteId,
-                    $input->getArgument('language'),
-                    $input->getArgument('workspace'),
+                    new RecordRepresentation(
+                        $data,
+                        new RecordInstanceIdentifier(
+                            $input->getArgument('endpoint'),
+                            $remoteId,
+                            $input->getArgument('language'),
+                            $input->getArgument('workspace'),
+                        )
+                    ),
                     $input->getOption('metaData')
                 ))();
             } catch (StopRecordOperationException $exception) {
@@ -66,11 +72,15 @@ class UpdateCommandController extends AbstractReceiveCommandController
 
                 try {
                     (new CreateRecordOperation(
-                        $data,
-                        $input->getArgument('endpoint'),
-                        $remoteId,
-                        $input->getArgument('language'),
-                        $input->getArgument('workspace'),
+                        new RecordRepresentation(
+                            $data,
+                            new RecordInstanceIdentifier(
+                                $input->getArgument('endpoint'),
+                                $remoteId,
+                                $input->getArgument('language'),
+                                $input->getArgument('workspace'),
+                            )
+                        ),
                         $input->getOption('metaData')
                     ))();
                 } catch (StopRecordOperationException $exception) {

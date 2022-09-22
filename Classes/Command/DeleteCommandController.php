@@ -8,6 +8,9 @@ use Pixelant\Interest\Context;
 use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -75,12 +78,22 @@ class DeleteCommandController extends Command
     {
         $exceptions = [];
 
+        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
         foreach (GeneralUtility::trimExplode(',', $input->getArgument('remoteId'), true) as $remoteId) {
+            $table = $mappingRepository->table($remoteId);
+
             try {
                 (new DeleteRecordOperation(
-                    $remoteId,
-                    $input->getArgument('language'),
-                    $input->getArgument('workspace')
+                    new RecordRepresentation(
+                        [],
+                        new RecordInstanceIdentifier(
+                            $table,
+                            $remoteId,
+                            $input->getArgument('language'),
+                            $input->getArgument('workspace'),
+                        )
+                    )
                 ))();
             } catch (StopRecordOperationException $exception) {
                 $output->writeln($exception->getMessage(), OutputInterface::VERBOSITY_VERY_VERBOSE);
