@@ -605,7 +605,7 @@ abstract class AbstractRecordOperation
 
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
-        return $tca['maxitems'] ?? 0 === 1 && empty($tca['foreign_table']);
+        return ($tca['maxitems'] ?? 0) === 1 && empty($tca['foreign_table']);
     }
 
     /**
