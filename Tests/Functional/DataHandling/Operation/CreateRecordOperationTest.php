@@ -157,7 +157,24 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                     'l18n_parent' => 297,
                 ],
             ],
-
+            'Relation to multiple records' => [
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'CType' => 'shortcut',
+                        'records' => 'ContentElement,TranslatedContentElement',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'ReferenceContentElement',
+                        ''
+                    )
+                ),
+                [
+                    'CType' => 'shortcut',
+                    'records' => '297,298',
+                ]
+            ],
         ];
     }
 }
