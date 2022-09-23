@@ -1,0 +1,59 @@
+base: '/'
+languages:
+  -
+    title: English
+    enabled: true
+    languageId: 0
+    base: /
+    typo3Language: default
+    locale: en_US.UTF-8
+    iso-639-1: en
+    navigationTitle: English
+    hreflang: en-us
+    direction: ltr
+    flag: us
+    websiteTitle: ''
+  -
+    title: German
+    enabled: true
+    base: /da/
+    typo3Language: de
+    locale: de_DE.UTF-8
+    iso-639-1: de
+    navigationTitle: German
+    hreflang: de
+    direction: ltr
+    fallbackType: strict
+    fallbacks: ''
+    flag: de
+    languageId: 1
+  -
+    title: Spanish
+    enabled: true
+    base: /es/
+    typo3Language: es
+    locale: es_ES.UTF-8
+    iso-639-1: es
+    navigationTitle: Spenish
+    hreflang: es
+    direction: ltr
+    fallbackType: strict
+    fallbacks: ''
+    flag: es
+    languageId: 2
+  -
+    title: French
+    enabled: true
+    base: /fr/
+    typo3Language: fr
+    locale: fr_FR.UTF-8
+    iso-639-1: fr
+    navigationTitle: French
+    hreflang: fr
+    direction: ltr
+    fallbackType: strict
+    fallbacks: ''
+    flag: fr
+    languageId: 3
+rootPageId: 1
+websiteTitle: RootPage

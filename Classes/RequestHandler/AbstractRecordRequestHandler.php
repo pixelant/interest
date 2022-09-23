@@ -8,6 +8,8 @@ use Pixelant\Interest\Context;
 use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -145,17 +147,10 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     /**
      * Handle a single record operation.
      *
-     * @param string $table
-     * @param string $remoteId
-     * @param string $language
-     * @param string $workspace
+     * @param RecordRepresentation $recordRepresentation
      */
     abstract protected function handleSingleOperation(
-        string $table,
-        string $remoteId,
-        string $language,
-        string $workspace,
-        array $data
+        RecordRepresentation $recordRepresentation
     ): void;
 
     /**
@@ -335,7 +330,17 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
                         $operationCount++;
 
                         try {
-                            $this->handleSingleOperation($table, $remoteId, $language, $workspace, $data);
+                            $this->handleSingleOperation(
+                                new RecordRepresentation(
+                                    $data,
+                                    new RecordInstanceIdentifier(
+                                        $table,
+                                        $remoteId,
+                                        (string)$language,
+                                        (string)$workspace
+                                    )
+                                )
+                            );
                         } catch (StopRecordOperationException $exception) {
                             continue;
                         } catch (AbstractException $exception) {

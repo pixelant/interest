@@ -13,6 +13,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
@@ -21,7 +22,6 @@ use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -126,28 +126,26 @@ abstract class AbstractRecordOperation
     protected string $hash;
 
     /**
-     * @param array $data
-     * @param string $table
-     * @param string $remoteId
-     * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
-     * @param string|null $workspace workspace represented with a remote ID.
+     * @var RecordRepresentation
+     */
+    protected RecordRepresentation $recordRepresentation;
+
+    /**
+     * @param RecordRepresentation $recordRepresentation to perform the operation on.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
      *
      * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
      */
     public function __construct(
-        array $data,
-        string $table,
-        string $remoteId,
-        ?string $language = null,
-        ?string $workspace = null,
+        RecordRepresentation $recordRepresentation,
         ?array $metaData = []
     ) {
-        $this->table = strtolower($table);
-        $this->remoteId = $remoteId;
-        $this->data = $data;
+        $this->recordRepresentation = $recordRepresentation;
+        $this->table = strtolower($this->recordRepresentation->getRecordInstanceIdentifier()->getTable());
+        $this->remoteId = $this->recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
+        $this->data = $this->recordRepresentation->getData();
         $this->metaData = $metaData ?? [];
-        $this->workspace = $workspace;
+        $this->workspace = $this->recordRepresentation->getRecordInstanceIdentifier()->getWorkspace();
 
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
@@ -155,7 +153,7 @@ abstract class AbstractRecordOperation
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->language = $this->resolveLanguage((string)$language);
+        $this->language = $this->recordRepresentation->getRecordInstanceIdentifier()->getLanguage();
 
         $this->createTranslationFields();
 
@@ -189,7 +187,7 @@ abstract class AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        if (!isset($this->getData()['pid']) && $this instanceof ContentObjectRenderer) {
+        if (!isset($this->getData()['pid']) && $this instanceof CreateRecordOperation) {
             $this->data['pid'] = $this->storagePid;
         }
     }
@@ -272,7 +270,7 @@ abstract class AbstractRecordOperation
      */
     private function validateFieldNames(): void
     {
-        $fieldsNotInTca = array_diff_key($this->getData(), $GLOBALS['TCA'][$this->getTable()]['columns']) ?? [];
+        $fieldsNotInTca = array_diff_key($this->getData(), $GLOBALS['TCA'][$this->getTable()]['columns'] ?? []);
 
         if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
             throw new ConflictException(
@@ -313,6 +311,10 @@ abstract class AbstractRecordOperation
             $settings['persistence.']['storagePid.'] ?? []
         );
 
+        if (empty($pid)) {
+            $pid = 0;
+        }
+
         if (!MathUtility::canBeInterpretedAsInteger($pid)) {
             throw new InvalidArgumentException(
                 'The PID "' . $pid . '" is invalid and must be an integer.',
@@ -321,63 +323,6 @@ abstract class AbstractRecordOperation
         }
 
         return (int)$pid;
-    }
-
-    /**
-     * Resolves a site language. If no language is defined, the sites's default language will be returned. If the
-     * storagePid has no site, null will be returned.
-     *
-     * @param string|null $language
-     * @return SiteLanguage|null
-     * @throws InvalidArgumentException
-     */
-    protected function resolveLanguage(?string $language): ?SiteLanguage
-    {
-        if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
-            return null;
-        }
-
-        /** @var SiteFinder $siteFinder */
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-
-        $sites = $siteFinder->getAllSites();
-
-        $siteLanguages = [];
-
-        foreach ($sites as $site) {
-            $siteLanguages = array_merge($siteLanguages, $site->getAllLanguages());
-        }
-
-        // This is the equivalent of running array_unique, but supports objects.
-        $siteLanguages = array_reduce($siteLanguages, function (array $uniqueSiteLanguages, SiteLanguage $item) {
-            /** @var SiteLanguage $siteLanguage */
-            foreach ($uniqueSiteLanguages as $siteLanguage) {
-                if ($siteLanguage->getLanguageId() === $item->getLanguageId()) {
-                    return $uniqueSiteLanguages;
-                }
-            }
-
-            $uniqueSiteLanguages[] = $item;
-
-            return $uniqueSiteLanguages;
-        }, []);
-
-        foreach ($siteLanguages as $siteLanguage) {
-            $hreflang = $siteLanguage->getHreflang();
-
-            // In case this is the short form, e.g. "nb" or "sv", not "nb-NO" or "sv-SE".
-            if (strlen($language) === 2) {
-                $hreflang = substr($hreflang, 0, 2);
-            }
-
-            if (strtolower($hreflang) === strtolower($language)) {
-                return $siteLanguage;
-            }
-        }
-
-        throw new InvalidArgumentException(
-            'The language "' . $language . '" is not defined in this TYPO3 instance.'
-        );
     }
 
     /**
@@ -564,7 +509,10 @@ abstract class AbstractRecordOperation
 
         return (
             $tca['type'] === 'group'
-            && $tca['internal_type'] === 'db'
+            && (
+                ($tca['internal_type'] ?? null) === 'db'
+                || isset($tca['allowed'])
+            )
         )
         || (
             in_array($tca['type'], ['inline', 'select'], true)
@@ -598,7 +546,7 @@ abstract class AbstractRecordOperation
 
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
-        return $tca['maxitems'] === 1 && empty($tca['foreign_table']);
+        return ($tca['maxitems'] ?? 0) === 1 && empty($tca['foreign_table']);
     }
 
     /**
@@ -847,6 +795,18 @@ abstract class AbstractRecordOperation
     {
         foreach ($this->data as $fieldName => $fieldValue) {
             if (is_array($fieldValue) && count($fieldValue) <= 1) {
+                if (
+                    $fieldValue === []
+                    && (
+                        $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
+                        || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
+                    )
+                ) {
+                    $this->data[$fieldName] = 0;
+
+                    continue;
+                }
+
                 $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
 
                 // Unset empty single-relation fields (1:n) in new records.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\RequestHandler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 
 class DeleteRequestHandler extends AbstractRecordRequestHandler
 {
@@ -12,16 +13,10 @@ class DeleteRequestHandler extends AbstractRecordRequestHandler
      * @inheritDoc
      */
     protected function handleSingleOperation(
-        string $table,
-        string $remoteId,
-        string $language,
-        string $workspace,
-        array $data
+        RecordRepresentation $recordRepresentation
     ): void {
         (new DeleteRecordOperation(
-            $remoteId,
-            $language !== '' ? $language : null,
-            $workspace !== '' ? $workspace : null
+            $recordRepresentation
         ))();
     }
 }
