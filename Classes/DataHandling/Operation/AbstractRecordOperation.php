@@ -311,7 +311,7 @@ abstract class AbstractRecordOperation
             $settings['persistence.']['storagePid.'] ?? []
         );
 
-        if ($pid === '') {
+        if (empty($pid)) {
             $pid = 0;
         }
 
