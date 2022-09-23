@@ -44,19 +44,19 @@ class RecordInstanceIdentifier
     /**
      * @param string $table
      * @param string $remoteId
-     * @param string|null $language as RFC 1766/3066 string, e.g. nb or sv-SE.
-     * @param string|null $workspace workspace represented with a remote ID.
+     * @param string $language as RFC 1766/3066 string, e.g. nb or sv-SE.
+     * @param string $workspace workspace represented with a remote ID.
      */
     public function __construct(
         string $table,
         string $remoteId,
-        ?string $language = null,
-        ?string $workspace = null
+        string $language = '',
+        string $workspace = ''
     ) {
         $this->table = strtolower($table);
         $this->remoteId = $remoteId;
+        $this->language = $this->resolveLanguage($language);
         $this->workspace = $workspace;
-        $this->language = $this->resolveLanguage((string)$language);
     }
 
     /**

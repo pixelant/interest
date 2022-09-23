@@ -90,8 +90,8 @@ class DeleteCommandController extends Command
                         new RecordInstanceIdentifier(
                             $table,
                             $remoteId,
-                            $input->getArgument('language'),
-                            $input->getArgument('workspace'),
+                            (string)$input->getArgument('language'),
+                            (string)$input->getArgument('workspace'),
                         )
                     )
                 ))();

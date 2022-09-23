@@ -55,8 +55,8 @@ class UpdateCommandController extends AbstractReceiveCommandController
                         new RecordInstanceIdentifier(
                             $input->getArgument('endpoint'),
                             $remoteId,
-                            $input->getArgument('language'),
-                            $input->getArgument('workspace'),
+                            (string)$input->getArgument('language'),
+                            (string)$input->getArgument('workspace'),
                         )
                     ),
                     $input->getOption('metaData')
@@ -77,8 +77,8 @@ class UpdateCommandController extends AbstractReceiveCommandController
                             new RecordInstanceIdentifier(
                                 $input->getArgument('endpoint'),
                                 $remoteId,
-                                $input->getArgument('language'),
-                                $input->getArgument('workspace'),
+                                (string)$input->getArgument('language'),
+                                (string)$input->getArgument('workspace'),
                             )
                         ),
                         $input->getOption('metaData')

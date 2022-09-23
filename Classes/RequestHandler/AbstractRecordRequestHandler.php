@@ -336,8 +336,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
                                     new RecordInstanceIdentifier(
                                         $table,
                                         $remoteId,
-                                        $language,
-                                        $workspace
+                                        (string)$language,
+                                        (string)$workspace
                                     )
                                 )
                             );
