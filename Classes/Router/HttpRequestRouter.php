@@ -17,6 +17,7 @@ use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
+use Pixelant\Interest\Router\Event\HttpRequestRouterMethodEvent;
 use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -196,8 +197,12 @@ class HttpRequestRouter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
+        $event = CompatibilityUtility::dispatchEvent(
+            new HttpRequestRouterMethodEvent($request, $entryPointParts)
+        );
+
         try {
-            switch (strtoupper($request->getMethod())) {
+            switch ($event->getMethod()) {
                 case 'POST':
                     return GeneralUtility::makeInstance(
                         CreateRequestHandler::class,
