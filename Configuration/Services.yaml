@@ -54,9 +54,3 @@ services:
       - name: event.listener
         identifier: deleteRemoteIdForDeletedFile
         event: TYPO3\CMS\Core\Resource\Event\AfterFileDeletedEvent
-
-  Pixelant\Interest\Router\Event\Handler\RequestMethodEventHandler:
-    tags:
-      - name: event.listener
-        identifier: requestMethod
-        event: Pixelant\Interest\Router\Event\HttpRequestRouterMethodEvent

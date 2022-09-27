@@ -88,11 +88,6 @@ defined('TYPO3_MODE') or die('Access denied.');
         \Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler::class
     );
 
-    \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
-        \Pixelant\Interest\Router\Event\HttpRequestRouterMethodEvent::class,
-        \Pixelant\Interest\Router\Event\Handler\RequestMethodEventHandler::class,
-    );
-
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Console\CommandRequestHandler::class] = [
         'className' => \Pixelant\Interest\Console\OptimizedCommandRequestHandler::class,
     ];

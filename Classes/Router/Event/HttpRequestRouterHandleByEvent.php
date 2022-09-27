@@ -9,13 +9,11 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * An event that is called from HttpRequestRouter to determine what request method to use.
  */
-class HttpRequestRouterMethodEvent
+class HttpRequestRouterHandleByEvent
 {
     protected ServerRequestInterface $request;
 
     protected array $entryPointParts;
-
-    protected string $method;
 
     /**
      * @param ServerRequestInterface $request
@@ -36,6 +34,14 @@ class HttpRequestRouterMethodEvent
     }
 
     /**
+     * @param array $entryPointParts
+     */
+    public function setEntryPointParts(array $entryPointParts): void
+    {
+        $this->entryPointParts = $entryPointParts;
+    }
+
+    /**
      * @return ServerRequestInterface
      */
     public function getRequest(): ServerRequestInterface
@@ -44,15 +50,10 @@ class HttpRequestRouterMethodEvent
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
      */
-    public function getMethod(): string
+    public function setRequest(ServerRequestInterface $request): void
     {
-        return strtoupper($this->method);
-    }
-
-    public function setMethod(string $method): void
-    {
-        $this->method = $method;
+        $this->request = $request;
     }
 }
