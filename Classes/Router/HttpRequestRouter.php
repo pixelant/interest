@@ -17,6 +17,7 @@ use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
+use Pixelant\Interest\Router\Event\HttpRequestRouterHandleByEvent;
 use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -196,31 +197,35 @@ class HttpRequestRouter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
+        $event = CompatibilityUtility::dispatchEvent(
+            new HttpRequestRouterHandleByEvent($request, $entryPointParts)
+        );
+
         try {
-            switch (strtoupper($request->getMethod())) {
+            switch (strtoupper($event->getRequest()->getMethod())) {
                 case 'POST':
                     return GeneralUtility::makeInstance(
                         CreateRequestHandler::class,
-                        $entryPointParts,
-                        $request
+                        $event->getEntryPointParts(),
+                        $event->getRequest()
                     )->handle();
                 case 'PUT':
                     return GeneralUtility::makeInstance(
                         UpdateRequestHandler::class,
-                        $entryPointParts,
-                        $request
+                        $event->getEntryPointParts(),
+                        $event->getRequest()
                     )->handle();
                 case 'PATCH':
                     return GeneralUtility::makeInstance(
                         CreateOrUpdateRequestHandler::class,
-                        $entryPointParts,
-                        $request
+                        $event->getEntryPointParts(),
+                        $event->getRequest()
                     )->handle();
                 case 'DELETE':
                     return GeneralUtility::makeInstance(
                         DeleteRequestHandler::class,
-                        $entryPointParts,
-                        $request
+                        $event->getEntryPointParts(),
+                        $event->getRequest()
                     )->handle();
             }
         } catch (AbstractException $dataHandlingException) {
