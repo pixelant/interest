@@ -1,9 +1,11 @@
 <?php
 
-namespace Pixelant\Interest\Middlewares;
+namespace Pixelant\Interest\Middleware;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
+use Pixelant\Interest\Middleware\Event\HttpResponseEvent;
 use Pixelant\Interest\Router\HttpRequestRouter;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -35,9 +37,15 @@ class RequestMiddleware implements MiddlewareInterface
 
             $response = HttpRequestRouter::route($request);
 
+            $response = CompatibilityUtility::dispatchEvent(
+                new HttpResponseEvent($response)
+            )->getResponse();
+
             $executionTime = (int)(round(microtime(true) * 1000) - $executionStart);
 
-            return $this->logRequest($request, $response, $executionTime);
+            $this->logRequest($request, $response, $executionTime);
+
+            return $response;
         }
 
         return $handler->handle($request);
@@ -52,7 +60,7 @@ class RequestMiddleware implements MiddlewareInterface
         ServerRequestInterface $request,
         ResponseInterface $response,
         int $executionTime
-    ): ResponseInterface {
+    ): void {
         /** @var ConfigurationProvider $configuration */
         $configuration = GeneralUtility::makeInstance(ConfigurationProvider::class);
         if ($configuration->isLoggingEnabledForExecutionTime($executionTime)) {
@@ -84,7 +92,5 @@ class RequestMiddleware implements MiddlewareInterface
                     ->execute();
             }
         }
-
-        return $response;
     }
 }

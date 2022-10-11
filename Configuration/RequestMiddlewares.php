@@ -14,7 +14,7 @@ if (\Pixelant\Interest\Utility\CompatibilityUtility::typo3VersionIsLessThan('10.
 return [
     'frontend' => [
         'interest-rest-requests' => [
-            'target' => Pixelant\Interest\Middlewares\RequestMiddleware::class,
+            'target' => Pixelant\Interest\Middleware\RequestMiddleware::class,
             'before' => $before,
             'after' => $after,
         ],
