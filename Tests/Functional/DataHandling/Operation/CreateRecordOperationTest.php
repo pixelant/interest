@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -175,6 +176,8 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
      */
     public function createAdvancedInlineMmRelationsInDifferentOrder()
     {
+        $fileData = base64_encode(file_get_contents(__DIR__ . '/Fixtures/Image.jpg'));
+
         $createContentElement = function (string $iteration) {
             (new CreateRecordOperation(
                 new RecordRepresentation(
@@ -209,11 +212,11 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             ))();
         };
 
-        $createSysFile = function (string $iteration) {
+        $createSysFile = function (string $iteration) use ($fileData) {
             (new CreateRecordOperation(
                 new RecordRepresentation(
                     [
-                        'fileData' => base64_encode(file_get_contents('Fixtures/Image.jpg')),
+                        'fileData' => $fileData,
                         'name' => 'image_' . $iteration . '.jpg',
                     ],
                     new RecordInstanceIdentifier(
@@ -230,13 +233,42 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 $createSysFileReference,
                 $createSysFile,
             ],
+            'b' => [
+                $createSysFile,
+                $createContentElement,
+                $createSysFileReference,
+            ],
+            'c' => [
+                $createSysFileReference,
+                $createSysFile,
+                $createContentElement,
+            ],
+            'd' => [
+                $createSysFileReference,
+                $createContentElement,
+                $createSysFile,
+            ],
+            'e' => [
+                $createContentElement,
+                $createSysFile,
+                $createSysFileReference,
+            ],
+            'f' => [
+                $createSysFile,
+                $createSysFileReference,
+                $createContentElement,
+            ],
         ];
 
         $mappingRepository = new RemoteIdMappingRepository();
 
         foreach ($combinations as $iteration => $functions) {
             foreach ($functions as $function) {
-                $function($iteration);
+                try {
+                    $function($iteration);
+                } catch (StopRecordOperationException $e) {
+                    continue;
+                }
             }
 
             self::assertNotEquals(
@@ -247,14 +279,14 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
 
             self::assertNotEquals(
                 0,
-                $mappingRepository->get('MediaSysFileReference_' . $iteration),
-                'MediaSysFileReference_' . $iteration . ' is not zero'
+                $mappingRepository->get('MediaElementSysFileReference_' . $iteration),
+                'MediaElementSysFileReference_' . $iteration . ' is not zero'
             );
 
             self::assertNotEquals(
                 0,
-                $mappingRepository->get('MediaSysFile_' . $iteration),
-                'MediaSysFile_' . $iteration . ' is not zero'
+                $mappingRepository->get('MediaElementSysFile_' . $iteration),
+                'MediaElementSysFile_' . $iteration . ' is not zero'
             );
 
             $createdContentElement = $this
@@ -298,7 +330,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 ->getConnectionPool()
                 ->getConnectionForTable('tt_content')
                 ->executeQuery(
-                    'SELECT sys_file_reference FROM sys_file_reference WHERE uid = '
+                    'SELECT name FROM sys_file WHERE uid = '
                     . $mappingRepository->get('MediaElementSysFile_' . $iteration)
                 )
                 ->fetchAssociative();
