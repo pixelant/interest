@@ -706,6 +706,14 @@ abstract class AbstractRecordOperation
     }
 
     /**
+     * @return RecordRepresentation
+     */
+    public function getRecordRepresentation(): RecordRepresentation
+    {
+        return $this->recordRepresentation;
+    }
+
+    /**
      * Detects and adds pending relations to `$this->pendingRelations`.
      *
      * @param string $fieldName
