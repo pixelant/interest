@@ -169,4 +169,147 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             ],
         ];
     }
+
+    /**
+     * @test
+     */
+    public function createAdvancedInlineMmRelationsInDifferentOrder()
+    {
+        $createContentElement = function (string $iteration) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'CType' => 'textpic',
+                        'image' => 'MediaElementSysFileReference_' . $iteration,
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'MediaContentElement_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $createSysFileReference = function (string $iteration) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'uid_local' => 'MediaElementSysFile_' . $iteration,
+                        'table_local' => 'sys_file',
+                        'uid_foreign' => 'MediaContentElement_' . $iteration,
+                        'fieldname' => 'image',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file_reference',
+                        'MediaElementSysFileReference_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $createSysFile = function (string $iteration) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'fileData' => base64_encode(file_get_contents('Fixtures/Image.jpg')),
+                        'name' => 'image_' . $iteration . '.jpg',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file',
+                        'MediaElementSysFile_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $combinations = [
+            'a' => [
+                $createContentElement,
+                $createSysFileReference,
+                $createSysFile,
+            ],
+        ];
+
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        foreach ($combinations as $iteration => $functions) {
+            foreach ($functions as $function) {
+                $function($iteration);
+            }
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaContentElement_' . $iteration),
+                'MediaContentElement_' . $iteration . ' is not zero'
+            );
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaSysFileReference_' . $iteration),
+                'MediaSysFileReference_' . $iteration . ' is not zero'
+            );
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaSysFile_' . $iteration),
+                'MediaSysFile_' . $iteration . ' is not zero'
+            );
+
+            $createdContentElement = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT image FROM tt_content WHERE uid = '
+                    . $mappingRepository->get('MediaContentElement_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'image' => 1,
+                ],
+                $createdContentElement,
+                'Created content element iteration ' . $iteration
+            );
+
+            $createdSysFileReference = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT uid_local, table_local, uid_foreign, fieldname FROM sys_file_reference WHERE uid = '
+                    . $mappingRepository->get('MediaElementSysFileReference_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'uid_local' => $mappingRepository->get('MediaElementSysFile_' . $iteration),
+                    'table_local' => 'sys_file',
+                    'uid_foreign' => $mappingRepository->get('MediaContentElement_' . $iteration),
+                    'fieldname' => 'image',
+                ],
+                $createdSysFileReference,
+                'Created sys_file_reference iteration ' . $iteration
+            );
+
+            $createdSysFile = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT sys_file_reference FROM sys_file_reference WHERE uid = '
+                    . $mappingRepository->get('MediaElementSysFile_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'name' => 'image_' . $iteration . '.jpg',
+                ],
+                $createdSysFile,
+                'Created sys_file iteration ' . $iteration
+            );
+        }
+    }
 }
