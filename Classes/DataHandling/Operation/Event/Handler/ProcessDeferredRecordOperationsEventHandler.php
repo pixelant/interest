@@ -37,7 +37,7 @@ class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperatio
 
                 try {
                     try {
-                        $deferredOperation = new $deferredRow['class'](... $deferredRow['arguments']);
+                        $deferredOperation = new $deferredRow['class']($deferredRow['arguments']);
                     } catch (IdentityConflictException $exception) {
                         if (
                             $deferredRow['class'] === CreateRecordOperation::class

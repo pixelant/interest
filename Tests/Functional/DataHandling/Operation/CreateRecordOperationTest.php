@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -168,5 +169,179 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 ],
             ],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function createAdvancedInlineMmRelationsInDifferentOrder()
+    {
+        $fileData = base64_encode(file_get_contents(__DIR__ . '/Fixtures/Image.jpg'));
+
+        $createContentElement = function (string $iteration) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'CType' => 'textpic',
+                        'image' => 'MediaElementSysFileReference_' . $iteration,
+                    ],
+                    new RecordInstanceIdentifier(
+                        'tt_content',
+                        'MediaContentElement_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $createSysFileReference = function (string $iteration) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'pid' => 'RootPage',
+                        'uid_local' => 'MediaElementSysFile_' . $iteration,
+                        'table_local' => 'sys_file',
+                        'uid_foreign' => 'MediaContentElement_' . $iteration,
+                        'fieldname' => 'image',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file_reference',
+                        'MediaElementSysFileReference_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $createSysFile = function (string $iteration) use ($fileData) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'fileData' => $fileData,
+                        'name' => 'image_' . $iteration . '.jpg',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file',
+                        'MediaElementSysFile_' . $iteration
+                    )
+                )
+            ))();
+        };
+
+        $combinations = [
+            'a' => [
+                $createContentElement,
+                $createSysFileReference,
+                $createSysFile,
+            ],
+            'b' => [
+                $createSysFile,
+                $createContentElement,
+                $createSysFileReference,
+            ],
+            'c' => [
+                $createSysFileReference,
+                $createSysFile,
+                $createContentElement,
+            ],
+            'd' => [
+                $createSysFileReference,
+                $createContentElement,
+                $createSysFile,
+            ],
+            'e' => [
+                $createContentElement,
+                $createSysFile,
+                $createSysFileReference,
+            ],
+            'f' => [
+                $createSysFile,
+                $createSysFileReference,
+                $createContentElement,
+            ],
+        ];
+
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        foreach ($combinations as $iteration => $functions) {
+            foreach ($functions as $function) {
+                try {
+                    $function($iteration);
+                } catch (StopRecordOperationException $e) {
+                    continue;
+                }
+            }
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaContentElement_' . $iteration),
+                'MediaContentElement_' . $iteration . ' is not zero'
+            );
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaElementSysFileReference_' . $iteration),
+                'MediaElementSysFileReference_' . $iteration . ' is not zero'
+            );
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get('MediaElementSysFile_' . $iteration),
+                'MediaElementSysFile_' . $iteration . ' is not zero'
+            );
+
+            $createdContentElement = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT image FROM tt_content WHERE uid = '
+                    . $mappingRepository->get('MediaContentElement_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'image' => 1,
+                ],
+                $createdContentElement,
+                'Created content element iteration ' . $iteration
+            );
+
+            $createdSysFileReference = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT uid_local, table_local, uid_foreign, fieldname FROM sys_file_reference WHERE uid = '
+                    . $mappingRepository->get('MediaElementSysFileReference_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'uid_local' => $mappingRepository->get('MediaElementSysFile_' . $iteration),
+                    'table_local' => 'sys_file',
+                    'uid_foreign' => $mappingRepository->get('MediaContentElement_' . $iteration),
+                    'fieldname' => 'image',
+                ],
+                $createdSysFileReference,
+                'Created sys_file_reference iteration ' . $iteration
+            );
+
+            $createdSysFile = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('tt_content')
+                ->executeQuery(
+                    'SELECT name FROM sys_file WHERE uid = '
+                    . $mappingRepository->get('MediaElementSysFile_' . $iteration)
+                )
+                ->fetchAssociative();
+
+            self::assertEquals(
+                [
+                    'name' => 'image_' . $iteration . '.jpg',
+                ],
+                $createdSysFile,
+                'Created sys_file iteration ' . $iteration
+            );
+        }
     }
 }

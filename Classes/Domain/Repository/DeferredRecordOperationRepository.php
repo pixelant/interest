@@ -6,6 +6,8 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use Doctrine\DBAL\Driver\Result;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 
 class DeferredRecordOperationRepository extends AbstractRepository
@@ -28,7 +30,7 @@ class DeferredRecordOperationRepository extends AbstractRepository
                 'crdate' => time(),
                 'dependent_remote_id' => $dependentRemoteId,
                 'class' => get_class($operation),
-                'arguments' => serialize($operation->getArguments()),
+                'arguments' => serialize($operation->getRecordRepresentation()),
             ])
             ->execute();
     }
@@ -73,6 +75,19 @@ class DeferredRecordOperationRepository extends AbstractRepository
             $row['_hash'] = md5($row['dependent_remote_id'] . $row['class'] . $row['arguments']);
 
             $row['arguments'] = unserialize($row['arguments']);
+
+            // Compatibility with earlier versions. REMOVE IN v2
+            if (is_array($row['arguments'])) {
+                $row['arguments'] = new RecordRepresentation(
+                    $row['arguments'][0],
+                    new RecordInstanceIdentifier(
+                        (string)$row['arguments'][1],
+                        (string)$row['arguments'][2],
+                        (string)$row['arguments'][3],
+                        (string)$row['arguments'][4]
+                    )
+                );
+            }
         }
 
         return $rows;

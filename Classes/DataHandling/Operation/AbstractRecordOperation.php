@@ -706,6 +706,14 @@ abstract class AbstractRecordOperation
     }
 
     /**
+     * @return RecordRepresentation
+     */
+    public function getRecordRepresentation(): RecordRepresentation
+    {
+        return $this->recordRepresentation;
+    }
+
+    /**
      * Detects and adds pending relations to `$this->pendingRelations`.
      *
      * @param string $fieldName
@@ -807,7 +815,7 @@ abstract class AbstractRecordOperation
                     continue;
                 }
 
-                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)];
+                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
 
                 // Unset empty single-relation fields (1:n) in new records.
                 if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
@@ -815,7 +823,7 @@ abstract class AbstractRecordOperation
                 }
             }
 
-            if ($this->data[$fieldName] === null) {
+            if (isset($this->data[$fieldName]) && $this->data[$fieldName] === null) {
                 unset($this->data[$fieldName]);
             }
         }
