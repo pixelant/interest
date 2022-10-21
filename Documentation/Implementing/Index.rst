@@ -13,6 +13,7 @@ Implementing
 
    Cli/Index
    Rest/Index
+   FileHandling/Index
 
 .. _choosing-rest-or-cli:
 
