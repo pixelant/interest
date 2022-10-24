@@ -138,7 +138,7 @@ The extension keeps track of the mapping between remote IDs and TYPO3 records in
 .. _extending-touch:
 
 Touching and the touched
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 When a record is created or updated, the `touched` timestamp is updated. The timestamp is also updated if the remote request *intended* to update the record, but the Interest extension decided not to do it, for example because there was nothing to change. In this way, the time a record was last touched may more recent than the record's modification date.
 
@@ -147,7 +147,7 @@ The time the record was last touched can help you verify that a request was proc
 .. _extending-touch-methods:
 
 Relevant methods
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 .. php:namespace:: Pixelant\Interest\Domain\Repository
 
@@ -190,13 +190,16 @@ Relevant methods
 .. _extending-touch-example:
 
 Example
-~~~~~~~
+^^^^^^^
 
 Fetching all remote IDs that have not been touched since the same time yesterday.
 
 .. code-block:: php
 
+   use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+   use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
    use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+   use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
    use TYPO3\CMS\Core\Utility\GeneralUtility;
 
    $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
@@ -209,4 +212,61 @@ Fetching all remote IDs that have not been touched since the same time yesterday
            );
        ))();
    }
+
+.. _extending-mapping-metadata:
+
+Metadata
+~~~~~~~~
+
+The mapping table also contains a field that can contain serialized meta information about the record. Any class can add and retrieve meta information from this field.
+
+Here's two existing use cases:
+
+* **Foreign relation sorting order** by :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler`
+* **File modification info** by :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler`
+
+.. warning::
+
+   Make sure that you don't mix up the metadata in the mapping table with the metadata that is sent to operations, e.g. using the `metaData` property or the `--metaData` option. These are not related.
+
+.. note::
+
+   The field data is encoded as JSON. Any objects must be serialized so they can be stored as a string.
+
+.. _extending-mapping-metadata-methods:
+
+Relevant methods
+^^^^^^^^^^^^^^^^
+
+.. php:namespace:: Pixelant\Interest\Domain\Repository
+
+.. php:class:: RemoteIdMappingRepository
+
+   .. php:method:: getMetaData($remoteId)
+
+      Retrieves all of the metadata entries as a key-value array.
+
+      :param string $remoteId: The remote ID of the record to return the metadata for.
+
+      :returntype: array
+
+   .. php:method:: getMetaDataValue($remoteId, $key)
+
+      Retrieves a metadata entry.
+
+      :param string $remoteId: The remote ID of the record to return the metadata for.
+
+      :param string $key: The originator class's fully qualified class name.
+
+      :returntype: string, float, int, array, or null
+
+   .. php:method:: getMetaDataValue($remoteId, $key, $value)
+
+      Sets a metadata entry.
+
+      :param string $remoteId: The remote ID of the record to return the metadata for.
+
+      :param string $key: The originator class's fully qualified class name.
+
+      :param string|float|int|array|null $value: The value to set.
 
