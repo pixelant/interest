@@ -119,9 +119,66 @@ Here's how the function is used by the Interest extension itself:
        \Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation::class
    );
 
-.. _extending-how-works:
+.. _extending-how-it-works:
 
-PHP API
-=======
+How it works
+============
 
+.. _extending-mapping:
+
+Mapping table
+-------------
+
+The extension keeps track of the mapping between remote IDs and TYPO3 records in the table `tx_interest_remote_id_mapping`. In addition to mapping information, the table contains metadata about each record.
+
+.. warning::
+
+   You should never access the `tx_interest_remote_id_mapping` table directly, but use the classes and methods described here.
+
+.. _extending-touch:
+
+Touching and the touched
+------------------------
+
+When a record is created or updated, the `touched` timestamp is updated. The timestamp is also updated if the remote request *intended* to update the record, but the Interest extension decided not to do it, for example because there was nothing to change. In this way, the time a record was last touched may more recent than the record's modification date.
+
+The time the record was last touched can help you verify that a request was processed — or to find the remote IDs that were not mentioned at all. In the latter case, knowing remote IDs that are no longer updated regularly can tell you which remote IDs should be deleted.
+
+.. php:namespace:: Pixelant\Interest\Domain\Repository
+
+.. php:class:: RemoteIdMappingRepository
+
+   .. php:method:: touch($remoteId)
+
+      Touches the remote ID and nothing else. Sets the `touched` timestamp for the remote ID to the current time.
+
+      :param string $remoteId: The remote ID of the record to touch.
+
+   .. php:method:: touched($remoteId)
+
+      Returns the touched timestamp for the record.
+
+      :param string $remoteId: The remote ID of the record to touch.
+
+      :returntype: int
+
+   .. php:method:: findAllUntouchedSince($timestamp, $excludeManual = true)
+
+      Returns an array containing all remote IDs that have *not* been touched since :php:`$timestamp`.
+
+      :param int $timestamp: Unix timestamp.
+
+      :param bool $excludeManual: When true, remote IDs flagged as manual will be excluded from the result. Usually a good idea, as manual entries aren't usually a part of any update workflow.
+
+      :returntype: bool
+
+   .. php:method:: findAllTouchedSince($timestamp, $excludeManual = true)
+
+      Returns an array containing all remote IDs that have been touched since :php:`$timestamp`.
+
+      :param int $timestamp: Unix timestamp.
+
+      :param bool $excludeManual: When true, remote IDs flagged as manual will be excluded from the result. Usually a good idea, as manual entries aren't usually a part of any update workflow.
+
+      :returntype: bool
 
