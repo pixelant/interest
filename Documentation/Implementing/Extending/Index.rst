@@ -270,3 +270,44 @@ Relevant methods
 
       :param string|float|int|array|null $value: The value to set.
 
+.. _extending-mapping-metadata-example:
+
+Example
+^^^^^^^
+
+This simplified excerpt from :php:`PersistFileDataEventHandler` shows how metadata stored in the record is used to avoid downloading a file if it hasn't changed. If it has changed, new metadata is set.
+
+.. code-block:: php
+
+   use GuzzleHttp\Client;
+   use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+
+   $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
+   $metaData = $mappingRepository->getMetaDataValue(
+       $remoteId,
+       self::class
+   ) ?? [];
+
+   $headers = [
+       'If-Modified-Since' => $metaData['date'],
+       'If-None-Match'] => $metaData['etag'],
+   ];
+
+   $response = GeneralUtility::makeInstance(Client::class)
+       ->get($url, ['headers' => $headers]);
+
+   if ($response->getStatusCode() === 304) {
+       return null;
+   }
+
+   $mappingRepository->setMetaDataValue(
+       $remoteId,
+       self::class,
+       [
+           'date' => $response->getHeader('Date'),
+           'etag' => $response->getHeader('ETag'),
+       ]
+   );
+
+   return $response->getBody()->getContents();
