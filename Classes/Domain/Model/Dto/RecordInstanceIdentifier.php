@@ -211,4 +211,12 @@ class RecordInstanceIdentifier
             'The language "' . $language . '" is not defined in this TYPO3 instance.'
         );
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->getRemoteIdWithAspects();
+    }
 }
