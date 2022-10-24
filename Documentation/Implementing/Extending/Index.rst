@@ -144,6 +144,11 @@ When a record is created or updated, the `touched` timestamp is updated. The tim
 
 The time the record was last touched can help you verify that a request was processed — or to find the remote IDs that were not mentioned at all. In the latter case, knowing remote IDs that are no longer updated regularly can tell you which remote IDs should be deleted.
 
+.. _extending-touch-methods:
+
+Relevant methods
+~~~~~~~~~~~~~~~~
+
 .. php:namespace:: Pixelant\Interest\Domain\Repository
 
 .. php:class:: RemoteIdMappingRepository
@@ -181,4 +186,27 @@ The time the record was last touched can help you verify that a request was proc
       :param bool $excludeManual: When true, remote IDs flagged as manual will be excluded from the result. Usually a good idea, as manual entries aren't usually a part of any update workflow.
 
       :returntype: bool
+
+.. _extending-touch-example:
+
+Example
+~~~~~~~
+
+Fetching all remote IDs that have not been touched since the same time yesterday.
+
+.. code-block:: php
+
+   use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+   use TYPO3\CMS\Core\Utility\GeneralUtility;
+
+   $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
+   foreach($mappingRepository->findAllUntouchedSince(time() - 86400) as $remoteId) {
+       (new DeleteRecordOperation(
+           new RecordRepresentation(
+               [],
+               new RecordInstanceIdentifier($remoteId)
+           );
+       ))();
+   }
 
