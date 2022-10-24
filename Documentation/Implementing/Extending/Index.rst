@@ -124,6 +124,16 @@ Here's how the function is used by the Interest extension itself:
 How it works
 ============
 
+.. _extending-record-representation:
+
+Internal representation and identity
+------------------------------------
+
+Inside the extension, a record's state and identity is maintained by two data transfer object classes:
+
+* **A record's unique identity** from creation to deletion is represented by :php:`Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier`.
+* **A record's current state**, including the data that should be written to the database is represented by :php:`Pixelant\Interest\Domain\Model\Dto\RecordRepresentation`.
+
 .. _extending-mapping:
 
 Mapping table
