@@ -84,7 +84,7 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             )
             ->fetchAssociative();
 
-        self::assertEquals($createdRecord, $expectedRow, 'Comparing created record with expected data.');
+        self::assertEquals($expectedRow, $createdRecord, 'Comparing created record with expected data.');
     }
 
     public function recordRepresentationAndCorrespondingRowDataProvider()

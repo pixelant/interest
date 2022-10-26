@@ -26,7 +26,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
     public function __construct(
         RecordRepresentation $recordRepresentation
     ) {
-        $this->workspace = $recordRepresentation->getRecordInstanceIdentifier()->getWorkspace();
+        $this->recordRepresentation = $recordRepresentation;
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
@@ -38,15 +38,10 @@ class DeleteRecordOperation extends AbstractRecordOperation
             );
         }
 
-        $this->remoteId = $remoteId;
         $this->metaData = [];
-        $this->data = [];
-        $this->table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
+        $this->dataForDataHandler = [];
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
-
-        $this->language = $recordRepresentation->getRecordInstanceIdentifier()->getLanguage();
-        $this->uid = $this->resolveUid();
 
         $this->hash = md5(static::class . serialize($this->getArguments()));
 

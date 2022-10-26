@@ -74,6 +74,6 @@ class CreateRecordOperationTest extends UnitTestCase
             )
         );
 
-        self::assertEquals(0, $subject->getData()['pid']);
+        self::assertEquals(0, $subject->getDataForDataHandler()['pid']);
     }
 }

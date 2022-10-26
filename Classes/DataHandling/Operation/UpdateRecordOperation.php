@@ -30,6 +30,6 @@ class UpdateRecordOperation extends AbstractRecordOperation
 
         $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
 
-        $this->dataHandler->datamap[$table][$this->getUid()] = $this->getData();
+        $this->dataHandler->datamap[$table][$this->getUid()] = $this->getDataForDataHandler();
     }
 }

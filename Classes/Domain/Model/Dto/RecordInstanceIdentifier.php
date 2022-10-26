@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Model\Dto;
 
+use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\Domain\Model\Dto\Exception\InvalidArgumentException;
+use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -40,6 +42,11 @@ class RecordInstanceIdentifier
      * @var string|null
      */
     protected ?string $workspace;
+
+    /**
+     * @var int|null
+     */
+    protected ?int $uid = null;
 
     /**
      * @param string $table
@@ -113,6 +120,26 @@ class RecordInstanceIdentifier
     public function hasWorkspace(): bool
     {
         return $this->workspace !== null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUid(): int
+    {
+        if ($this->uid === null) {
+            $this->uid = $this->resolveUid();
+        }
+
+        return $this->uid;
+    }
+
+    /**
+     * @param int $uid
+     */
+    public function setUid(int $uid)
+    {
+        $this->uid = $uid;
     }
 
     /**
@@ -210,5 +237,37 @@ class RecordInstanceIdentifier
         throw new InvalidArgumentException(
             'The language "' . $language . '" is not defined in this TYPO3 instance.'
         );
+    }
+
+    /**
+     * Resolves the UID for the remote ID.
+     *
+     * @return int
+     * @throws ConflictException
+     */
+    protected function resolveUid(): int
+    {
+        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
+        if (
+            $mappingRepository->exists($this->getRemoteIdWithAspects())
+            && $mappingRepository->table($this->getRemoteIdWithAspects()) !== $this->getTable()
+        ) {
+            throw new ConflictException(
+                'The remote ID "' . $this->getRemoteIdWithAspects() . '" exists, '
+                . 'but doesn\'t belong to the table "' . $this->getRemoteIdWithAspects() . '".',
+                1634213051764
+            );
+        }
+
+        return $mappingRepository->get($this->getRemoteIdWithAspects());
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->getRemoteIdWithAspects();
     }
 }

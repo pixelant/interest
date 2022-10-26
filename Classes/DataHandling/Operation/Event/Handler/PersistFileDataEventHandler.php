@@ -59,7 +59,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             return;
         }
 
-        $data = $this->event->getRecordOperation()->getData();
+        $data = $this->event->getRecordOperation()->getDataForDataHandler();
 
         $fileBaseName = $data['name'] ?? '';
 
@@ -128,7 +128,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $this->event->getRecordOperation()->setUid($file->getUid());
 
-        $this->event->getRecordOperation()->setData($data);
+        $this->event->getRecordOperation()->setDataForDataHandler($data);
     }
 
     /**
@@ -295,7 +295,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         if ($hashedSubfolders > 0) {
             if ($fileBaseName === '') {
-                $fileNameHash = bin2hex(random_bytes(18));
+                $fileNameHash = bin2hex(random_bytes($hashedSubfolders));
             } else {
                 $fileNameHash = md5($fileBaseName);
             }
@@ -312,6 +312,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
                 $downloadFolder = $downloadFolder->createFolder($subfolderName);
             }
         }
+
         return $downloadFolder;
     }
 
