@@ -40,9 +40,8 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
         Context::setDisableReferenceIndex(
             filter_var(
-                $request->getHeader('Interest-Disable-Reference-Index')[0],
-                FILTER_VALIDATE_BOOLEAN,
-                FILTER_NULL_ON_FAILURE
+                $request->getHeader('Interest-Disable-Reference-Index')[0] ?? 'false',
+                FILTER_VALIDATE_BOOLEAN
             )
         );
 
