@@ -153,6 +153,109 @@ When creating a :php:`RecordRepresentation`, you must also supply a :php:`Record
        )
    );
 
+.. _extending-record-operations:
+
+Record operations
+-----------------
+
+Record operations are the core of the Interest extension. Each represents one operation requested from the outside. One record operation is not the same as one database operation. Some record operations will not be executed (if it is a duplicate of the previous operation on the same remote ID) or deferred (if the record operation requires a condition to be fulfilled before it can be executed).
+
+The record operations are invokable, and are executed as such:
+
+.. code-block: php
+
+   (CreateRecordOperation(/* ... */))();
+
+.. _extending-record-operation-types:
+
+Record operation types
+~~~~~~~~~~~~~~~~~~~~~~
+
+There are three record operations:
+
+* Create
+* Update
+* Delete
+
+All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation`, and both Create and Update share its API, while Delete has a reduced constructor.
+
+.. info::
+
+   The constructor of :php:`Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation` **might change in the future**. A delete operation requires no field data. It is unnecessary (and only a requirement of the parent class) to require a :php:`Pixelant\Interest\Domain\Model\Dto\RecordRepresentation`. It should be sufficient to supply a :php:`Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier`.
+
+.. php:namespace:: Pixelant\Interest\DataHandling\Operation
+
+.. php:class:: AbstractRecordOperation
+
+..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+
+.. php:class:: CreateRecordOperation
+
+..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+
+.. php:class:: UpdateRecordOperation
+
+   .. php:method:: __construct($recordRepresentation, $metaData)
+
+      :param Pixelant\Interest\Domain\Model\Dto\RecordRepresentation $recordRepresentation:
+
+      :param array $metaData:
+
+   .. php:method:: getDataForDataHandler()
+
+      Get the data that will be written to the DataHandler. This is a modified version of the data in :php:`$this->getRecordRepresentation()->getData()`.
+
+      :returntype: array
+
+   .. php:method:: setDataForDataHandler($dataForDataHandler)
+
+      Set the data that will be written to the DataHandler.
+
+      :param array $dataForDataHandler:
+
+   .. php:method:: getRecordRepresentation()
+
+      :returntype: Pixelant\Interest\Domain\Model\Dto\RecordRepresentation
+
+   .. php:method:: getMetaData()
+
+      Returns the metadata array for the operation. This metadata is not used other than to generate the uniqueness hash for the operation. You can use it to transfer useful information, e.g. for transformations. See: :ref:`userts-accessing-metadata`
+
+      :returntype: array
+
+   .. php:method:: getContentRenderer()
+
+      Returns a special :php:`ContentObjectRenderer` for this operation. The data array is populated with operation-specific information when the operation object is initialized. It is not updated if this information changes.
+
+      .. code-block:: php
+
+         $contentObjectRenderer->data = [
+            'table' => $this->getTable(),
+            'remoteId' => $this->getRemoteId(),
+            'language' => $this->getLanguage()->getHreflang(),
+            'workspace' => null,
+            'metaData' => $this->getMetaData(),
+            'data' => $this->getDataForDataHandler(),
+        ];
+
+      :returntype: TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
+
+   .. php:method:: getHash()
+
+      Get the unique hash of this operation. The hash is generated when the operation object is initialized, and it is not changed. This hash makes it possible for the Interest extension to know whether the same operation has been run before.
+
+      :returntype: string
+
+..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+
+.. php:class:: DeleteRecordOperation
+
+   .. php:method:: __construct($recordRepresentation)
+
+      You cannot send metadata information to a delete operation.
+
+      :param Pixelant\Interest\Domain\Model\Dto\RecordRepresentation $recordRepresentation:
+
 .. _extending-mapping:
 
 Mapping table
