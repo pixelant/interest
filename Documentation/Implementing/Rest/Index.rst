@@ -239,11 +239,11 @@ Delete a record.
 Optional HTTP Headers
 =====================
 
-Disable updating the reference index during the request. This has a positive
-performance impact. You can (and should) reindex the reference index manually
-afterwards.
-
 .. confval:: Interest-Disable-Reference-Index
 
    :Required: false
    :Type: Boolean
+   
+   Disable updating the reference index during the request. This has a positive
+performance impact. You can (and should) reindex the reference index manually
+afterwards.
