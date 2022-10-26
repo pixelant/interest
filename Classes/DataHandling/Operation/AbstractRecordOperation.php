@@ -33,24 +33,9 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 abstract class AbstractRecordOperation
 {
     /**
-     * @var string
-     */
-    protected string $table;
-
-    /**
-     * @var string
-     */
-    protected string $remoteId;
-
-    /**
      * @var array
      */
-    protected array $data;
-
-    /**
-     * @var int
-     */
-    protected int $uid = 0;
+    protected array $dataForDataHandler;
 
     /**
      * @var int
@@ -63,11 +48,6 @@ abstract class AbstractRecordOperation
      * @var SiteLanguage|null
      */
     protected ?SiteLanguage $language;
-
-    /**
-     * @var string|null
-     */
-    protected ?string $workspace;
 
     /**
      * @var ContentObjectRenderer
@@ -141,11 +121,8 @@ abstract class AbstractRecordOperation
         ?array $metaData = []
     ) {
         $this->recordRepresentation = $recordRepresentation;
-        $this->table = strtolower($this->recordRepresentation->getRecordInstanceIdentifier()->getTable());
-        $this->remoteId = $this->recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
-        $this->data = $this->recordRepresentation->getData();
+        $this->dataForDataHandler = $this->recordRepresentation->getData();
         $this->metaData = $metaData ?? [];
-        $this->workspace = $this->recordRepresentation->getRecordInstanceIdentifier()->getWorkspace();
 
         $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
 
@@ -153,15 +130,11 @@ abstract class AbstractRecordOperation
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->language = $this->recordRepresentation->getRecordInstanceIdentifier()->getLanguage();
-
         $this->createTranslationFields();
-
-        $this->uid = $this->resolveUid();
 
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
-        if (isset($this->getData()['pid']) || $this instanceof CreateRecordOperation) {
+        if (isset($this->getDataForDataHandler()['pid']) || $this instanceof CreateRecordOperation) {
             $this->storagePid = $this->resolveStoragePid();
         }
 
@@ -187,8 +160,8 @@ abstract class AbstractRecordOperation
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
 
-        if (!isset($this->getData()['pid']) && $this instanceof CreateRecordOperation) {
-            $this->data['pid'] = $this->storagePid;
+        if (!isset($this->getDataForDataHandler()['pid']) && $this instanceof CreateRecordOperation) {
+            $this->dataForDataHandler['pid'] = $this->storagePid;
         }
     }
 
@@ -236,7 +209,11 @@ abstract class AbstractRecordOperation
                 $this
             );
 
-            $this->setUid($this->mappingRepository->get($this->remoteId));
+            $this->setUid(
+                $this->mappingRepository->get(
+                    $this->getRecordRepresentation()->getRecordInstanceIdentifier()->getRemoteIdWithAspects()
+                )
+            );
         } else {
             $this->mappingRepository->update($this);
         }
@@ -254,7 +231,7 @@ abstract class AbstractRecordOperation
     public function getArguments(): array
     {
         return [
-            $this->getData(),
+            $this->getDataForDataHandler(),
             $this->getTable(),
             $this->getRemoteId(),
             $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang(),
@@ -270,7 +247,10 @@ abstract class AbstractRecordOperation
      */
     private function validateFieldNames(): void
     {
-        $fieldsNotInTca = array_diff_key($this->getData(), $GLOBALS['TCA'][$this->getTable()]['columns'] ?? []);
+        $fieldsNotInTca = array_diff_key(
+            $this->getDataForDataHandler(),
+            $GLOBALS['TCA'][$this->getTable()]['columns'] ?? []
+        );
 
         if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
             throw new ConflictException(
@@ -293,15 +273,15 @@ abstract class AbstractRecordOperation
             return 0;
         }
 
-        if (isset($this->getData()['pid'])) {
-            if (!$this->mappingRepository->exists((string)$this->getData()['pid'])) {
+        if (isset($this->getDataForDataHandler()['pid'])) {
+            if (!$this->mappingRepository->exists((string)$this->getDataForDataHandler()['pid'])) {
                 throw new NotFoundException(
-                    'Unable to set PID. The remote ID "' . $this->getData()['pid'] . '" does not exist.',
+                    'Unable to set PID. The remote ID "' . $this->getDataForDataHandler()['pid'] . '" does not exist.',
                     1634205352895
                 );
             }
 
-            return $this->mappingRepository->get((string)$this->getData()['pid']);
+            return $this->mappingRepository->get((string)$this->getDataForDataHandler()['pid']);
         }
 
         $settings = $this->configurationProvider->getSettings();
@@ -326,28 +306,6 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * Resolves the UID for the remote ID.
-     *
-     * @return int
-     * @throws ConflictException
-     */
-    protected function resolveUid(): int
-    {
-        if (
-            $this->mappingRepository->exists($this->getRemoteId())
-            && $this->mappingRepository->table($this->getRemoteId()) !== $this->getTable()
-        ) {
-            throw new ConflictException(
-                'The remote ID "' . $this->getRemoteId() . '" exists, '
-                . 'but doesn\'t belong to the table "' . $this->getTable() . '".',
-                1634213051764
-            );
-        }
-
-        return $this->mappingRepository->get($this->getRemoteId());
-    }
-
-    /**
      * @return ContentObjectRenderer
      */
     private function createContentObjectRenderer(): ContentObjectRenderer
@@ -368,7 +326,7 @@ abstract class AbstractRecordOperation
             'language' => null,
             'workspace' => null,
             'metaData' => $this->getMetaData(),
-            'data' => $this->getData(),
+            'data' => $this->getDataForDataHandler(),
         ];
 
         return $contentObjectRenderer;
@@ -383,7 +341,7 @@ abstract class AbstractRecordOperation
 
         foreach ($settings['transformations.'][$this->getTable() . '.'] ?? [] as $fieldName => $configuration) {
             $settings['transformations.'][$this->getTable() . '.'][$fieldName] = $this->contentObjectRenderer->stdWrap(
-                $this->data[substr($fieldName, 0, -1)] ?? '',
+                $this->dataForDataHandler[substr($fieldName, 0, -1)] ?? '',
                 $configuration
             );
         }
@@ -401,7 +359,7 @@ abstract class AbstractRecordOperation
      */
     protected function prepareRelations()
     {
-        foreach ($this->data as $fieldName => $fieldValue) {
+        foreach ($this->dataForDataHandler as $fieldName => $fieldValue) {
             if (!$this->isRelationalField($fieldName)) {
                 continue;
             }
@@ -562,7 +520,7 @@ abstract class AbstractRecordOperation
         return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
             $this->getTable(),
             $field,
-            $this->getData(),
+            $this->getDataForDataHandler(),
             $this->getRemoteId()
         );
     }
@@ -577,22 +535,21 @@ abstract class AbstractRecordOperation
             $this->getLanguage() !== null
             && $this->getLanguage()->getLanguageId() !== 0
             && TcaUtility::isLocalizable($this->getTable())
-            && !isset($this->data[TcaUtility::getLanguageField($this->getTable())])
+            && !isset($this->dataForDataHandler[TcaUtility::getLanguageField($this->getTable())])
         ) {
             $baseLanguageRemoteId = $this->mappingRepository->removeAspectsFromRemoteId($this->getRemoteId());
 
-            $this->remoteId = $this->mappingRepository->addAspectsToRemoteId($this->getRemoteId(), $this);
-
-            $this->data[TcaUtility::getLanguageField($this->getTable())] = $this->getLanguage()->getLanguageId();
+            $this->dataForDataHandler[TcaUtility::getLanguageField($this->getTable())]
+                = $this->getLanguage()->getLanguageId();
 
             $transOrigPointerField = TcaUtility::getTransOrigPointerField($this->getTable());
-            if (!empty($transOrigPointerField) && !isset($this->data[$transOrigPointerField])) {
-                $this->data[$transOrigPointerField] = $baseLanguageRemoteId;
+            if (!empty($transOrigPointerField) && !isset($this->dataForDataHandler[$transOrigPointerField])) {
+                $this->dataForDataHandler[$transOrigPointerField] = $baseLanguageRemoteId;
             }
 
             $translationSourceField = TcaUtility::getTranslationSourceField($this->getTable());
-            if (!empty($translationSourceField) && !isset($this->data[$translationSourceField])) {
-                $this->data[$translationSourceField] = $baseLanguageRemoteId;
+            if (!empty($translationSourceField) && !isset($this->dataForDataHandler[$translationSourceField])) {
+                $this->dataForDataHandler[$translationSourceField] = $baseLanguageRemoteId;
             }
         }
     }
@@ -620,7 +577,7 @@ abstract class AbstractRecordOperation
      */
     public function getTable(): string
     {
-        return $this->table;
+        return $this->recordRepresentation->getRecordInstanceIdentifier()->getTable();
     }
 
     /**
@@ -628,23 +585,41 @@ abstract class AbstractRecordOperation
      */
     public function getRemoteId(): string
     {
-        return $this->remoteId;
+        return $this->recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
+    }
+
+    /**
+     * @return array
+     * @deprecated Will be removed in v2. Use getDataForDataHandler() instead.
+     */
+    public function getData(): array
+    {
+        return $this->getDataForDataHandler();
+    }
+
+    /**
+     * @param array $data
+     * @deprecated Will be removed in v2. Use setDataForDataHandler() instead.
+     */
+    public function setData(array $data)
+    {
+        $this->setDataForDataHandler($data);
     }
 
     /**
      * @return array
      */
-    public function getData(): array
+    public function getDataForDataHandler(): array
     {
-        return $this->data;
+        return $this->dataForDataHandler;
     }
 
     /**
-     * @param array $data
+     * @param array $dataForDataHandler
      */
-    public function setData(array $data)
+    public function setDataForDataHandler(array $dataForDataHandler)
     {
-        $this->data = $data;
+        $this->dataForDataHandler = $dataForDataHandler;
     }
 
     /**
@@ -652,7 +627,7 @@ abstract class AbstractRecordOperation
      */
     public function getUid(): int
     {
-        return $this->uid;
+        return $this->recordRepresentation->getRecordInstanceIdentifier()->getUid();
     }
 
     /**
@@ -660,7 +635,7 @@ abstract class AbstractRecordOperation
      */
     public function setUid(int $uid)
     {
-        $this->uid = $uid;
+        $this->recordRepresentation->getRecordInstanceIdentifier()->setUid($uid);
     }
 
     /**
@@ -676,7 +651,7 @@ abstract class AbstractRecordOperation
      */
     public function getLanguage(): ?SiteLanguage
     {
-        return $this->language;
+        return $this->getRecordRepresentation()->getRecordInstanceIdentifier()->getLanguage();
     }
 
     /**
@@ -722,7 +697,7 @@ abstract class AbstractRecordOperation
      */
     private function detectPendingRelations(string $fieldName, array $fieldValue, bool $prefixWithTable)
     {
-        $this->data[$fieldName] = [];
+        $this->dataForDataHandler[$fieldName] = [];
         foreach ($fieldValue as $remoteIdRelation) {
             if ($this->mappingRepository->exists($remoteIdRelation)) {
                 $uid = $this->mappingRepository->get($remoteIdRelation);
@@ -731,7 +706,7 @@ abstract class AbstractRecordOperation
                     $uid = $this->mappingRepository->table($remoteIdRelation) . '_' . $uid;
                 }
 
-                $this->data[$fieldName][] = $uid;
+                $this->dataForDataHandler[$fieldName][] = $uid;
 
                 continue;
             }
@@ -773,7 +748,7 @@ abstract class AbstractRecordOperation
     protected function convertInlineRelationsValueToCsv(string $fieldName, $type): void
     {
         if (
-            is_array($this->data[$fieldName])
+            is_array($this->dataForDataHandler[$fieldName])
             && $this->contentObjectRenderer->stdWrap(
                 $type,
                 $this
@@ -782,7 +757,7 @@ abstract class AbstractRecordOperation
                 ?? []
             ) === 'inline'
         ) {
-            $this->data[$fieldName] = implode(',', $this->data[$fieldName]);
+            $this->dataForDataHandler[$fieldName] = implode(',', $this->dataForDataHandler[$fieldName]);
         }
     }
 
@@ -791,7 +766,7 @@ abstract class AbstractRecordOperation
      */
     protected function reduceSingleValueArrayToScalar(): void
     {
-        foreach (array_keys($this->data) as $fieldName) {
+        foreach (array_keys($this->dataForDataHandler) as $fieldName) {
             $this->reduceFieldSingleValueArrayToScalar($fieldName);
         }
     }
@@ -801,7 +776,7 @@ abstract class AbstractRecordOperation
      */
     protected function reduceFieldSingleValueArrayToScalar(string $fieldName): void
     {
-        foreach ($this->data as $fieldName => $fieldValue) {
+        foreach ($this->dataForDataHandler as $fieldName => $fieldValue) {
             if (is_array($fieldValue) && count($fieldValue) <= 1) {
                 if (
                     $fieldValue === []
@@ -810,22 +785,30 @@ abstract class AbstractRecordOperation
                         || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
                     )
                 ) {
-                    $this->data[$fieldName] = 0;
+                    $this->dataForDataHandler[$fieldName] = 0;
 
                     continue;
                 }
 
-                $this->data[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
+                $this->dataForDataHandler[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
 
                 // Unset empty single-relation fields (1:n) in new records.
                 if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
-                    unset($this->data[$fieldName]);
+                    unset($this->dataForDataHandler[$fieldName]);
                 }
             }
 
-            if (isset($this->data[$fieldName]) && $this->data[$fieldName] === null) {
-                unset($this->data[$fieldName]);
+            if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
+                unset($this->dataForDataHandler[$fieldName]);
             }
+        }
+    }
+
+    public function __wakeup()
+    {
+        // Remove in v2. For compatibility with renamed property in deferred data.
+        if (isset($this->data)) {
+            $this->dataForDataHandler = $this->data;
         }
     }
 }

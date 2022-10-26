@@ -39,18 +39,18 @@ class ForeignRelationSortingEventHandlerTest extends UnitTestCase
             $recordOperationMock = $this
                 ->getMockBuilder(UpdateRecordOperation::class)
                 ->disableOriginalConstructor()
-                ->setMethods(['setData', 'getData'])
+                ->setMethods(['setDataForDataHandler', 'getDataForDataHandler'])
                 ->getMock();
         } else {
             $recordOperationMock = $this
                 ->getMockBuilder(UpdateRecordOperation::class)
                 ->disableOriginalConstructor()
-                ->onlyMethods(['setData', 'getData'])
+                ->onlyMethods(['setDataForDataHandler', 'getDataForDataHandler'])
                 ->getMock();
         }
 
         $recordOperationMock
-            ->method('getData')
+            ->method('getDataForDataHandler')
             ->willReturn($localRecordData);
 
         $event = new AfterRecordOperationEvent($recordOperationMock);

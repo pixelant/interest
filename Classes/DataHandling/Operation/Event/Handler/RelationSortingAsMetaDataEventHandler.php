@@ -58,7 +58,7 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
             $fieldConfiguration = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
                 $recordOperation->getTable(),
                 $fieldName,
-                $recordOperation->getData(),
+                $recordOperation->getDataForDataHandler(),
                 $recordOperation->getRemoteId()
             );
 
@@ -84,7 +84,7 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
 
         $sortingIntents = [];
         foreach ($fieldConfigurations as $fieldName => $configuration) {
-            $sortingIntent = $recordOperation->getData()[$fieldName] ?? [];
+            $sortingIntent = $recordOperation->getDataForDataHandler()[$fieldName] ?? [];
 
             if (empty($sortingIntent)) {
                 continue;

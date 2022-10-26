@@ -13,9 +13,9 @@ class DeferSysFileReferenceRecordOperationEventHandler extends AbstractDetermine
     {
         if (
             $this->getEvent()->getRecordOperation()->getTable() === 'sys_file_reference'
-            && isset($this->getEvent()->getRecordOperation()->getData()['uid_local'])
+            && isset($this->getEvent()->getRecordOperation()->getDataForDataHandler()['uid_local'])
         ) {
-            return $this->getEvent()->getRecordOperation()->getData()['uid_local'];
+            return $this->getEvent()->getRecordOperation()->getDataForDataHandler()['uid_local'];
         }
 
         return null;
