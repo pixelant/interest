@@ -134,6 +134,25 @@ Inside the extension, a record's state and identity is maintained by two data tr
 * **A record's unique identity** from creation to deletion is represented by :php:`Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier`.
 * **A record's current state**, including the data that should be written to the database is represented by :php:`Pixelant\Interest\Domain\Model\Dto\RecordRepresentation`.
 
+When creating a :php:`RecordRepresentation`, you must also supply a :php:`RecordInstanceIdentifier`:
+
+.. code-block::
+
+   use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
+   use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
+
+   new RecordRepresentation(
+       [
+           'title' => 'My record title',
+           'bodytext' => 'This is a story about ...',
+       ],
+       new RecordInstanceIdentifier(
+           'tt_content',
+           'ContentElementA',
+           'en'
+       )
+   );
+
 .. _extending-mapping:
 
 Mapping table
@@ -218,7 +237,7 @@ Fetching all remote IDs that have not been touched since the same time yesterday
        (new DeleteRecordOperation(
            new RecordRepresentation(
                [],
-               new RecordInstanceIdentifier($remoteId)
+               new RecordInstanceIdentifier('table', $remoteId)
            );
        ))();
    }
