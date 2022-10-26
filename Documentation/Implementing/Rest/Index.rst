@@ -234,3 +234,16 @@ Delete a record.
    curl -XDELETE \
         -H 'Authorization: bearer f3c0946fb05aae4ad50897e9060ab4e8' \
         -v 'https://example.org/rest/pages/testPage'
+
+
+Optional HTTP Headers
+=====================
+
+.. confval:: Interest-Disable-Reference-Index
+
+   :Required: false
+   :Type: Boolean
+   
+   Disable updating the reference index during the request. This has a positive
+performance impact. You can (and should) reindex the reference index manually
+afterwards.

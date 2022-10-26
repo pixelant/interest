@@ -38,7 +38,12 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     {
         parent::__construct($entryPointParts, $request);
 
-        Context::setDisableReferenceIndex($request->getQueryParams()['disableReferenceIndex'] ?? false);
+        Context::setDisableReferenceIndex(
+            filter_var(
+                $request->getHeader('Interest-Disable-Reference-Index')[0] ?? 'false',
+                FILTER_VALIDATE_BOOLEAN
+            )
+        );
 
         if (Context::isDisableReferenceIndex()) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
