@@ -111,6 +111,11 @@ abstract class AbstractRecordOperation
     protected RecordRepresentation $recordRepresentation;
 
     /**
+     * @var array
+     */
+    protected array $updatedForeignFieldValues = [];
+
+    /**
      * @param RecordRepresentation $recordRepresentation to perform the operation on.
      * @param array|null $metaData any additional data items not to be persisted but used in processing.
      *
@@ -171,8 +176,14 @@ abstract class AbstractRecordOperation
             return;
         }
 
+        $this->detectUpdatedForeignFieldValues();
+
         if (count($this->dataHandler->datamap) > 0) {
             $this->dataHandler->process_datamap();
+        }
+
+        if ($this instanceof UpdateRecordOperation && count($this->updatedForeignFieldValues) > 0) {
+            $this->processUpdatedForeignFieldValues();
         }
 
         if (count($this->dataHandler->cmdmap) > 0) {
@@ -800,6 +811,48 @@ abstract class AbstractRecordOperation
 
             if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
                 unset($this->dataForDataHandler[$fieldName]);
+            }
+        }
+    }
+
+    /**
+     * Check datamap fields with foreign field and store value(s) in array.
+     * After process_datamap values can be used to compare what is actually
+     * stored in the database and we can delete removed values.
+     *
+     */
+    protected function detectUpdatedForeignFieldValues(): void
+    {
+        if ($this instanceof UpdateRecordOperation) {
+            foreach ($this->dataHandler->datamap[$this->getTable()] as $id => $data) {
+                foreach ($data as $field => $value) {
+                    $tcaFieldConf = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
+                    if ($tcaFieldConf['foreign_field']) {
+                        $this->updatedForeignFieldValues[$this->getTable()][$id][$field] = $value;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Process updated foreign field values to find values to delete by
+     * adding them to cmpmap.
+     *
+     */
+    protected function processUpdatedForeignFieldValues(): void
+    {
+        foreach ($this->updatedForeignFieldValues[$this->getTable()] as $id => $data) {
+            foreach ($data as $field => $value) {
+                $newValues = GeneralUtility::trimExplode(',', $value, true);
+                $fieldRelations = RelationUtility::getRelationsFromField($this->getTable(), $id, $field);
+                foreach ($fieldRelations as $relationTable => $values) {
+                    foreach ($values as $value) {
+                        if (!in_array($value, $newValues)) {
+                            $this->dataHandler->cmdmap[$relationTable][$value]['delete'] = 1;
+                        }
+                    }
+                }
             }
         }
     }
