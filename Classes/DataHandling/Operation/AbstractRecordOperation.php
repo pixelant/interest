@@ -176,7 +176,9 @@ abstract class AbstractRecordOperation
             return;
         }
 
-        $this->detectUpdatedForeignFieldValues();
+        if ($this instanceof UpdateRecordOperation) {
+            $this->detectUpdatedForeignFieldValues();
+        }
 
         if (count($this->dataHandler->datamap) > 0) {
             $this->dataHandler->process_datamap();
@@ -819,17 +821,14 @@ abstract class AbstractRecordOperation
      * Check datamap fields with foreign field and store value(s) in array.
      * After process_datamap values can be used to compare what is actually
      * stored in the database and we can delete removed values.
-     *
      */
     protected function detectUpdatedForeignFieldValues(): void
     {
-        if ($this instanceof UpdateRecordOperation) {
-            foreach ($this->dataHandler->datamap[$this->getTable()] as $id => $data) {
-                foreach ($data as $field => $value) {
-                    $tcaFieldConf = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
-                    if ($tcaFieldConf['foreign_field']) {
-                        $this->updatedForeignFieldValues[$this->getTable()][$id][$field] = $value;
-                    }
+        foreach ($this->dataHandler->datamap[$this->getTable()] as $id => $data) {
+            foreach ($data as $field => $value) {
+                $tcaFieldConf = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
+                if ($tcaFieldConf['foreign_field'] ?? false) {
+                    $this->updatedForeignFieldValues[$this->getTable()][$id][$field] = $value;
                 }
             }
         }
@@ -838,7 +837,6 @@ abstract class AbstractRecordOperation
     /**
      * Process updated foreign field values to find values to delete by
      * adding them to cmpmap.
-     *
      */
     protected function processUpdatedForeignFieldValues(): void
     {
