@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
+use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
@@ -61,6 +63,192 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             $this->setName($originalName . ' (' . $key . ')');
 
             $this->updateOperationResultsInCorrectRecordDataIteration(...$value);
+        }
+    }
+
+    /**
+     * @test
+     */
+    public function updatingForeignFieldRemovesNonExistingRelationsAndUseCorrectSorting()
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        $contentElementRemoteIdentifier = 'MediaContentElement_Sample';
+
+        $sysFilesRemoteIdentifiers = [
+            'MediaElementSysFile_1',
+            'MediaElementSysFile_2',
+            'MediaElementSysFile_3',
+            'MediaElementSysFile_4',
+            'MediaElementSysFile_5',
+            'MediaElementSysFile_6',
+        ];
+
+        $sysFilesUidRemoteIdentifierMappings = [];
+
+        $this->createMediaContentElement($contentElementRemoteIdentifier);
+        $contentUid = $mappingRepository->get('MediaContentElement_Sample');
+
+        $this->createSysFiles($sysFilesRemoteIdentifiers);
+        foreach ($sysFilesRemoteIdentifiers as $sysFilesRemoteIdentifier) {
+            $uid = $mappingRepository->get($sysFilesRemoteIdentifier);
+            $sysFilesUidRemoteIdentifierMappings[$uid] = $sysFilesRemoteIdentifier;
+        }
+
+        $imageUpdates = [
+            0 => [
+                'MediaElementSysFile_5',
+                'MediaElementSysFile_3',
+                'MediaElementSysFile_1',
+            ],
+            1 => [
+                'MediaElementSysFile_1',
+                'MediaElementSysFile_3',
+                'MediaElementSysFile_5',
+            ],
+            2 => [
+                'MediaElementSysFile_1',
+                'MediaElementSysFile_2',
+                'MediaElementSysFile_5',
+                'MediaElementSysFile_3',
+            ],
+            3 => [
+                'MediaElementSysFile_6',
+                'MediaElementSysFile_2',
+                'MediaElementSysFile_5',
+            ],
+            4 => [],
+            5 => [
+                'MediaElementSysFile_4',
+            ],
+        ];
+
+        foreach ($imageUpdates as $imageUpdates) {
+            $this->updateMediaContentElementImages('MediaContentElement_Sample', $imageUpdates);
+
+            $query = 'SELECT uid_local FROM sys_file_reference WHERE uid_foreign = ' . $contentUid;
+            $query .= ' AND tablenames = \'tt_content\' AND fieldname = \'image\' AND deleted = 0';
+            $query .= ' ORDER BY sorting_foreign;';
+
+            $imageSysFileReferences = $this
+                ->getConnectionPool()
+                ->getConnectionForTable('sys_file_reference')
+                ->executeQuery($query)
+                ->fetchAll();
+
+            $databaseImageIds = array_column($imageSysFileReferences, 'uid_local');
+
+            $expectedImageIds = [];
+            foreach ($imageUpdates as $sfrRemoteIdentifier) {
+                $expectedImageIds[] = $mappingRepository->get($sfrRemoteIdentifier);
+            }
+
+            self::assertSame(
+                $expectedImageIds,
+                $databaseImageIds,
+                'Images attached to media content element isn\'t as expected.'
+            );
+        }
+    }
+
+    protected function createMediaContentElement(string $remoteIdentifier)
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        (new CreateRecordOperation(
+            new RecordRepresentation(
+                [
+                    'pid' => 'RootPage',
+                    'CType' => 'textpic',
+                ],
+                new RecordInstanceIdentifier(
+                    'tt_content',
+                    $remoteIdentifier
+                )
+            )
+        ))();
+
+        self::assertNotEquals(
+            0,
+            $mappingRepository->get($remoteIdentifier),
+            'Could not find content with remote identifier: ' . $remoteIdentifier
+        );
+    }
+
+    protected function updateMediaContentElementImages(
+        string $contentElementRemoteIdentifier,
+        array $sysFilesRemoteIdentifiers
+    ) {
+        $mappingRepository = new RemoteIdMappingRepository();
+        $sysFileReferenceIdentifiers = [];
+
+        foreach ($sysFilesRemoteIdentifiers as $sysFilesRemoteIdentifier) {
+            $sfrRemoteIdentifier = $contentElementRemoteIdentifier . '_' . $sysFilesRemoteIdentifier;
+            if ($mappingRepository->get($sfrRemoteIdentifier) === 0) {
+                (new CreateRecordOperation(
+                    new RecordRepresentation(
+                        [
+                            'pid' => 'RootPage',
+                            'uid_local' => $sysFilesRemoteIdentifier,
+                            'table_local' => 'sys_file',
+                            'uid_foreign' => $contentElementRemoteIdentifier,
+                            'fieldname' => 'image',
+                        ],
+                        new RecordInstanceIdentifier(
+                            'sys_file_reference',
+                            $sfrRemoteIdentifier
+                        )
+                    )
+                ))();
+            }
+            $sysFileReferenceIdentifiers[] = $sfrRemoteIdentifier;
+        }
+
+        (new UpdateRecordOperation(
+            new RecordRepresentation(
+                [
+                    'image' => implode(',', $sysFileReferenceIdentifiers),
+                ],
+                new RecordInstanceIdentifier(
+                    'tt_content',
+                    $contentElementRemoteIdentifier
+                )
+            )
+        ))();
+    }
+
+    protected function createSysFiles(array $remoteIdentifiers)
+    {
+        $mappingRepository = new RemoteIdMappingRepository();
+        $fileData = base64_encode(file_get_contents(__DIR__ . '/Fixtures/Image.jpg'));
+
+        $createSysFile = function (string $remoteId) use ($fileData) {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'fileData' => $fileData,
+                        'name' => 'image_' . $remoteId . '.jpg',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file',
+                        $remoteId
+                    )
+                )
+            ))();
+        };
+
+        foreach ($remoteIdentifiers as $remoteIdentifier) {
+            try {
+                $createSysFile((string)$remoteIdentifier);
+            } catch (StopRecordOperationException $e) {
+                continue;
+            }
+
+            self::assertNotEquals(
+                0,
+                $mappingRepository->get($remoteIdentifier),
+                'Could not find file with remote identifier: ' . $remoteIdentifier
+            );
         }
     }
 
