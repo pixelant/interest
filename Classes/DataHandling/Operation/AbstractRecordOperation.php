@@ -488,6 +488,9 @@ abstract class AbstractRecordOperation
         || (
             in_array($tca['type'], ['inline', 'select'], true)
             && isset($tca['foreign_table'])
+        )
+        || (
+            $tca['type'] === 'category'
         );
     }
 
