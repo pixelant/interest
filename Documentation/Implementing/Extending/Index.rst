@@ -6,7 +6,7 @@
 Changing and Extending
 ======================
 
-If you need additional functionality or the extisting functionality of the extension isn't quite what you need, this section tells you how to change the behavior of the Interest extesnsion. It also tells you how to extend the functionality, as well as a bit about the extension's inner workings.
+If you need additional functionality or the extisting functionality of the extension isn't quite what you need, this section tells you how to change the behavior of the Interest extension. It also tells you how to extend the functionality, as well as a bit about the extension's inner workings.
 
 .. _extending-events:
 
