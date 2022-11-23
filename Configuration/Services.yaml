@@ -54,3 +54,39 @@ services:
       - name: event.listener
         identifier: deleteRemoteIdForDeletedFile
         event: TYPO3\CMS\Core\Resource\Event\AfterFileDeletedEvent
+
+  Pixelant\Interest\Command\CreateCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:create'
+        schedulable: false
+
+  Pixelant\Interest\Command\DeleteCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:delete'
+        schedulable: false
+
+  Pixelant\Interest\Command\UpdateCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:update'
+        schedulable: false
+
+  Pixelant\Interest\Command\ReadCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:read'
+        schedulable: false
+
+  Pixelant\Interest\Command\PendingRelationsCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:pendingrelations'
+        schedulable: false
+
+  Pixelant\Interest\Command\ClearRecordHashCommandController:
+    tags:
+      - name: console.command
+        command: 'interest:clearhash'
+        schedulable: false
