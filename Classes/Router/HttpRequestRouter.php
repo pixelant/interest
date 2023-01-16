@@ -22,10 +22,16 @@ use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Routing\PageArguments;
+use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Routes requests to the correct handler and converts exceptions to responses.
@@ -40,7 +46,7 @@ class HttpRequestRouter
      */
     public static function route(ServerRequestInterface $request): ResponseInterface
     {
-        self::initialize();
+        self::initialize($request);
 
         $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
@@ -140,7 +146,7 @@ class HttpRequestRouter
     /**
      * Necessary initialization.
      */
-    protected static function initialize()
+    protected static function initialize(ServerRequestInterface $request)
     {
         if (CompatibilityUtility::typo3VersionIsLessThan('11')) {
             require_once GeneralUtility::getFileAbsFileName(
@@ -151,6 +157,7 @@ class HttpRequestRouter
             Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationBeforeTypo3v11::class);
         } else {
             Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+            self::bootFrontendController($request);
         }
 
         ExtensionManagementUtility::loadExtTables();
@@ -240,5 +247,31 @@ class HttpRequestRouter
             ],
             405
         );
+    }
+
+    /**
+     * Booting up TSFE to make TSFE->sys_page available for ResourceFactory.
+     *
+     * @param ServerRequestInterface $request
+     */
+    protected static function bootFrontendController(ServerRequestInterface $request): void
+    {
+        /** @var Site $site */
+        $site = $request->getAttribute('site', null);
+        $frontendUser = GeneralUtility::makeInstance(FrontendUserAuthentication::class);
+        $controller = GeneralUtility::makeInstance(
+            TypoScriptFrontendController::class,
+            GeneralUtility::makeInstance(Context::class),
+            $site,
+            $site->getDefaultLanguage(),
+            new PageArguments($site->getRootPageId(), '0', []),
+            $frontendUser
+        );
+        if (!isset($GLOBALS['TSFE']) || !$GLOBALS['TSFE'] instanceof TypoScriptFrontendController) {
+            $GLOBALS['TSFE'] = $controller;
+        }
+        if (!$GLOBALS['TSFE']->sys_page instanceof PageRepository) {
+            $GLOBALS['TSFE']->sys_page = GeneralUtility::makeInstance(PageRepository::class);
+        }
     }
 }
