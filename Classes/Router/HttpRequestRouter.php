@@ -253,7 +253,6 @@ class HttpRequestRouter
      * Booting up TSFE to make TSFE->sys_page available for ResourceFactory.
      *
      * @param ServerRequestInterface $request
-     * @return void
      */
     protected static function bootFrontendController(ServerRequestInterface $request): void
     {
