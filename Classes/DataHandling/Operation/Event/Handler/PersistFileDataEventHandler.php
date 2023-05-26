@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
@@ -17,6 +16,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
@@ -206,8 +206,8 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      */
     protected function handleUrlInput(string $url): ?string
     {
-        /** @var Client $httpClient */
-        $httpClient = GeneralUtility::makeInstance(Client::class);
+        /** @var RequestFactory $httpClient */
+        $httpClient = GeneralUtility::makeInstance(RequestFactory::class);
 
         $metaData = $this->mappingRepository->getMetaDataValue(
             $this->event->getRecordOperation()->getRemoteId(),
@@ -225,7 +225,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         }
 
         try {
-            $response = $httpClient->get($url, ['headers' => $headers]);
+            $response = $httpClient->request($url, 'GET', ['headers' => $headers]);
         } catch (ClientException $exception) {
             if ($exception->getCode() >= 400) {
                 throw new NotFoundException(
@@ -446,7 +446,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
     protected function handleExistingFile(string $fileBaseName, Folder $downloadFolder): array
     {
         $handleExistingFile = GeneralUtility::makeInstance(ExtensionConfiguration::class)
-                ->get('interest', 'handleExistingFile') ?? DuplicationBehavior::CANCEL;
+            ->get('interest', 'handleExistingFile') ?? DuplicationBehavior::CANCEL;
 
         if ($handleExistingFile === DuplicationBehavior::CANCEL) {
             throw new IdentityConflictException(
