@@ -77,9 +77,7 @@ used on subsequent requests:
 
    {"success":true,"token":"f3c0946fb05aae4ad50897e9060ab4e8"}
 
-.. info::
-
-   When using Apache there is a need to add the following to .htaccess
+When using Apache there is a need to add the following to .htaccess
 
 .. code-block:: bash
 
