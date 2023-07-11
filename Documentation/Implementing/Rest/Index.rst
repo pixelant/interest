@@ -77,6 +77,16 @@ used on subsequent requests:
 
    {"success":true,"token":"f3c0946fb05aae4ad50897e9060ab4e8"}
 
+.. info::
+
+   When using Apache there is a need to add the following to .htaccess
+
+.. code-block:: bash
+
+   RewriteEngine On
+   RewriteCond %{HTTP:Authorization} ^(.*)
+   RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
 .. _implementing-rest-authentication-bearer:
 
 Scheme: bearer (OAuth)
@@ -243,7 +253,7 @@ Optional HTTP Headers
 
    :Required: false
    :Type: Boolean
-   
+
    Disable updating the reference index during the request. This has a positive
 performance impact. You can (and should) reindex the reference index manually
 afterwards.
