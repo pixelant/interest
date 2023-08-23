@@ -9,6 +9,8 @@ use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 
 class DeleteRequestHandler extends AbstractRecordRequestHandler
 {
+    protected const EXPECT_EMPTY_REQUEST = true;
+
     /**
      * @inheritDoc
      */
