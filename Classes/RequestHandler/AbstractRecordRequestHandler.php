@@ -21,6 +21,11 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 {
     /**
+     * @const bool If true, we don't expect any more data than what can be passed in the URL. E.g. DELETE operations.
+     */
+    protected const EXPECT_EMPTY_REQUEST = false;
+
+    /**
      * @var array The data array to be processed.
      */
     protected array $data = [];
@@ -61,15 +66,23 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     protected function compileData(): void
     {
-        $this->getRequest()->getBody()->rewind();
+        $body = null;
 
-        $body = $this->getRequest()->getBody()->getContents();
+        if ($this->getRequest()->getBody()) {
+            $this->getRequest()->getBody()->rewind();
 
-        if (empty($body)) {
+            $body = $this->getRequest()->getBody()->getContents();
+        }
+
+        if (!static::EXPECT_EMPTY_REQUEST && empty($body)) {
             return;
         }
 
-        $decodedContent = json_decode($body) ?? [];
+        if (empty($body)) {
+            $decodedContent = [];
+        } else {
+            $decodedContent = json_decode($body) ?? [];
+        }
 
         if (is_string($decodedContent->metaData ?? null)) {
             $decodedContent->metaData = json_decode($decodedContent->metaData) ?? [];
@@ -108,6 +121,17 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     public function handle(): ResponseInterface
     {
+        if (empty($this->data)) {
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => false,
+                    'message' => 'The request contained insufficient or no data',
+                ],
+                400
+            );
+        }
+
         $operationCount = 0;
 
         $exceptions = $this->handleOperations($operationCount);
@@ -166,7 +190,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     {
         $array = (array)$object;
 
-        return !is_object($array[array_key_first($array)]);
+        return !is_object($array[array_key_first($array)] ?? null);
     }
 
     /**
