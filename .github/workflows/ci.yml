@@ -31,6 +31,7 @@ jobs:
           - 7.4
           - 8.0
           - 8.1
+          - 8.2
   code-quality:
     name: "Code quality checks"
     runs-on: ubuntu-20.04
@@ -150,6 +151,12 @@ jobs:
           - typo3-version: ^11.5
             php-version: 8.1
             composer-dependencies: lowest
+          - typo3-version: ^11.5
+            php-version: 8.2
+            composer-dependencies: highest
+          - typo3-version: ^11.5
+            php-version: 8.2
+            composer-dependencies: lowest
   functional-tests:
     name: "Functional tests"
     runs-on: ubuntu-20.04
@@ -230,4 +237,10 @@ jobs:
             composer-dependencies: highest
           - typo3-version: ^11.5
             php-version: 8.1
+            composer-dependencies: lowest
+          - typo3-version: ^11.5
+            php-version: 8.2
+            composer-dependencies: highest
+          - typo3-version: ^11.5
+            php-version: 8.2
             composer-dependencies: lowest
