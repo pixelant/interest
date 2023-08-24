@@ -33,7 +33,7 @@ class ProcessCmdmap
         $pasteUpdate,
         $pasteDatamap
     ) {
-        if ($command === 'delete') {
+        if ($command === 'delete' && $dataHandler->hasDeletedRecord($table, $id)) {
             /** @var RemoteIdMappingRepository $mappingRepository */
             $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
