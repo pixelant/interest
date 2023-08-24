@@ -13,6 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class RequestMiddleware implements MiddlewareInterface
@@ -37,7 +38,7 @@ class RequestMiddleware implements MiddlewareInterface
 
             $response = HttpRequestRouter::route($request);
 
-            $response = CompatibilityUtility::dispatchEvent(
+            $response = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
                 new HttpResponseEvent($response)
             )->getResponse();
 

@@ -16,6 +16,7 @@ use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\CompatibilityUtility;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -46,7 +47,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->hash = md5(static::class . serialize($this->getArguments()));
 
         try {
-            CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
+            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
         } catch (StopRecordOperationException $exception) {
             $this->operationStopped = true;
 
