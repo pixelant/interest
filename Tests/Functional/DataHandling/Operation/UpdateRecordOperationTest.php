@@ -123,8 +123,8 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             ],
         ];
 
-        foreach ($imageUpdates as $imageUpdates) {
-            $this->updateMediaContentElementImages('MediaContentElement_Sample', $imageUpdates);
+        foreach ($imageUpdates as $imageUpdateRemoteIdentifiers) {
+            $this->updateMediaContentElementImages('MediaContentElement_Sample', $imageUpdateRemoteIdentifiers);
 
             $query = 'SELECT uid_local FROM sys_file_reference WHERE uid_foreign = ' . $contentUid;
             $query .= ' AND tablenames = \'tt_content\' AND fieldname = \'image\' AND deleted = 0';
@@ -139,7 +139,7 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             $databaseImageIds = array_column($imageSysFileReferences, 'uid_local');
 
             $expectedImageIds = [];
-            foreach ($imageUpdates as $sfrRemoteIdentifier) {
+            foreach ($imageUpdateRemoteIdentifiers as $sfrRemoteIdentifier) {
                 $expectedImageIds[] = $mappingRepository->get($sfrRemoteIdentifier);
             }
 

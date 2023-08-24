@@ -7,8 +7,6 @@ namespace Pixelant\Interest\DataHandling\Operation;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
@@ -116,61 +114,6 @@ abstract class AbstractRecordOperation
      */
     protected array $updatedForeignFieldValues = [];
 
-    /**
-     * @param RecordRepresentation $recordRepresentation to perform the operation on.
-     * @param array|null $metaData any additional data items not to be persisted but used in processing.
-     *
-     * @throws StopRecordOperationException is re-thrown from BeforeRecordOperationEvent handlers
-     */
-    public function __construct(
-        RecordRepresentation $recordRepresentation,
-        ?array $metaData = []
-    ) {
-        $this->recordRepresentation = $recordRepresentation;
-        $this->dataForDataHandler = $this->recordRepresentation->getData();
-        $this->metaData = $metaData ?? [];
-
-        $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
-
-        $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
-
-        $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
-
-        $this->createTranslationFields();
-
-        $this->contentObjectRenderer = $this->createContentObjectRenderer();
-
-        if (isset($this->getDataForDataHandler()['pid']) || $this instanceof CreateRecordOperation) {
-            $this->storagePid = $this->resolveStoragePid();
-        }
-
-        $this->hash = md5(static::class . serialize($this->getArguments()));
-
-        try {
-            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
-        } catch (StopRecordOperationException $exception) {
-            $this->operationStopped = true;
-
-            throw $exception;
-        }
-
-        $this->validateFieldNames();
-
-        $this->contentObjectRenderer->data['language']
-            = $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
-
-        $this->applyFieldDataTransformations();
-
-        $this->prepareRelations();
-
-        $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
-        $this->dataHandler->start([], []);
-
-        if (!isset($this->getDataForDataHandler()['pid']) && $this instanceof CreateRecordOperation) {
-            $this->dataForDataHandler['pid'] = $this->storagePid;
-        }
-    }
-
     public function __invoke()
     {
         if ($this->operationStopped) {
@@ -193,7 +136,7 @@ abstract class AbstractRecordOperation
             $this->dataHandler->process_cmdmap();
         }
 
-        if (!empty($this->dataHandler->errorLog)) {
+        if (count($this->dataHandler->errorLog) > 0) {
             throw new DataHandlerErrorException(
                 'Error occurred during the data handling: ' . implode(', ', $this->dataHandler->errorLog)
                 . ' Datamap: ' . json_encode($this->dataHandler->datamap)
@@ -259,7 +202,7 @@ abstract class AbstractRecordOperation
      *
      * @throws ConflictException
      */
-    private function validateFieldNames(): void
+    protected function validateFieldNames(): void
     {
         $fieldsNotInTca = array_diff_key(
             $this->getDataForDataHandler(),
@@ -281,7 +224,7 @@ abstract class AbstractRecordOperation
      * @throws NotFoundException
      * @throws InvalidArgumentException
      */
-    private function resolveStoragePid(): int
+    protected function resolveStoragePid(): int
     {
         if (($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null) === 1) {
             return 0;
@@ -305,7 +248,7 @@ abstract class AbstractRecordOperation
             $settings['persistence.']['storagePid.'] ?? []
         );
 
-        if (empty($pid)) {
+        if ($pid === null || $pid === '') {
             $pid = 0;
         }
 
@@ -322,7 +265,7 @@ abstract class AbstractRecordOperation
     /**
      * @return ContentObjectRenderer
      */
-    private function createContentObjectRenderer(): ContentObjectRenderer
+    protected function createContentObjectRenderer(): ContentObjectRenderer
     {
         if (CompatibilityUtility::typo3VersionIsLessThan('10')) {
             /** @var ContentObjectRenderer $contentObjectRenderer */
@@ -349,7 +292,7 @@ abstract class AbstractRecordOperation
     /**
      * Applies field value transformations defined in `tx_interest.transformations.<tableName>.<fieldName>`.
      */
-    private function applyFieldDataTransformations(): void
+    protected function applyFieldDataTransformations(): void
     {
         $settings = $this->configurationProvider->getSettings();
 
@@ -521,7 +464,7 @@ abstract class AbstractRecordOperation
 
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
-        return ($tca['maxitems'] ?? 0) === 1 && empty($tca['foreign_table']);
+        return ($tca['maxitems'] ?? 0) === 1 && (!isset($tca['foreign_table']) || $tca['foreign_table'] === '');
     }
 
     /**
@@ -560,12 +503,20 @@ abstract class AbstractRecordOperation
                 = $this->getLanguage()->getLanguageId();
 
             $transOrigPointerField = TcaUtility::getTransOrigPointerField($this->getTable());
-            if (!empty($transOrigPointerField) && !isset($this->dataForDataHandler[$transOrigPointerField])) {
+            if (
+                $transOrigPointerField !== null
+                && $transOrigPointerField !== ''
+                && !isset($this->dataForDataHandler[$transOrigPointerField])
+            ) {
                 $this->dataForDataHandler[$transOrigPointerField] = $baseLanguageRemoteId;
             }
 
             $translationSourceField = TcaUtility::getTranslationSourceField($this->getTable());
-            if (!empty($translationSourceField) && !isset($this->dataForDataHandler[$translationSourceField])) {
+            if (
+                $translationSourceField !== null
+                && $translationSourceField !== ''
+                && !isset($this->dataForDataHandler[$translationSourceField])
+            ) {
                 $this->dataForDataHandler[$translationSourceField] = $baseLanguageRemoteId;
             }
         }
@@ -793,31 +744,31 @@ abstract class AbstractRecordOperation
      */
     protected function reduceFieldSingleValueArrayToScalar(string $fieldName): void
     {
-        foreach ($this->dataForDataHandler as $fieldName => $fieldValue) {
-            if (is_array($fieldValue) && count($fieldValue) <= 1) {
-                if (
-                    $fieldValue === []
-                    && (
-                        $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
-                        || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
-                    )
-                ) {
-                    $this->dataForDataHandler[$fieldName] = 0;
+        $fieldValue = $this->dataForDataHandler[$fieldName];
 
-                    continue;
-                }
+        if (is_array($fieldValue) && count($fieldValue) <= 1) {
+            if (
+                $fieldValue === []
+                && (
+                    $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
+                    || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
+                )
+            ) {
+                $this->dataForDataHandler[$fieldName] = 0;
 
-                $this->dataForDataHandler[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
-
-                // Unset empty single-relation fields (1:n) in new records.
-                if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
-                    unset($this->dataForDataHandler[$fieldName]);
-                }
+                return;
             }
 
-            if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
+            $this->dataForDataHandler[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
+
+            // Unset empty single-relation fields (1:n) in new records.
+            if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
                 unset($this->dataForDataHandler[$fieldName]);
             }
+        }
+
+        if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
+            unset($this->dataForDataHandler[$fieldName]);
         }
     }
 
@@ -848,10 +799,10 @@ abstract class AbstractRecordOperation
             foreach ($data as $field => $value) {
                 $newValues = GeneralUtility::trimExplode(',', $value, true);
                 $fieldRelations = RelationUtility::getRelationsFromField($this->getTable(), $id, $field);
-                foreach ($fieldRelations as $relationTable => $values) {
-                    foreach ($values as $value) {
-                        if (!in_array($value, $newValues)) {
-                            $this->dataHandler->cmdmap[$relationTable][$value]['delete'] = 1;
+                foreach ($fieldRelations as $relationTable => $relationTableValues) {
+                    foreach ($relationTableValues as $relationTableValue) {
+                        if (!in_array((string)$relationTableValue, $newValues, true)) {
+                            $this->dataHandler->cmdmap[$relationTable][$relationTableValue]['delete'] = 1;
                         }
                     }
                 }

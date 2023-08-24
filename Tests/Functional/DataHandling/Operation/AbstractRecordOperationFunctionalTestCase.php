@@ -13,9 +13,9 @@ use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestCase
 {
     /**
-     * @var array<int, non-empty-string>
+     * @var array<non-empty-string>
      */
-    protected $testExtensionsToLoad = ['typo3conf/ext/interest'];
+    protected array $testExtensionsToLoad = ['typo3conf/ext/interest'];
 
     protected function setUp(): void
     {

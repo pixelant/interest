@@ -32,7 +32,8 @@ class UpdateCommandController extends AbstractReceiveCommandController
                 'create',
                 'c',
                 InputOption::VALUE_NONE,
-                'Quietly create the record if it doesn\'t already exist.'
+                'Quietly create the record if it doesn\'t already exist.',
+                false
             );
     }
 
@@ -66,7 +67,7 @@ class UpdateCommandController extends AbstractReceiveCommandController
 
                 continue;
             } catch (NotFoundException $exception) {
-                if (!$input->getOption('create')) {
+                if ($input->getOption('create') === false) {
                     throw $exception;
                 }
 

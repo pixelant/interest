@@ -63,7 +63,7 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
             );
 
             if (
-                !empty($fieldConfiguration['MM'] ?? '')
+                ($fieldConfiguration['MM'] ?? '') !== ''
                 && (!isset($fieldConfiguration['maxitems']) || $fieldConfiguration['maxitems'] > 1)
             ) {
                 $fieldConfigurations[$fieldName] = $fieldConfiguration;
@@ -86,7 +86,7 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
         foreach ($fieldConfigurations as $fieldName => $configuration) {
             $sortingIntent = $recordOperation->getDataForDataHandler()[$fieldName] ?? [];
 
-            if (empty($sortingIntent)) {
+            if (($sortingIntent ?? []) === []) {
                 continue;
             }
 
