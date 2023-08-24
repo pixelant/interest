@@ -5,7 +5,6 @@ namespace Pixelant\Interest\Middleware;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\Middleware\Event\HttpResponseEvent;
 use Pixelant\Interest\Router\HttpRequestRouter;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;

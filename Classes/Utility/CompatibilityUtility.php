@@ -4,10 +4,7 @@
 
 namespace Pixelant\Interest\Utility;
 
-use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
-use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
 
 /**
  * Miscellaneous functions relating to compatibility with different TYPO3 versions

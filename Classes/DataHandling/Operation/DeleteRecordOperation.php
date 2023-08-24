@@ -15,7 +15,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
