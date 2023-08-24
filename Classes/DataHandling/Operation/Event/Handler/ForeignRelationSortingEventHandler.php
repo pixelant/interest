@@ -71,7 +71,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
                 $persistedRecordData
             );
 
-            if (!empty($fieldConfiguration['MM'] ?? '')) {
+            if (($fieldConfiguration['MM'] ?? '') !== '') {
                 $fieldConfigurations[$fieldName] = $fieldConfiguration;
             }
         }
@@ -112,16 +112,13 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
             RelationSortingAsMetaDataEventHandler::class
         ) ?? [];
 
-        $fieldName = null;
-        $orderingIntent = null;
-
         foreach ($orderingIntents as $fieldName => $orderingIntent) {
-            if (in_array($localRemoteId, $orderingIntent)) {
+            if (in_array($localRemoteId, $orderingIntent, true)) {
                 break;
             }
         }
 
-        if ($orderingIntent === null) {
+        if (!isset($fieldName) || !isset($orderingIntent)) {
             return [];
         }
 
@@ -188,7 +185,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         foreach ($this->getMmFieldConfigurations() as $fieldName => $fieldConfiguration) {
             $relationIds = $this->event->getRecordOperation()->getDataForDataHandler()[$fieldName] ?? [];
 
-            if (empty($relationIds)) {
+            if ($relationIds === [] || $relationIds === '') {
                 continue;
             }
 
@@ -232,7 +229,7 @@ class ForeignRelationSortingEventHandler implements AfterRecordOperationEventHan
         $dataHandler->start($data, []);
         $dataHandler->process_datamap();
 
-        if (!empty($dataHandler->errorLog)) {
+        if (count($dataHandler->errorLog) > 0) {
             throw new DataHandlerErrorException(
                 'Error occurred during foreign-side relation ordering in remote ID based on relations'
                 . ' from remote ID "' . $this->event->getRecordOperation()->getRemoteId() . '": '

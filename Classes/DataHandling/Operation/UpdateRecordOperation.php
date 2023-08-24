@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Performs an update operation on a record.
  */
-class UpdateRecordOperation extends AbstractRecordOperation
+class UpdateRecordOperation extends AbstractConstructiveRecordOperation
 {
     public function __construct(
         RecordRepresentation $recordRepresentation,

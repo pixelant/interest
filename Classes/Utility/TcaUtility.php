@@ -142,18 +142,18 @@ class TcaUtility
         if (self::$inlineRelationsToTablesCache === null) {
             $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
 
-            $cacheName = CompatibilityUtility::typo3VersionIsLessThan('10') ? 'cache_hash' : 'hash';
-
             $cacheHash = md5(self::class . '_inlineRelationsToTables');
 
-            $cache = $cacheManager->getCache($cacheName);
+            $cache = $cacheManager->getCache('hash');
 
-            self::$inlineRelationsToTablesCache = $cache->get($cacheHash) ?: null;
+            $inlineRelationsToTables = $cache->get($cacheHash);
 
-            if (self::$inlineRelationsToTablesCache === null || !is_array(self::$inlineRelationsToTablesCache)) {
+            if (!is_array($inlineRelationsToTables)) {
                 self::populateInlineRelationsToTablesCache();
 
                 $cache->set($cacheHash, self::$inlineRelationsToTablesCache);
+            } else {
+                self::$inlineRelationsToTablesCache = $inlineRelationsToTables;
             }
         }
 

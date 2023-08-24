@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @noinspection PhpMissingParentConstructorInspection
- */
-
 declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
@@ -23,9 +19,13 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class DeleteRecordOperation extends AbstractRecordOperation
 {
-    public function __construct(
-        RecordRepresentation $recordRepresentation
-    ) {
+    /**
+     * @param RecordRepresentation $recordRepresentation
+     * @throws \Pixelant\Interest\RequestHandler\Exception\NotFoundException
+     * @throws \Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException
+     */
+    public function __construct(RecordRepresentation $recordRepresentation)
+    {
         $this->recordRepresentation = $recordRepresentation;
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
