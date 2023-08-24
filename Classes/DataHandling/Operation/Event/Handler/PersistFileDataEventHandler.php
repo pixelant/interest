@@ -14,7 +14,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\DuplicationBehavior;
@@ -27,6 +26,7 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -63,7 +63,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $fileBaseName = $data['name'] ?? '';
 
-        if (!CompatibilityUtility::getFileNameValidator()->isValid($fileBaseName)) {
+        if (!GeneralUtility::makeInstance(FileNameValidator::class)->isValid($fileBaseName)) {
             throw new InvalidFileNameException(
                 'Invalid file name: "' . $fileBaseName . '"',
                 1634664683340

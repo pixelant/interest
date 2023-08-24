@@ -21,6 +21,7 @@ use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
@@ -146,7 +147,7 @@ abstract class AbstractRecordOperation
         $this->hash = md5(static::class . serialize($this->getArguments()));
 
         try {
-            CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
+            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
         } catch (StopRecordOperationException $exception) {
             $this->operationStopped = true;
 
@@ -233,7 +234,7 @@ abstract class AbstractRecordOperation
 
         $this->persistPendingRelations();
 
-        CompatibilityUtility::dispatchEvent(new AfterRecordOperationEvent($this));
+        GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new AfterRecordOperationEvent($this));
     }
 
     /**

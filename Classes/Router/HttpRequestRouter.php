@@ -24,7 +24,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Site\Entity\Site;
@@ -90,7 +92,7 @@ class HttpRequestRouter
         } catch (\Throwable $throwable) {
             $trace = [];
 
-            if (CompatibilityUtility::getApplicationContext()->isDevelopment()) {
+            if (Environment::getContext()->isDevelopment()) {
                 $trace = self::generateExceptionTrace($throwable);
             }
 
@@ -204,7 +206,7 @@ class HttpRequestRouter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
-        $event = CompatibilityUtility::dispatchEvent(
+        $event = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
             new HttpRequestRouterHandleByEvent($request, $entryPointParts)
         );
 
