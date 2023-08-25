@@ -23,4 +23,4 @@ parameters:
 
   excludePaths:
     - Tests/Acceptance/
-    - Classes/Console/OptimizedCommandRequestHandler.php
+    - Classes/Authentication/HttpBackendUserAuthentication.php
