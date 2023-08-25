@@ -36,12 +36,12 @@ class ConfigurationProvider implements SingletonInterface
         $this->extensionConfiguration['log'] = (int)(
             getenv('APP_INTEREST_LOG') !== false
             ? getenv('APP_INTEREST_LOG')
-            : $this->extensionConfiguration['log']
+            : ($this->extensionConfiguration['log'] ?? 0)
         );
         $this->extensionConfiguration['logMs'] = (int)(
             getenv('APP_INTEREST_LOG_MS') !== false
             ? getenv('APP_INTEREST_LOG_MS')
-            : $this->extensionConfiguration['logMs']
+            : ($this->extensionConfiguration['logMs'] ?? 0)
         );
     }
 

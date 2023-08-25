@@ -52,6 +52,28 @@ REST
 Behavior
 --------
 
+.. confval:: Handle Empty Files
+
+   :Required: true
+   :Type: int
+   :Default: 0
+   :Key: `handleEmptyFile`
+
+   How to handle files that are empty. Available options are:
+
+   **0**
+      Treat as any other file. You can also use this option if you want to
+      handle empty files with a custom
+      :php:`Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent`.
+      Just make sure your EventHandler it is executed after
+      :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler`.
+   **1**
+      Stop processing the record. This might result in pending relation records
+      that will never be resolved in the database, but if that's OK for you it
+      won't cause any issues.
+   **2**
+      Fail. The operation will be treated as failed and returns an error.
+
 .. confval:: Handle Existing Files
 
    :Required: true
@@ -91,13 +113,13 @@ Logging of REST calls, including request and response data and execution time.
 
    Enable logging and specify where to log. Available values:
 
-   0
+   **0**
       Disabled. No logging.
-   1
+   **1**
       Log in response headers
-   2
+   **2**
       Log in database.
-   3
+   **3**
       Log in both response headers and database.
 
 .. confval:: Logging threshold

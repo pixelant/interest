@@ -11,9 +11,13 @@ namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
@@ -93,7 +97,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         self::assertEquals($createdRecord, $expectedRow, 'Comparing created record with expected data.');
     }
 
-    public function recordRepresentationAndCorrespondingRowDataProvider()
+    public function recordRepresentationAndCorrespondingRowDataProvider(): array
     {
         return [
             'Base language record' => [
@@ -343,5 +347,57 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 'Created sys_file iteration ' . $iteration
             );
         }
+    }
+
+    /**
+     * @test
+     */
+    public function createEmptyFileIsHandledAsConfigured()
+    {
+        $createEmptySysFile = function () {
+            (new CreateRecordOperation(
+                new RecordRepresentation(
+                    [
+                        'fileData' => '',
+                        'name' => 'emptyFile.txt',
+                    ],
+                    new RecordInstanceIdentifier(
+                        'sys_file',
+                        'EmptyFile'
+                    )
+                )
+            ))();
+        };
+
+        GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->set('interest', ['handleEmptyFile' => '1']);
+
+        self::expectException(StopRecordOperationException::class);
+        self::expectExceptionCode(1692921622763);
+
+        $createEmptySysFile();
+
+        GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->set('interest', ['handleEmptyFile' => '2']);
+
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionCode(1692921660432);
+
+        $createEmptySysFile();
+
+        GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->set('interest', ['handleEmptyFile' => '0']);
+
+        $createEmptySysFile();
+
+        $mappingRepository = new RemoteIdMappingRepository();
+
+        $fileId = $mappingRepository->get('EmptyFile');
+
+        $file = GeneralUtility::makeInstance(ResourceFactory::class)->getFileObject($fileId);
+
+        self::assertIsObject($file, 'File object was found');
+        self::assertEquals(0, $file->getSize(), 'File size is zero');
+        self::assertEmpty($file->getSize(), 'File content is empty');
     }
 }
