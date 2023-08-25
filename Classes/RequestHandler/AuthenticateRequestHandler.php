@@ -71,7 +71,7 @@ class AuthenticateRequestHandler extends AbstractRequestHandler
 
         $backendUser->checkAuthentication();
 
-        if (empty($backendUser->user['uid'])) {
+        if (($backendUser->user['uid'] ?? 0) !== 0) {
             throw new UnauthorizedAccessException(
                 'Basic login failed.',
                 $this->request

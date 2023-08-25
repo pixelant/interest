@@ -211,15 +211,4 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
     {
         $this->loginFormData = $data;
     }
-
-    /**
-     * Returns an info array with Login/Logout data from headers
-     *
-     * @return array
-     * @internal
-     */
-    public function getLoginFormData()
-    {
-        return $this->loginFormData;
-    }
 }

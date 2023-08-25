@@ -70,7 +70,6 @@ class PendingRelationsRepository extends AbstractRepository
      * @param string $field
      * @param int $uid
      * @param string $remoteId
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function setSingle(string $table, string $field, int $uid, string $remoteId)
     {

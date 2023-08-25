@@ -302,7 +302,6 @@ abstract class AbstractRecordOperation
      * information is temporarily added to $this->pendingRelations and persisted using persistPendingRelations().
      *
      * @see persistPendingRelations()
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     protected function prepareRelations()
     {

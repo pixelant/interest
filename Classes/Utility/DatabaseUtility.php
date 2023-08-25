@@ -25,7 +25,7 @@ class DatabaseUtility
     public static function getRecord(string $table, int $uid, array $fields = ['*'])
     {
         // Ensure we have a valid uid (not 0 and not NEWxxxx) and a valid TCA
-        if (!empty($GLOBALS['TCA'][$table])) {
+        if (($GLOBALS['TCA'][$table] ?? []) !== []) {
             $queryBuilder = self::getQueryBuilderForTable($table);
 
             // do not use enabled fields here
@@ -36,7 +36,7 @@ class DatabaseUtility
             $queryBuilder
                 ->select(...$fields)
                 ->from($table)
-                ->where($queryBuilder->expr()->eq('uid', (int)$uid));
+                ->where($queryBuilder->expr()->eq('uid', $uid));
 
             $result = $queryBuilder->execute();
 

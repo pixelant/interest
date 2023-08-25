@@ -13,6 +13,7 @@ use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -66,19 +67,19 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     protected function compileData(): void
     {
-        $body = null;
+        $body = '';
 
-        if ($this->getRequest()->getBody()) {
+        if ($this->getRequest()->getBody() instanceof StreamInterface) {
             $this->getRequest()->getBody()->rewind();
 
             $body = $this->getRequest()->getBody()->getContents();
         }
 
-        if (!static::EXPECT_EMPTY_REQUEST && empty($body)) {
+        if (!static::EXPECT_EMPTY_REQUEST && $body === '') {
             return;
         }
 
-        if (empty($body)) {
+        if ($body === '') {
             $decodedContent = [];
         } else {
             $decodedContent = json_decode($body) ?? [];
@@ -121,7 +122,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     public function handle(): ResponseInterface
     {
-        if (empty($this->data)) {
+        if ($this->data === []) {
             return GeneralUtility::makeInstance(
                 JsonResponse::class,
                 [
@@ -147,7 +148,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             );
         }
 
-        if ($operationCount === 1 && count($exceptions)) {
+        if ($operationCount === 1 && count($exceptions) > 0) {
             throw OperationToRequestHandlerExceptionConverter::convert(
                 current(ArrayUtility::flatten($exceptions)),
                 $this->getRequest()

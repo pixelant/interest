@@ -30,7 +30,8 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
 
         GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', 'http://www.example.com/');
 
-        $siteConfiguration = new SiteConfiguration(
+        $siteConfiguration = GeneralUtility::makeInstance(
+            SiteConfiguration::class,
             GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites')
         );
 

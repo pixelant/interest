@@ -242,7 +242,6 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @return bool
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     public function exists(string $remoteId): bool
     {

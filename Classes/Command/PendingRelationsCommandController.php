@@ -41,7 +41,8 @@ class PendingRelationsCommandController extends Command
                 'resolve',
                 'r',
                 InputOption::VALUE_NONE,
-                'Attempt to resolve pending relations where both sides exist.'
+                'Attempt to resolve pending relations where both sides exist.',
+                false
             );
     }
 
@@ -149,7 +150,7 @@ class PendingRelationsCommandController extends Command
 
         $table->render();
 
-        if (!$input->getOption('resolve')) {
+        if ($input->getOption('resolve') === false) {
             return 0;
         }
 

@@ -192,7 +192,7 @@ class RecordInstanceIdentifier
      */
     protected function resolveLanguage(?string $language): ?SiteLanguage
     {
-        if (!TcaUtility::isLocalizable($this->getTable()) || empty($language)) {
+        if (!TcaUtility::isLocalizable($this->getTable()) || ($language ?? '') !== '') {
             return null;
         }
 
