@@ -19,10 +19,10 @@
 		"php": "~7.4.0 || ~8.0.0 || ~8.1.0 || ~8.2.0",
 		"ext-json": "*",
 		"ext-pdo": "*",
-		"typo3/cms-core": "^11.5.5",
-		"typo3/cms-extbase": "^11.5.5",
-		"typo3/cms-fluid": "^11.5.5",
-		"typo3/cms-frontend": "^11.5.5"
+		"typo3/cms-core": "^11.5.4 || ^12.4",
+		"typo3/cms-extbase": "^11.5.4 || ^12.4",
+		"typo3/cms-fluid": "^11.5.4 || ^12.4",
+		"typo3/cms-frontend": "^11.5.4 || ^12.4"
 	},
 	"require-dev": {
 		"doctrine/dbal": "^2.13.5 || ^3.6.2",
@@ -46,8 +46,7 @@
 		"typo3-ter/interest": "self.version"
 	},
 	"conflict": {
-		"phpstan/phpstan": "1.7.12 || 1.7.13 || 1.7.14",
-		"typo3/class-alias-loader": "< 1.1.0"
+		"phpstan/phpstan": "1.7.12 || 1.7.13 || 1.7.14"
 	},
 	"prefer-stable": true,
 	"autoload": {
