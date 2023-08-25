@@ -1,6 +1,7 @@
 <?php
 
 use Pixelant\Interest\Middleware\RequestMiddleware;
+
 return [
     'frontend' => [
         'interest-rest-requests' => [

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Console;
 
-use TYPO3\CMS\Core\Console\CommandNameAlreadyInUseException;
 use Symfony\Component\Console\Command\Command;
+use TYPO3\CMS\Core\Console\CommandNameAlreadyInUseException;
 use TYPO3\CMS\Core\Console\CommandRegistry;
 use TYPO3\CMS\Core\Console\CommandRequestHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
