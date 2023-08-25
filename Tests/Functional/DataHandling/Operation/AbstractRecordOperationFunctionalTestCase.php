@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -21,11 +20,7 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
     {
         parent::setUp();
 
-        if (CompatibilityUtility::typo3VersionIsLessThan('10')) {
-            $this->importCSVDataSet(__DIR__ . '/Fixtures/BackendUserForVersion9.csv');
-        } else {
-            $this->importCSVDataSet(__DIR__ . '/Fixtures/BackendUser.csv');
-        }
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/BackendUser.csv');
 
         $this->importCSVDataSet(__DIR__ . '/Fixtures/Records.csv');
 

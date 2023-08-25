@@ -14,7 +14,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\RelationUtility;
 use Pixelant\Interest\Utility\TcaUtility;
@@ -24,7 +23,6 @@ use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Abstract class for handling record operations like create, delete, read, and update.
@@ -267,15 +265,7 @@ abstract class AbstractRecordOperation
      */
     protected function createContentObjectRenderer(): ContentObjectRenderer
     {
-        if (CompatibilityUtility::typo3VersionIsLessThan('10')) {
-            /** @var ContentObjectRenderer $contentObjectRenderer */
-            $contentObjectRenderer = GeneralUtility::makeInstance(
-                ContentObjectRenderer::class,
-                GeneralUtility::makeInstance(TypoScriptFrontendController::class, null, 0, 0)
-            );
-        } else {
-            $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-        }
+        $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
 
         $contentObjectRenderer->data = [
             'table' => $this->getTable(),
