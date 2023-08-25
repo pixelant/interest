@@ -10,7 +10,9 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
+use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -366,6 +368,10 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $fileContent = '';
         }
 
+        if ($fileContent === '' || ($file !== null && $file->getSize() > 0)) {
+            $this->handleEmptyFile();
+        }
+
         if ($fileBaseName === '' && $file === null) {
             throw new InvalidFileNameException(
                 'Empty file name.',
@@ -455,5 +461,24 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         }
 
         return [$fileBaseName, $replaceFile];
+    }
+
+    /**
+     * Handle empty files based on instructions in $data[emptyFileHandling].
+     *
+     * @throws StopRecordOperationException if $data[emptyFileHandling] === 1
+     * @throws InvalidArgumentException if $data[emptyFileHandling] === 2
+     */
+    protected function handleEmptyFile(): void
+    {
+        $handleEmptyFile = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get('interest', 'handleEmptyFile') ?? 0;
+
+        switch ((int)$handleEmptyFile) {
+            case 1:
+                throw new StopRecordOperationException('Empty file', 1692921622763);
+            case 2:
+                throw new InvalidArgumentException('Empty file', 1692921660432);
+        }
     }
 }
