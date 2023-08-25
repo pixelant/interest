@@ -22,7 +22,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
     /**
      * @param RecordRepresentation $recordRepresentation
      * @throws \Pixelant\Interest\RequestHandler\Exception\NotFoundException
-     * @throws \Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException
+     * @throws StopRecordOperationException
      */
     public function __construct(RecordRepresentation $recordRepresentation)
     {

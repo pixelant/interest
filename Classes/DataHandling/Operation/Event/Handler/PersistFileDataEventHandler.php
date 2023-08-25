@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use TYPO3\CMS\Core\Resource\InaccessibleFolder;
 use GuzzleHttp\Exception\ClientException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
@@ -272,7 +273,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param ResourceStorage $storage
      * @param array $persistenceSettings
      * @param string $fileBaseName
-     * @return Folder|\TYPO3\CMS\Core\Resource\InaccessibleFolder|void
+     * @return Folder|InaccessibleFolder|void
      */
     protected function getDownloadFolder(
         string $storagePath,

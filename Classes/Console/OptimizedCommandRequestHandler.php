@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Console;
 
+use TYPO3\CMS\Core\Console\CommandNameAlreadyInUseException;
 use Symfony\Component\Console\Command\Command;
 use TYPO3\CMS\Core\Console\CommandRegistry;
 use TYPO3\CMS\Core\Console\CommandRequestHandler;
@@ -18,7 +19,7 @@ class OptimizedCommandRequestHandler extends CommandRequestHandler
      * Put all available commands inside the application. This implementation speeds up the process by only including
      * the executed command. This speeds up the request because Extbase's CoreCommand is not initializing Extbase.
      *
-     * @throws \TYPO3\CMS\Core\Console\CommandNameAlreadyInUseException
+     * @throws CommandNameAlreadyInUseException
      */
     protected function populateAvailableCommands()
     {
