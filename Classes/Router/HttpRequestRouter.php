@@ -7,7 +7,6 @@ namespace Pixelant\Interest\Router;
 use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
-use Pixelant\Interest\DynamicCompatibility\Authentication\HttpBackendUserAuthenticationBeforeTypo3v11;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateOrUpdateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateRequestHandler;
@@ -18,7 +17,6 @@ use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
 use Pixelant\Interest\Router\Event\HttpRequestRouterHandleByEvent;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -150,17 +148,8 @@ class HttpRequestRouter
      */
     protected static function initialize(ServerRequestInterface $request)
     {
-        if (CompatibilityUtility::typo3VersionIsLessThan('11')) {
-            require_once GeneralUtility::getFileAbsFileName(
-                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationBeforeTypo3v11.php'
-            );
-
-            // @phpstan-ignore-next-line
-            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationBeforeTypo3v11::class);
-        } else {
-            Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
-            self::bootFrontendController($request);
-        }
+        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+        self::bootFrontendController($request);
 
         ExtensionManagementUtility::loadExtTables();
         Bootstrap::initializeLanguageObject();
