@@ -545,24 +545,6 @@ abstract class AbstractRecordOperation
 
     /**
      * @return array
-     * @deprecated Will be removed in v2. Use getDataForDataHandler() instead.
-     */
-    public function getData(): array
-    {
-        return $this->getDataForDataHandler();
-    }
-
-    /**
-     * @param array $data
-     * @deprecated Will be removed in v2. Use setDataForDataHandler() instead.
-     */
-    public function setData(array $data)
-    {
-        $this->setDataForDataHandler($data);
-    }
-
-    /**
-     * @return array
      */
     public function getDataForDataHandler(): array
     {
