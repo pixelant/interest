@@ -24,4 +24,3 @@ parameters:
   excludePaths:
     - Tests/Acceptance/
     - Classes/Authentication/HttpBackendUserAuthentication.php
-    - Classes/Utility/CompatibilityUtility.php
