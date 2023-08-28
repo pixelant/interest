@@ -121,13 +121,6 @@ class CompatibilityUtility
             }
         }
 
-        foreach ($current as $key => $value) {
-            if (is_array($value)) {
-                $recurseFunction($value, $current, $recurseFunction);
-            } elseif ($key === 'required' && $value === true) {
-                $parent['eval'] .= ',required';
-                unset($parent['required']);
-            }
-        }
+        return $tableTca;
     }
 }

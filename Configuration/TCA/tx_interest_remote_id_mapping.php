@@ -1,5 +1,7 @@
 <?php
 
+use Pixelant\Interest\Utility\CompatibilityUtility;
+
 $ll = 'LLL:EXT:interest/Resources/Private/Language/locallang_db.xlf:';
 
 $tca = [
@@ -102,5 +104,9 @@ $tca = [
         ],
     ],
 ];
+
+if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+    $tca = CompatibilityUtility::backportVersion12TcaFeaturesForTable($tca);
+}
 
 return $tca;
