@@ -98,7 +98,11 @@ class CompatibilityUtility
                         break;
                     case 'required':
                         if ($configurationValue === true) {
-                            $fieldTca['config']['eval'] .= ',required';
+                            if (!isset($fieldTca['config']['eval'])) {
+                                $fieldTca['config']['eval'] = 'required';
+                            } else {
+                                $fieldTca['config']['eval'] .= ',required';
+                            }
                         }
 
                         unset($fieldTca['config']['required']);
@@ -112,7 +116,12 @@ class CompatibilityUtility
                                 break;
                             case 'number':
                                 $fieldTca['config']['type'] = 'input';
-                                $fieldTca['config']['eval'] .= 'int';
+
+                                if (!isset($fieldTca['config']['eval'])) {
+                                    $fieldTca['config']['eval'] = 'int';
+                                } else {
+                                    $fieldTca['config']['eval'] .= ',int';
+                                }
                                 break;
                         }
 
