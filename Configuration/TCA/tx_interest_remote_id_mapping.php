@@ -1,7 +1,5 @@
 <?php
 
-use Pixelant\Interest\Utility\CompatibilityUtility;
-
 $ll = 'LLL:EXT:interest/Resources/Private/Language/locallang_db.xlf:';
 
 $tca = [
