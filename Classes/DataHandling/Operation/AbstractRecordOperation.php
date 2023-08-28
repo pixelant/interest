@@ -453,7 +453,7 @@ abstract class AbstractRecordOperation
 
         $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
 
-        return ($tca['maxitems'] ?? 0) === 1 && (!isset($tca['foreign_table']) || $tca['foreign_table'] === '');
+        return ($tca['maxitems'] ?? 0) === 1 && (($tca['foreign_table'] ?? '') === '');
     }
 
     /**
@@ -493,8 +493,7 @@ abstract class AbstractRecordOperation
 
             $transOrigPointerField = TcaUtility::getTransOrigPointerField($this->getTable());
             if (
-                $transOrigPointerField !== null
-                && $transOrigPointerField !== ''
+                ($transOrigPointerField ?? '') !== ''
                 && !isset($this->dataForDataHandler[$transOrigPointerField])
             ) {
                 $this->dataForDataHandler[$transOrigPointerField] = $baseLanguageRemoteId;
@@ -502,8 +501,7 @@ abstract class AbstractRecordOperation
 
             $translationSourceField = TcaUtility::getTranslationSourceField($this->getTable());
             if (
-                $translationSourceField !== null
-                && $translationSourceField !== ''
+                ($translationSourceField ?? '') !== ''
                 && !isset($this->dataForDataHandler[$translationSourceField])
             ) {
                 $this->dataForDataHandler[$translationSourceField] = $baseLanguageRemoteId;
