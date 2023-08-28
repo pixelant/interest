@@ -208,7 +208,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             ];
 
             if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-                $recordRepresentationData['table_local'] = ['sys_file'];
+                $recordRepresentationData['table_local'] = 'sys_file';
             }
 
             (new CreateRecordOperation(
@@ -323,7 +323,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
             ];
 
             if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-                $expectedReturnData['table_local'] = ['sys_file'];
+                $expectedReturnData['table_local'] = 'sys_file';
             }
 
             $createdSysFileReference = $this
