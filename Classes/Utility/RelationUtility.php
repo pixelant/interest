@@ -233,7 +233,7 @@ class RelationUtility
                                 $foreignUid
                             )
                         )
-                        ->execute();
+                        ->executeStatement();
                 }
             }
         }

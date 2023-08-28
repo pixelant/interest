@@ -28,11 +28,13 @@ class PendingRelationsRepository extends AbstractRepository
         $result = $queryBuilder
             ->select('*')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                )
+            )
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -83,7 +85,7 @@ class PendingRelationsRepository extends AbstractRepository
                 'field' => $field,
                 'record_uid' => $uid,
             ])
-            ->execute();
+            ->executeStatement();
     }
 
     /**
@@ -111,9 +113,9 @@ class PendingRelationsRepository extends AbstractRepository
                 $queryBuilder->expr()->eq(
                     'record_uid',
                     $queryBuilder->createNamedParameter($uid)
-                ),
+                )
             )
-            ->execute();
+            ->executeStatement();
     }
 
     /**
@@ -133,6 +135,6 @@ class PendingRelationsRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId)
                 )
             )
-            ->execute();
+            ->executeStatement();
     }
 }

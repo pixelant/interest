@@ -64,9 +64,7 @@ class PendingRelationsCommandController extends Command
         $queryBuilder = $this->getQueryBuilder();
 
         $counts['_total']['count'] = $queryBuilder
-            ->count('*')
-            ->from(PendingRelationsRepository::TABLE_NAME)
-            ->execute()
+            ->count('*')->from(PendingRelationsRepository::TABLE_NAME)->executeQuery()
             ->fetchOne();
 
         if ($counts['_total']['count'] === 0) {
@@ -79,12 +77,10 @@ class PendingRelationsCommandController extends Command
 
         $counts['_total']['resolvable'] = $queryBuilder
             ->count('*')
-            ->from(PendingRelationsRepository::TABLE_NAME, 'p')
-            ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                'p.remote_id',
-                $queryBuilder->quoteIdentifier('m.remote_id')
-            ))
-            ->execute()
+            ->from(PendingRelationsRepository::TABLE_NAME, 'p')->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
+            'p.remote_id',
+            $queryBuilder->quoteIdentifier('m.remote_id')
+        ))->executeQuery()
             ->fetchOne();
 
         $queryBuilder = $this->getQueryBuilder();
@@ -92,9 +88,7 @@ class PendingRelationsCommandController extends Command
         $tables = array_column(
             $queryBuilder
                 ->select('table')
-                ->from(PendingRelationsRepository::TABLE_NAME)
-                ->groupBy('table')
-                ->execute()
+                ->from(PendingRelationsRepository::TABLE_NAME)->groupBy('table')->executeQuery()
                 ->fetchAllNumeric(),
             'table'
         );
@@ -114,11 +108,7 @@ class PendingRelationsCommandController extends Command
 
             $counts[$table]['count'] = (int)$queryBuilder
                 ->count('*')
-                ->from(PendingRelationsRepository::TABLE_NAME)
-                ->where(
-                    $queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table))
-                )
-                ->execute()
+                ->from(PendingRelationsRepository::TABLE_NAME)->where($queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table)))->executeQuery()
                 ->fetchFirstColumn();
 
             $queryBuilder = $this->getQueryBuilder();
@@ -129,11 +119,7 @@ class PendingRelationsCommandController extends Command
                 ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
                     'p.remote_id',
                     $queryBuilder->quoteIdentifier('m.remote_id')
-                ))
-                ->where(
-                    $queryBuilder->expr()->eq('p.table', $queryBuilder->createNamedParameter($table))
-                )
-                ->execute()
+                ))->where($queryBuilder->expr()->eq('p.table', $queryBuilder->createNamedParameter($table)))->executeQuery()
                 ->fetchFirstColumn();
 
             $rows[] = [
@@ -159,11 +145,16 @@ class PendingRelationsCommandController extends Command
         $resolvableRelations = $queryBuilder
             ->select('p.*', 'm.table as _foreign_table', 'm.uid_local as _foreign_uid')
             ->from(PendingRelationsRepository::TABLE_NAME, 'p')
-            ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                'p.remote_id',
-                $queryBuilder->quoteIdentifier('m.remote_id')
-            ))
-            ->execute();
+            ->join(
+                'p',
+                RemoteIdMappingRepository::TABLE_NAME,
+                'm',
+                $queryBuilder->expr()->eq(
+                    'p.remote_id',
+                    $queryBuilder->quoteIdentifier('m.remote_id')
+                )
+            )
+            ->executeQuery();
 
         if (!($resolvableRelations instanceof Result)) {
             throw new InvalidQueryResultException(

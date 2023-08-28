@@ -25,14 +25,13 @@ class DeferredRecordOperationRepository extends AbstractRepository
         $queryBuilder = $this->getQueryBuilder();
 
         $queryBuilder
-            ->insert(self::TABLE_NAME)
-            ->values([
+            ->insert(self::TABLE_NAME)->values([
                 'crdate' => time(),
                 'dependent_remote_id' => $dependentRemoteId,
                 'class' => get_class($operation),
                 'arguments' => serialize($operation->getRecordRepresentation()),
             ])
-            ->execute();
+            ->executeStatement();
     }
 
     /**
@@ -56,7 +55,7 @@ class DeferredRecordOperationRepository extends AbstractRepository
                 )
             )
             ->orderBy('crdate')
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -110,6 +109,6 @@ class DeferredRecordOperationRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($uid, \PDO::PARAM_INT)
                 )
             )
-            ->execute();
+            ->executeStatement();
     }
 }

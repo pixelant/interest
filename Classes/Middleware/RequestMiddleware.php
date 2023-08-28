@@ -89,7 +89,7 @@ class RequestMiddleware implements MiddlewareInterface
                         'response_headers' => substr(json_encode($response->getHeaders()), 0, 65535),
                         'response_body' => substr((string)$response->getBody(), 0, 16777215),
                     ])
-                    ->execute();
+                    ->executeStatement();
             }
         }
     }

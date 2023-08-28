@@ -33,12 +33,12 @@ class TokenRepository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->where(
                 $queryBuilder->expr()->eq('token', $queryBuilder->createNamedParameter($token)),
-                $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->or(
                     $queryBuilder->expr()->eq('expiry', 0),
                     $queryBuilder->expr()->gt('expiry', time())
                 )
             )
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -77,7 +77,7 @@ class TokenRepository extends AbstractRepository
                 'be_user' => $id,
                 'expiry' => time() + $tokenLifetime,
             ])
-            ->execute();
+            ->executeStatement();
 
         return $token;
     }
