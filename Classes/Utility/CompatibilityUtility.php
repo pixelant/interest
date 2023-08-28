@@ -86,7 +86,7 @@ class CompatibilityUtility
                                 $item['value'] ?? null,
                                 $item['icon'] ?? null,
                                 $item['group'] ?? null,
-                                $item['description'] ?? null
+                                $item['description'] ?? null,
                             ];
                         }
 

@@ -105,10 +105,4 @@ $tca = [
     ],
 ];
 
-if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-    $recurseFunction = function (array &$current, ?array &$parent, Closure $recurseFunction) {
-
-    };
-}
-
 return $tca;

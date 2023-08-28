@@ -77,10 +77,17 @@ class PendingRelationsCommandController extends Command
 
         $counts['_total']['resolvable'] = $queryBuilder
             ->count('*')
-            ->from(PendingRelationsRepository::TABLE_NAME, 'p')->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-            'p.remote_id',
-            $queryBuilder->quoteIdentifier('m.remote_id')
-        ))->executeQuery()
+            ->from(PendingRelationsRepository::TABLE_NAME, 'p')
+            ->join(
+                'p',
+                RemoteIdMappingRepository::TABLE_NAME,
+                'm',
+                $queryBuilder->expr()->eq(
+                    'p.remote_id',
+                    $queryBuilder->quoteIdentifier('m.remote_id')
+                )
+            )
+            ->executeQuery()
             ->fetchOne();
 
         $queryBuilder = $this->getQueryBuilder();
@@ -108,7 +115,14 @@ class PendingRelationsCommandController extends Command
 
             $counts[$table]['count'] = (int)$queryBuilder
                 ->count('*')
-                ->from(PendingRelationsRepository::TABLE_NAME)->where($queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table)))->executeQuery()
+                ->from(PendingRelationsRepository::TABLE_NAME)
+                ->where(
+                    $queryBuilder->expr()->eq(
+                        'table',
+                        $queryBuilder->createNamedParameter($table)
+                    )
+                )
+                ->executeQuery()
                 ->fetchFirstColumn();
 
             $queryBuilder = $this->getQueryBuilder();
@@ -116,10 +130,22 @@ class PendingRelationsCommandController extends Command
             $counts[$table]['resolvable'] = (int)$queryBuilder
                 ->count('*')
                 ->from(PendingRelationsRepository::TABLE_NAME, 'p')
-                ->join('p', RemoteIdMappingRepository::TABLE_NAME, 'm', $queryBuilder->expr()->eq(
-                    'p.remote_id',
-                    $queryBuilder->quoteIdentifier('m.remote_id')
-                ))->where($queryBuilder->expr()->eq('p.table', $queryBuilder->createNamedParameter($table)))->executeQuery()
+                ->join(
+                    'p',
+                    RemoteIdMappingRepository::TABLE_NAME,
+                    'm',
+                    $queryBuilder->expr()->eq(
+                        'p.remote_id',
+                        $queryBuilder->quoteIdentifier('m.remote_id')
+                    )
+                )
+                ->where(
+                    $queryBuilder->expr()->eq(
+                        'p.table',
+                        $queryBuilder->createNamedParameter($table)
+                    )
+                )
+                ->executeQuery()
                 ->fetchFirstColumn();
 
             $rows[] = [
