@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Functional\DataHandling\Operation;
 
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\SiteConfiguration;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
@@ -30,10 +32,19 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
 
         GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', 'http://www.example.com/');
 
-        $siteConfiguration = GeneralUtility::makeInstance(
-            SiteConfiguration::class,
-            GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites')
-        );
+        if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+            $siteConfiguration = GeneralUtility::makeInstance(
+                SiteConfiguration::class,
+                GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'),
+            );
+        } else {
+            $siteConfiguration = GeneralUtility::makeInstance(
+                SiteConfiguration::class,
+                GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'),
+                GeneralUtility::makeInstance(EventDispatcher::class)
+            );
+        }
+
 
         GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
 

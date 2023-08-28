@@ -1,15 +1,16 @@
 <?php
 
+use Pixelant\Interest\Utility\CompatibilityUtility;
+
 $ll = 'LLL:EXT:interest/Resources/Private/Language/locallang_db.xlf:';
 
-return [
+$tca = [
     'ctrl' => [
         'title' => $ll . 'tx_interest_remote_id_mapping',
         'label' => 'remote_id',
         'type' => 'manual',
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
-        'cruser_id' => 'cruser_id',
         'rootLevel' => -1,
         'default_sortby' => 'ORDER BY uid',
         'enablecolumns' => [],
@@ -31,17 +32,13 @@ return [
         'crdate' => [
             'label' => 'crdate',
             'config' => [
-                'type' => 'input',
-                'renderType' => 'inputDateTime',
-                'eval' => 'datetime',
+                'type' => 'datetime',
             ],
         ],
         'tstamp' => [
             'label' => 'tstamp',
             'config' => [
-                'type' => 'input',
-                'renderType' => 'inputDateTime',
-                'eval' => 'datetime',
+                'type' => 'datetime',
             ],
         ],
         'remote_id' => [
@@ -50,7 +47,8 @@ return [
             'config' => [
                 'type' => 'input',
                 'size' => 30,
-                'eval' => 'required,unique,alphanum_x,trim',
+                'eval' => 'unique,alphanum_x,trim',
+                'required' => true,
             ],
         ],
         'table' => [
@@ -59,16 +57,17 @@ return [
             'config' => [
                 'type' => 'input',
                 'size' => 30,
-                'eval' => 'required,alphanum_x,trim',
+                'eval' => 'alphanum_x,trim',
+                'required' => true,
             ],
         ],
         'uid_local' => [
             'exclude' => false,
             'label' => $ll . 'tx_interest_remote_id_mapping.local_uid',
             'config' => [
-                'type' => 'input',
+                'type' => 'number',
                 'size' => 10,
-                'eval' => 'required,int',
+                'required' => true,
             ],
         ],
         'manual' => [
@@ -81,14 +80,18 @@ return [
                 'default' => 1,
                 'items' => [
                     [
-                        0 => '',
-                        1 => '',
+                        'label' => '',
+                        'value' => 0,
+                    ],
+                    [
+                        'label' => '',
+                        'value' => 1,
                     ],
                 ],
             ],
         ],
         'metadata' => [
-            'label' => 'Meta dats',
+            'label' => 'Meta data',
             'config' => [
                 'type' => 'passthrough',
                 'default' => '',
@@ -101,3 +104,11 @@ return [
         ],
     ],
 ];
+
+if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+    $recurseFunction = function (array &$current, ?array &$parent, Closure $recurseFunction) {
+
+    };
+}
+
+return $tca;

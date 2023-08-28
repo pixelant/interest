@@ -267,7 +267,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             do {
                 $layerCount++;
 
-                $currentLayer = current($currentLayer);
+                $currentLayer = current((array)$currentLayer);
             } while ($currentLayer !== false && !$this->isRecordData($currentLayer));
 
             $data = $this->convertObjectToArrayRecursive((array)$data);
