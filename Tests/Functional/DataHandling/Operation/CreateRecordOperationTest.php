@@ -15,6 +15,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -199,15 +200,20 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         };
 
         $createSysFileReference = function (string $iteration) {
+            $recordRepresentationData = [
+                'pid' => 'RootPage',
+                'uid_local' => 'MediaElementSysFile_' . $iteration,
+                'uid_foreign' => 'MediaContentElement_' . $iteration,
+                'fieldname' => 'image',
+            ];
+
+            if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+                $recordRepresentationData['table_local'] = ['sys_file'];
+            }
+
             (new CreateRecordOperation(
                 new RecordRepresentation(
-                    [
-                        'pid' => 'RootPage',
-                        'uid_local' => 'MediaElementSysFile_' . $iteration,
-                        'table_local' => 'sys_file',
-                        'uid_foreign' => 'MediaContentElement_' . $iteration,
-                        'fieldname' => 'image',
-                    ],
+                    $recordRepresentationData,
                     new RecordInstanceIdentifier(
                         'sys_file_reference',
                         'MediaElementSysFileReference_' . $iteration
@@ -310,22 +316,27 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
                 'Created content element iteration ' . $iteration
             );
 
+            $expectedReturnData = [
+                'uid_local' => $mappingRepository->get('MediaElementSysFile_' . $iteration),
+                'uid_foreign' => $mappingRepository->get('MediaContentElement_' . $iteration),
+                'fieldname' => 'image',
+            ];
+
+            if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+                $expectedReturnData['table_local'] = ['sys_file'];
+            }
+
             $createdSysFileReference = $this
                 ->getConnectionPool()
                 ->getConnectionForTable('tt_content')
                 ->executeQuery(
-                    'SELECT uid_local, table_local, uid_foreign, fieldname FROM sys_file_reference WHERE uid = '
+                    'SELECT ' . implode(',', array_keys($expectedReturnData)) . ' FROM sys_file_reference WHERE uid = '
                     . $mappingRepository->get('MediaElementSysFileReference_' . $iteration)
                 )
                 ->fetchAssociative();
 
             self::assertEquals(
-                [
-                    'uid_local' => $mappingRepository->get('MediaElementSysFile_' . $iteration),
-                    'table_local' => 'sys_file',
-                    'uid_foreign' => $mappingRepository->get('MediaContentElement_' . $iteration),
-                    'fieldname' => 'image',
-                ],
+                $expectedReturnData,
                 $createdSysFileReference,
                 'Created sys_file_reference iteration ' . $iteration
             );

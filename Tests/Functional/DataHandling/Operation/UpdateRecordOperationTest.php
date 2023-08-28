@@ -15,6 +15,7 @@ use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 
 class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
@@ -183,15 +184,20 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
         foreach ($sysFilesRemoteIdentifiers as $sysFilesRemoteIdentifier) {
             $sfrRemoteIdentifier = $contentElementRemoteIdentifier . '_' . $sysFilesRemoteIdentifier;
             if ($mappingRepository->get($sfrRemoteIdentifier) === 0) {
+                $recordRepresentationData = [
+                    'pid' => 'RootPage',
+                    'uid_local' => $sysFilesRemoteIdentifier,
+                    'uid_foreign' => $contentElementRemoteIdentifier,
+                    'fieldname' => 'image',
+                ];
+
+                if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+                    $recordRepresentationData['table_local'] = ['sys_file'];
+                }
+
                 (new CreateRecordOperation(
                     new RecordRepresentation(
-                        [
-                            'pid' => 'RootPage',
-                            'uid_local' => $sysFilesRemoteIdentifier,
-                            'table_local' => 'sys_file',
-                            'uid_foreign' => $contentElementRemoteIdentifier,
-                            'fieldname' => 'image',
-                        ],
+                        $recordRepresentationData,
                         new RecordInstanceIdentifier(
                             'sys_file_reference',
                             $sfrRemoteIdentifier
