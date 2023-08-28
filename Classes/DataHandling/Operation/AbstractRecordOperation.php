@@ -423,7 +423,7 @@ abstract class AbstractRecordOperation
             && isset($tca['foreign_table'])
         )
         || (
-            in_array($tca['type'], ['category', 'file', 'image'])
+            in_array($tca['type'], ['category', 'file', 'image'], true)
         );
     }
 
