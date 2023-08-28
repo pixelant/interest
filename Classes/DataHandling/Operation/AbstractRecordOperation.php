@@ -733,26 +733,30 @@ abstract class AbstractRecordOperation
     {
         $fieldValue = $this->dataForDataHandler[$fieldName];
 
-        if (is_array($fieldValue) && count($fieldValue) <= 1) {
-            if (
-                $fieldValue === []
-                && (
-                    $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
-                    || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
-                )
-            ) {
-                $this->dataForDataHandler[$fieldName] = 0;
-
-                return;
-            }
-
-            $this->dataForDataHandler[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
-
-            // Unset empty single-relation fields (1:n) in new records.
-            if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
-                unset($this->dataForDataHandler[$fieldName]);
-            }
+        if (is_array($fieldValue)) {
+            $this->dataForDataHandler[$fieldName] = implode(',', $fieldValue);
         }
+
+//        if (is_array($fieldValue) && count($fieldValue) <= 1) {
+//            if (
+//                $fieldValue === []
+//                && (
+//                    $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
+//                    || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
+//                )
+//            ) {
+//                $this->dataForDataHandler[$fieldName] = 0;
+//
+//                return;
+//            }
+//
+//            $this->dataForDataHandler[$fieldName] = $fieldValue[array_key_first($fieldValue)] ?? null;
+//
+//            // Unset empty single-relation fields (1:n) in new records.
+//            if (count($fieldValue) === 0 && $this->isSingleRelationField($fieldName) && $this->getUid() === 0) {
+//                unset($this->dataForDataHandler[$fieldName]);
+//            }
+//        }
 
         if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
             unset($this->dataForDataHandler[$fieldName]);
