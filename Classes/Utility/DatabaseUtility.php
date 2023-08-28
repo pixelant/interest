@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Utility;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -38,7 +38,7 @@ class DatabaseUtility
                 ->from($table)
                 ->where($queryBuilder->expr()->eq('uid', $uid));
 
-            $result = $queryBuilder->execute();
+            $result = $queryBuilder->executeQuery();
 
             if (!($result instanceof Result)) {
                 throw new InvalidQueryResultException(

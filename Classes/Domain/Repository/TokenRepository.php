@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Crypto\Random;
