@@ -1,6 +1,9 @@
 <?php
 
-/** @noinspection ALL */
+/**
+ * @noinspection ALL
+ * phpcs:ignoreFile
+ */
 
 namespace Pixelant\Interest\Utility;
 
