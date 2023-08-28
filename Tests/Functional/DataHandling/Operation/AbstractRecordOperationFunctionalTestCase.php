@@ -35,12 +35,16 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
         if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
             $siteConfiguration = GeneralUtility::makeInstance(
                 SiteConfiguration::class,
-                GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'),
+                GeneralUtility::getFileAbsFileName(
+                    'EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'
+                ),
             );
         } else {
             $siteConfiguration = GeneralUtility::makeInstance(
                 SiteConfiguration::class,
-                GeneralUtility::getFileAbsFileName('EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'),
+                GeneralUtility::getFileAbsFileName(
+                    'EXT:interest/Tests/Functional/DataHandling/Operation/Fixtures/Sites'
+                ),
                 GeneralUtility::makeInstance(EventDispatcher::class)
             );
         }
