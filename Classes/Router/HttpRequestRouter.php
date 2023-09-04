@@ -148,7 +148,7 @@ class HttpRequestRouter
      */
     protected static function initialize(ServerRequestInterface $request)
     {
-        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
+        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class, $request);
         self::bootFrontendController($request);
 
         ExtensionManagementUtility::loadExtTables();
