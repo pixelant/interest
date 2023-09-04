@@ -39,6 +39,7 @@ abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthenti
      *
      * @param ServerRequestInterface $request
      * @return array
+     * @throws UnauthorizedAccessException
      * @throws InvalidArgumentException
      */
     protected function internalGetLoginFormData(ServerRequestInterface $request)
@@ -88,11 +89,11 @@ abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthenti
         ];
 
         if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-            // @phpstan-ignore
+            // @phpstan-ignore-next-line
             return $this->processLoginData($loginData);
         }
 
-        // @phpstan-ignore
+        // @phpstan-ignore-next-line
         return $this->processLoginData($loginData, $request);
     }
 

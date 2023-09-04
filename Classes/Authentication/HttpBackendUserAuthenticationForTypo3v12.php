@@ -13,6 +13,7 @@ class HttpBackendUserAuthenticationForTypo3v12 extends AbstractHttpBackendUserAu
      *
      * @param ServerRequestInterface $request
      * @return array
+     * @phpstan-ignore-next-line
      */
     public function getLoginFormData(ServerRequestInterface $request)
     {
