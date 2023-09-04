@@ -23,4 +23,5 @@ parameters:
 
   excludePaths:
     - Tests/Acceptance/
-    - Classes/Authentication/HttpBackendUserAuthentication.php
+    - Classes/Authentication/HttpBackendUserAuthenticationForTypo3v11.php
+    - Classes/Authentication/HttpBackendUserAuthenticationForTypo3v11.php

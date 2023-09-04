@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Authentication;
 
-use Psr\Http\Message\ServerRequestInterface;
-
 class HttpBackendUserAuthenticationForTypo3v11 extends AbstractHttpBackendUserAuthentication
 {
     /**

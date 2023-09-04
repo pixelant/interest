@@ -16,7 +16,6 @@ class AuthenticateRequestHandler extends AbstractRequestHandler
     /**
      * @return ResponseInterface
      * @throws UnauthorizedAccessException
-     * @throws InvalidArgumentException
      */
     public function handle(): ResponseInterface
     {

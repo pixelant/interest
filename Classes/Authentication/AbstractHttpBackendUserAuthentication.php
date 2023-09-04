@@ -6,10 +6,11 @@ namespace Pixelant\Interest\Authentication;
 
 use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
+use Pixelant\Interest\Utility\CompatibilityUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Psr\Http\Message\ServerRequestInterface;
 
 abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthentication
 {
@@ -38,6 +39,7 @@ abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthenti
      *
      * @param ServerRequestInterface $request
      * @return array
+     * @throws InvalidArgumentException
      */
     protected function internalGetLoginFormData(ServerRequestInterface $request)
     {
@@ -85,6 +87,12 @@ abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthenti
             'uident' => $password,
         ];
 
+        if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+            // @phpstan-ignore
+            return $this->processLoginData($loginData);
+        }
+
+        // @phpstan-ignore
         return $this->processLoginData($loginData, $request);
     }
 
