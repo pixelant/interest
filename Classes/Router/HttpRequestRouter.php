@@ -156,7 +156,7 @@ class HttpRequestRouter
         } else {
             Bootstrap::initializeBackendUser(
                 'Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12',
-                 $request
+                $request
             );
         }
 
