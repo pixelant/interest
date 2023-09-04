@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\RequestHandler;
 
-use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Core\Authentication\LoginType;
-use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 

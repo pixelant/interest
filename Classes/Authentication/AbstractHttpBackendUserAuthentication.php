@@ -11,7 +11,7 @@ use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\Http\Message\ServerRequestInterface;
 
-class HttpBackendUserAuthentication extends BackendUserAuthentication
+abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthentication
 {
     /**
      * Check if user is authenticated.
@@ -39,7 +39,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      * @param ServerRequestInterface $request
      * @return array
      */
-    public function getLoginFormData(ServerRequestInterface $request)
+    protected function internalGetLoginFormData(ServerRequestInterface $request)
     {
         if (strtolower($request->getMethod()) !== 'post') {
             throw new UnauthorizedAccessException(

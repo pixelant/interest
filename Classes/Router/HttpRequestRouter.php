@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
-use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
+use Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
@@ -17,6 +17,7 @@ use Pixelant\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
 use Pixelant\Interest\Router\Event\HttpRequestRouterHandleByEvent;
+use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -148,7 +149,12 @@ class HttpRequestRouter
      */
     protected static function initialize(ServerRequestInterface $request)
     {
-        Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class, $request);
+        if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v11::class, $request);
+        } else {
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v11::class, $request);
+        }
+
         self::bootFrontendController($request);
 
         ExtensionManagementUtility::loadExtTables();
