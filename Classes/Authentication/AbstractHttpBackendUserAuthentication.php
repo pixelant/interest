@@ -89,11 +89,9 @@ abstract class AbstractHttpBackendUserAuthentication extends BackendUserAuthenti
         ];
 
         if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-            // @phpstan-ignore-next-line
             return $this->processLoginData($loginData);
         }
 
-        // @phpstan-ignore-next-line
         return $this->processLoginData($loginData, $request);
     }
 
