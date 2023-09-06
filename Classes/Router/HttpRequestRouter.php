@@ -150,12 +150,12 @@ class HttpRequestRouter
     {
         if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
             Bootstrap::initializeBackendUser(
-                \Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11::class,
+                'Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11',
                 $request
             );
         } else {
             Bootstrap::initializeBackendUser(
-                \Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12::class,
+                'Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12',
                 $request
             );
         }
