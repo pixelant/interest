@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
+use Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11;
+use Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
@@ -149,15 +151,19 @@ class HttpRequestRouter
     protected static function initialize(ServerRequestInterface $request)
     {
         if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
-            Bootstrap::initializeBackendUser(
-                'Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11',
-                $request
+            require_once GeneralUtility::getFileAbsFileName(
+                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationForTypo3v11.php'
             );
+
+            // @phpstan-ignore-next-line
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v11::class, $request);
         } else {
-            Bootstrap::initializeBackendUser(
-                'Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12',
-                $request
+            require_once GeneralUtility::getFileAbsFileName(
+                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationForTypo3v12.php'
             );
+
+            // @phpstan-ignore-next-line
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v12::class, $request);
         }
 
         self::bootFrontendController($request);
