@@ -19,7 +19,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Reactions\Model\ReactionInstruction;
 use TYPO3\CMS\Reactions\Reaction\ReactionInterface;
 
-// @phpstan-ignore interface.notFound
 class CreateUpdateDeleteReaction implements ReactionInterface
 {
     public static function getType(): string
@@ -38,7 +37,6 @@ class CreateUpdateDeleteReaction implements ReactionInterface
     }
 
     // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
-    // @phpstan-ignore class.notFound
     public function react(
         ServerRequestInterface $request,
         array $payload,
