@@ -65,8 +65,6 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      * Correctly compiles the $data and $metaData.
      *
      * @param array|null $parsedBody Supply parsed JSON body as associative array to avoid parsing JSON twice.
-     *
-     * phpcs:disable Generic.Metrics.CyclomaticComplexity
      */
     protected function compileData(?array $parsedBody = null): void
     {
