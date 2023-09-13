@@ -70,45 +70,37 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      */
     protected function compileData(?array $parsedBody = null): void
     {
-        $body = '';
-
-        if ($this->getRequest()->getBody() instanceof StreamInterface) {
-            $this->getRequest()->getBody()->rewind();
-
-            $body = $this->getRequest()->getBody()->getContents();
+        if ($parsedBody === null) {
+            $parsedBody = $this->parseRequestBody();
         }
 
-        if (!static::EXPECT_EMPTY_REQUEST && $body === '') {
+        if (!static::EXPECT_EMPTY_REQUEST && $parsedBody === []) {
             return;
         }
 
-        if ($body === '') {
-            $decodedContent = [];
-        } else {
-            $decodedContent = json_decode($body, true) ?? [];
+        if (is_string($parsedBody['metaData'] ?? null)) {
+            $parsedBody['metaData'] = json_decode($parsedBody['metaData'], true, 512, JSON_THROW_ON_ERROR);
         }
 
-        if (is_string($decodedContent['metaData'] ?? null)) {
-            $decodedContent['metaData'] = json_decode($decodedContent['metaData'], true) ?? [];
+        $this->metaData = $parsedBody['metaData'];
+
+        if (is_string($parsedBody['data'] ?? null)) {
+            $parsedBody['data'] = json_decode($parsedBody['data'], true, 512, JSON_THROW_ON_ERROR);
         }
 
-        if (is_string($decodedContent['data'] ?? null)) {
-            $decodedContent['data'] = json_decode($decodedContent['data'], true) ?? [];
-        }
+        $data = $parsedBody['data'] ?? [];
 
-        $data = $decodedContent['data'] ?? [];
+        $table = $this->getEntryPointParts()[0] ?? $parsedBody['table'] ?? null;
 
-        $table = $this->getEntryPointParts()[0] ?? $decodedContent['table'] ?? null;
-
-        $remoteId = $this->getEntryPointParts()[1] ?? $decodedContent['remoteId'] ?? null;
+        $remoteId = $this->getEntryPointParts()[1] ?? $parsedBody['remoteId'] ?? null;
 
         $language = $this->getEntryPointParts()[2]
-            ?? $decodedContent['language']
+            ?? $parsedBody['language']
             ?? $this->getRequest()->getQueryParams()['language']
             ?? null;
 
         $workspace = $this->getEntryPointParts()[3]
-            ?? $decodedContent['workspace']
+            ?? $parsedBody['workspace']
             ?? $this->getRequest()->getQueryParams()['workspace']
             ?? null;
 
@@ -359,5 +351,27 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         }
 
         return $exceptions;
+    }
+
+    /**
+     * @return array
+     */
+    protected function parseRequestBody(): array
+    {
+        $body = '';
+
+        if ($this->getRequest()->getBody() instanceof StreamInterface) {
+            $this->getRequest()->getBody()->rewind();
+
+            $body = $this->getRequest()->getBody()->getContents();
+        }
+
+        if ($body === '') {
+            $parsedBody = [];
+        } else {
+            $parsedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        }
+
+        return $parsedBody;
     }
 }
