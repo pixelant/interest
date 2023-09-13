@@ -33,7 +33,7 @@ class DeleteRequestHandlerTest extends UnitTestCase
                 ],
                 $request,
             ])
-            ->setMethodsExcept(['handle'])
+            ->setMethods(['handleSingleOperation'])
             ->getMock();
 
         $response = $deleteHandlerMock->handle();
