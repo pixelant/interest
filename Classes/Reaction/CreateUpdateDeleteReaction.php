@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Reaction;
 
-use Pixelant\Interest\Context;
-use Pixelant\Interest\Database\RelationHandlerWithoutReferenceIndex;
+use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
+use Pixelant\Interest\RequestHandler\CreateOrUpdateRequestHandler;
+use Pixelant\Interest\RequestHandler\CreateRequestHandler;
+use Pixelant\Interest\RequestHandler\DeleteRequestHandler;
+use Pixelant\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
+use Pixelant\Interest\RequestHandler\UpdateRequestHandler;
+use Pixelant\Interest\Router\Event\HttpRequestRouterHandleByEvent;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Database\RelationHandler;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
+use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Reactions\Model\ReactionInstruction;
 use TYPO3\CMS\Reactions\Reaction\ReactionInterface;
 
@@ -29,38 +36,69 @@ class CreateUpdateDeleteReaction implements ReactionInterface
         return 'ext-interest-cud-reaction';
     }
 
+    // phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
     public function react(
         ServerRequestInterface $request,
         array $payload,
         ReactionInstruction $reaction
     ): ResponseInterface {
-        $this->initialize($request);
+        if (($payload['method'] ?? '') === '') {
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => false,
+                    'message' => 'No method provided',
+                ],
+                405
+            );
+        }
 
-        $payload = $this->compilePayload($payload);
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @return void
-     */
-    protected function initialize(ServerRequestInterface $request): void
-    {
-        Context::setDisableReferenceIndex(
-            filter_var(
-                $request->getHeader('Interest-Disable-Reference-Index')[0] ?? 'false',
-                FILTER_VALIDATE_BOOLEAN
-            )
+        $event = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
+            new HttpRequestRouterHandleByEvent((clone $request)->withMethod(strtoupper($payload['method'])), [])
         );
 
-        if (Context::isDisableReferenceIndex()) {
-            $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][RelationHandler::class] = [
-                'className' => RelationHandlerWithoutReferenceIndex::class,
-            ];
+        try {
+            switch (strtoupper($event->getRequest()->getMethod())) {
+                case 'POST':
+                    return GeneralUtility::makeInstance(
+                        CreateRequestHandler::class,
+                        $event->getEntryPointParts(),
+                        $event->getRequest(),
+                        $payload
+                    )->handle();
+                case 'PUT':
+                    return GeneralUtility::makeInstance(
+                        UpdateRequestHandler::class,
+                        $event->getEntryPointParts(),
+                        $event->getRequest(),
+                        $payload
+                    )->handle();
+                case 'PATCH':
+                    return GeneralUtility::makeInstance(
+                        CreateOrUpdateRequestHandler::class,
+                        $event->getEntryPointParts(),
+                        $event->getRequest(),
+                        $payload
+                    )->handle();
+                case 'DELETE':
+                    return GeneralUtility::makeInstance(
+                        DeleteRequestHandler::class,
+                        $event->getEntryPointParts(),
+                        $event->getRequest(),
+                        $payload
+                    )->handle();
+            }
+        } catch (AbstractException $dataHandlingException) {
+            throw OperationToRequestHandlerExceptionConverter::convert($dataHandlingException, $request);
         }
-    }
 
-    protected function compilePayload(array $payload): array
-    {
-
+        return GeneralUtility::makeInstance(
+            JsonResponse::class,
+            [
+                'success' => false,
+                'message' => 'Method not allowed.',
+            ],
+            405
+        );
     }
 }
