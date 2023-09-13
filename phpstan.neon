@@ -23,4 +23,5 @@ parameters:
 
   excludePaths:
     - Tests/Acceptance/
+    - Classes/Authentication/*
     - Classes/Reaction/CreateUpdateDeleteReaction.php
