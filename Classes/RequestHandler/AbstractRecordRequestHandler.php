@@ -82,7 +82,9 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             $parsedBody['metaData'] = json_decode($parsedBody['metaData'], true, 512, JSON_THROW_ON_ERROR);
         }
 
-        $this->metaData = $parsedBody['metaData'];
+        if (is_array($parsedBody['metaData'] ?? null)) {
+            $this->metaData = $parsedBody['metaData'];
+        }
 
         if (is_string($parsedBody['data'] ?? null)) {
             $parsedBody['data'] = json_decode($parsedBody['data'], true, 512, JSON_THROW_ON_ERROR);
