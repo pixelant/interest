@@ -48,6 +48,9 @@
 	"conflict": {
 		"phpstan/phpstan": "1.7.12 || 1.7.13 || 1.7.14"
 	},
+	"suggest": {
+		"typo3/cms-reactions": "To use TYPO3 reactions as entry point and for authentication."
+	},
 	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
@@ -196,8 +199,5 @@
 		"fix:php:sniff": "Fixes the code style with PHP_CodeSniffer.",
 		"phpstan:baseline": "Updates the PHPStan baseline file to match the code.",
 		"prepare-release": "Removes development-only files in preparation of a TER release."
-	},
-	"suggest": {
-		"typo3/cms-reactions": "To use TYPO3 reactions as entry point and for authentication."
 	}
 }
