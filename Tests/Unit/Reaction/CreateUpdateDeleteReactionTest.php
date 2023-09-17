@@ -31,20 +31,6 @@ class CreateUpdateDeleteReactionTest extends UnitTestCase
         );
     }
 
-    public function addRequestHandlerToGeneralUtility(string $action)
-    {
-        $fqcn = 'Pixelant\\Interest\\RequestHandler\\' . $action . 'RequestHandler';
-
-        $mock = $this->createMock($fqcn);
-
-        $mock
-            ->expects(self::once())
-            ->method('handle')
-            ->willReturn($this->createMock(ResponseInterface::class));
-
-        GeneralUtility::addInstance($fqcn, $mock);
-    }
-
     /**
      * @test
      */
@@ -76,5 +62,19 @@ class CreateUpdateDeleteReactionTest extends UnitTestCase
                 $this->createMock(ReactionInstruction::class)
             );
         }
+    }
+
+    public function addRequestHandlerToGeneralUtility(string $action): void
+    {
+        $fqcn = 'Pixelant\\Interest\\RequestHandler\\' . $action . 'RequestHandler';
+
+        $mock = $this->createMock($fqcn);
+
+        $mock
+            ->expects(self::once())
+            ->method('handle')
+            ->willReturn($this->createMock(ResponseInterface::class));
+
+        GeneralUtility::addInstance($fqcn, $mock);
     }
 }
