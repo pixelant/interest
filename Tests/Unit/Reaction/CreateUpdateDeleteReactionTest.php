@@ -72,6 +72,7 @@ class CreateUpdateDeleteReactionTest extends UnitTestCase
                 [
                     'method' => $method,
                 ],
+                // @phpstan-ignore-next-line
                 $this->createMock(ReactionInstruction::class)
             );
         }
