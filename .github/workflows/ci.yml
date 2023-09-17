@@ -102,8 +102,9 @@ jobs:
       - name: "Install TYPO3 Core"
         env:
           TYPO3: "${{ matrix.typo3-version }}"
+          ADDITIONAL_REQUIREMENTS: "${{ matrix.additional-requirements }}"
         run: |
-          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3"
+          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3" $ADDITIONAL_REQUIREMENTS
           composer show
       - name: "Install lowest dependencies with composer"
         if: "matrix.composer-dependencies == 'lowest'"
@@ -148,15 +149,19 @@ jobs:
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: highest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: lowest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: highest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: lowest
+            additional-requirements: "typo3/cms-reactions"
   functional-tests:
     name: "Functional tests"
     runs-on: ubuntu-20.04
@@ -182,8 +187,9 @@ jobs:
       - name: "Install TYPO3 Core"
         env:
           TYPO3: "${{ matrix.typo3-version }}"
+          ADDITIONAL_REQUIREMENTS: "${{ matrix.additional-requirements }}"
         run: |
-          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3"
+          composer require --no-ansi --no-interaction --no-progress --no-install typo3/minimal:"$TYPO3" $ADDITIONAL_REQUIREMENTS
           composer show
       - name: "Install lowest dependencies with composer"
         if: "matrix.composer-dependencies == 'lowest'"
@@ -235,12 +241,16 @@ jobs:
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: highest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: lowest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: highest
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: lowest
+            additional-requirements: "typo3/cms-reactions"
