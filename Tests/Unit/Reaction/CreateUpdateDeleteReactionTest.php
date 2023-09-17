@@ -10,7 +10,6 @@ use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Reactions\Model\ReactionInstruction;
-use TYPO3\CMS\Reactions\Reaction\ReactionInterface;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class CreateUpdateDeleteReactionTest extends UnitTestCase
@@ -39,7 +38,7 @@ class CreateUpdateDeleteReactionTest extends UnitTestCase
         $mock = $this->createMock($fqcn);
 
         $mock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('handle')
             ->willReturn($this->createMock(ResponseInterface::class));
 
