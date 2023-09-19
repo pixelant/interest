@@ -6,7 +6,7 @@
 Changing and Extending
 ======================
 
-If you need additional functionality or the extisting functionality of the extension isn't quite what you need, this section tells you how to change the behavior of the Interest extension. It also tells you how to extend the functionality, as well as a bit about the extension's inner workings.
+If you need additional functionality or the existing functionality of the extension isn't quite what you need, this section tells you how to change the behavior of the Interest extension. It also tells you how to extend the functionality, as well as a bit about the extension's inner workings.
 
 .. _extending-events:
 
@@ -93,31 +93,6 @@ The events are listed in order of execution.
    .. php:method:: setResponse($response)
 
       :param Psr\Http\Message\ResponseInterface $response:
-
-.. _extending-events-typo3v9
-
-In TYPO3 version 9
-------------------
-
-TYPO3 version 9 doesn't support PSR-14 events, but it's using signals and slots instead. Luckily, PSR-14 Events and EventHandlers can be made to work with them as well. You can register an EventHandler as a SignalSlot using this convenience function:
-
-.. code-block:: php
-
-   \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
-       string $eventClassName,
-       string $eventHandlerClassName
-   );
-
-It will map the class and methods correctly. The only difference is that you can't change the order of execution, as the slots are called in the order they are registered.
-
-Here's how the function is used by the Interest extension itself:
-
-.. code-block:: php
-
-   \Pixelant\Interest\Utility\CompatibilityUtility::registerEventHandlerAsSignalSlot(
-       \Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent::class,
-       \Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation::class
-   );
 
 .. _extending-how-it-works:
 
