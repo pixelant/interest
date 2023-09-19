@@ -13,6 +13,7 @@ Implementing
 
    Cli/Index
    Rest/Index
+   Webhook/Index
    FileHandling/Index
    Extending/Index
 
@@ -25,13 +26,15 @@ The extension supports both REST and CLI (Command Line Interface) endpoints.
 Which one you use depends on your needs, but here's the way we usually keep
 them apart:
 
+* Use **CLI** when the service sending data to the extension is in the same
+  environment. This is good for situations where you need more advanced parsing
+  and transformation of input data.
 * Use **REST** when the data source is external and supports REST export.
   `DataCater <https://datacater.io/?utm_source=ext_interest>`__ is an ETA
   (Extract Transform Load) service that integrates well with the Interest
   extension's REST API.
-* Use **CLI** when the service sending data to the extension is in the same
-  environment. This is good for situations where you need more advanced parsing
-  and transformation of input data.
+* Use **Webhook** to utilize TYPO3's built-in reactions support to authenticate
+   a *REST*-like request (see above).
 
 .. _common-properties:
 
