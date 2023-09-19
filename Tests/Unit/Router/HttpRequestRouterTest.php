@@ -4,17 +4,33 @@ namespace Pixelant\Interest\Tests\Unit\Router;
 
 use Pixelant\Interest\Router\HttpRequestRouter;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class HttpRequestRouterTest extends UnitTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->resetSingletonInstances = true;
+    }
+
     /**
      * @test
      */
     public function routesRequestToCorrectAction()
     {
+        $eventDispatcherMock = $this->createMock(EventDispatcher::class);
+
+        $eventDispatcherMock
+            ->method('dispatch')
+            ->willReturnArgument(0);
+
+        GeneralUtility::setSingletonInstance(EventDispatcher::class, $eventDispatcherMock);
+
         foreach (
             [
                 'POST' => 'Create',
