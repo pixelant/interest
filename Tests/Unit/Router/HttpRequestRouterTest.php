@@ -50,7 +50,6 @@ class HttpRequestRouterTest extends UnitTestCase
 
     /**
      * @param string $action
-     * @return void
      */
     public function addRequestHandlerToGeneralUtility(string $action): void
     {
