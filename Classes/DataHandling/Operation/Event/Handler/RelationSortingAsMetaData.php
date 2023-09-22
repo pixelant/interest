@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * when persisting the foreign side of the relation to ensure the ordering is correct, even if the foreign relations are
  * created one-by-one.
  *
- * @see ForeignRelationSorting
+ * @see FixSortingPositionsOnRemoteRelationRecords
  */
 class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
 {

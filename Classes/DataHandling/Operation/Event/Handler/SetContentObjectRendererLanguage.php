@@ -9,7 +9,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 
 /**
- * Simply sets the language in the ContentObjectRenderer's data array.
+ * Sets the language in the ContentObjectRenderer's data array.
  */
 class SetContentObjectRendererLanguage implements RecordOperationEventHandlerInterface
 {

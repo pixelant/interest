@@ -22,7 +22,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *
  * @see RelationSortingAsMetaData
  */
-class ForeignRelationSorting implements RecordOperationEventHandlerInterface
+class FixSortingPositionsOnRemoteRelationRecords implements RecordOperationEventHandlerInterface
 {
     protected ?RemoteIdMappingRepository $mappingRepository = null;
 
@@ -34,7 +34,10 @@ class ForeignRelationSorting implements RecordOperationEventHandlerInterface
      */
     public function __invoke(AbstractRecordOperationEvent $event): void
     {
-        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+        if (
+            $event->getRecordOperation() instanceof DeleteRecordOperation
+            || !$event->getRecordOperation()->isSuccessful()
+        ) {
             return;
         }
 

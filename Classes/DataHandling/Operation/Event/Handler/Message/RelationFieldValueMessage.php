@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler\Message;
 
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\DetectUpdatedForeignFieldValues;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\RegisterValuesOfRelationFields;
 use Pixelant\Interest\DataHandling\Operation\Message\RequiredMessageInterface;
 
 /**
- * Information on an updated foreign relation field.
+ * The value of a foreign relation field.
  *
- * @see DetectUpdatedForeignFieldValues
+ * @see RegisterValuesOfRelationFields
  */
-class UpdatedForeignFieldValueMessage implements RequiredMessageInterface
+class RelationFieldValueMessage implements RequiredMessageInterface
 {
     private string $table;
 

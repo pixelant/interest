@@ -12,9 +12,10 @@ use Pixelant\Interest\Utility\RelationUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Sets the UID in the operation if it was successful.
+ * Adds all the pending relations to the DataHandler's datamap, so the relations are created together with the record
+ * they point to.
  */
-class ResolvePendingRelations implements RecordOperationEventHandlerInterface
+class AddResolvedPendingRelationsToDataHandler implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

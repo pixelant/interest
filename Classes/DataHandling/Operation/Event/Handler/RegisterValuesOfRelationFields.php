@@ -6,15 +6,15 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\UpdatedForeignFieldValueMessage;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\RelationFieldValueMessage;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Utility\TcaUtility;
 
 /**
- * Check datamap fields with foreign field and store value(s) in array. After process_datamap values can be used to
- * compare what is actually stored in the database, and we can delete removed values.
+ * Check datamap fields keeping foreign relations and send a RelationFieldValueMessage for each. After process_datamap
+ * the values can be used to compare what is actually stored in the database, and we can delete removed values.
  */
-class DetectUpdatedForeignFieldValues implements RecordOperationEventHandlerInterface
+class RegisterValuesOfRelationFields implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {
@@ -34,12 +34,14 @@ class DetectUpdatedForeignFieldValues implements RecordOperationEventHandlerInte
                 );
 
                 if ($tcaFieldConf['foreign_field'] ?? false) {
-                    $recordOperation->dispatchMessage(new UpdatedForeignFieldValueMessage(
-                        $recordOperation->getTable(),
-                        $field,
-                        $id,
-                        $value
-                    ));
+                    $recordOperation->dispatchMessage(
+                        new RelationFieldValueMessage(
+                            $recordOperation->getTable(),
+                            $field,
+                            $id,
+                            $value
+                        )
+                    );
                 }
             }
         }

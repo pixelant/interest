@@ -17,7 +17,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Filters out pending relations (relations to records not yet created) and issues a PendingRelationMessage for handling
  * later.
  */
-class FilterPendingRelations implements RecordOperationEventHandlerInterface
+class MapUidsAndExtractPendingRelations implements RecordOperationEventHandlerInterface
 {
     protected RemoteIdMappingRepository $mappingRepository;
 

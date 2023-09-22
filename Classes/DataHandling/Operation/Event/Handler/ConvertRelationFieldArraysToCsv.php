@@ -10,9 +10,9 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
 use Pixelant\Interest\Utility\RelationUtility;
 
 /**
- * Converts all array values to comma-separated values.
+ * Converts relation field values from array to comma-separated string.
  */
-class ConvertArrayValuesToScalar implements RecordOperationEventHandlerInterface
+class ConvertRelationFieldArraysToCsv implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
