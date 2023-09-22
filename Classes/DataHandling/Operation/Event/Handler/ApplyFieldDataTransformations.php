@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
 /**
  * Simply sets the language in the ContentObjectRenderer's data array.
  */
-class ApplyFieldDataTransformationsEventHandler implements RecordOperationEventHandlerInterface
+class ApplyFieldDataTransformations implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

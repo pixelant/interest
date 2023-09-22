@@ -10,7 +10,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Defers a record where the remote ID for a PID doesn't exist yet.
  */
-class DeferMissingPidRemoteIdEventHandler extends AbstractDetermineDeferredRecordOperationEventHandler
+class DeferMissingPidRemoteId extends AbstractDetermineDeferredRecordOperation
 {
     protected function getDependentRemoteId(): ?string
     {

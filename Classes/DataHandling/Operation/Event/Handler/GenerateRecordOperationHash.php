@@ -12,7 +12,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
  *
  * @see StopIfRepeatingPreviousRecordOperation
  */
-class GenerateRecordOperationHashEventHandler implements RecordOperationEventHandlerInterface
+class GenerateRecordOperationHash implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

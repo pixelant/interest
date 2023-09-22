@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Abstract for event handlers dealing with deferred persistence. I.e. where a record operation should not be executed
  * now because other data needs to appear first. All subclasses must throw a DeferRecordOperationException.
  */
-abstract class AbstractDetermineDeferredRecordOperationEventHandler implements EventHandlerInterface
+abstract class AbstractDetermineDeferredRecordOperation implements EventHandlerInterface
 {
     /**
      * @var AbstractRecordOperationEvent

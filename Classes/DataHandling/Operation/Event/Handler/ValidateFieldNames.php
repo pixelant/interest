@@ -12,7 +12,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 /**
  * Attempts to resolve the storage PID.
  */
-class ValidateFieldNamesEventHandler implements RecordOperationEventHandlerInterface
+class ValidateFieldNames implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

@@ -15,7 +15,7 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 /**
  * Attempts to resolve the storage PID.
  */
-class ResolveStoragePidEventHandler implements RecordOperationEventHandlerInterface
+class ResolveStoragePid implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

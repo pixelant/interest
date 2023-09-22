@@ -14,7 +14,7 @@ use Pixelant\Interest\Utility\TcaUtility;
  * Check datamap fields with foreign field and store value(s) in array. After process_datamap values can be used to
  * compare what is actually stored in the database, and we can delete removed values.
  */
-class DetectUpdatedForeignFieldValuesEventHandler implements RecordOperationEventHandlerInterface
+class DetectUpdatedForeignFieldValues implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

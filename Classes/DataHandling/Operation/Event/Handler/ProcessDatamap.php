@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\DataHandlerSu
 /**
  * Instructs DataHandler to process the datamap array.
  */
-class ProcessDatamapEventHandler implements RecordOperationEventHandlerInterface
+class ProcessDatamap implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

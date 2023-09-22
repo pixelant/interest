@@ -36,7 +36,7 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 /**
  * Intercepts a sys_file request to store the file data in the filesystem.
  */
-class PersistFileDataEventHandler implements RecordOperationEventHandlerInterface
+class PersistFileData implements RecordOperationEventHandlerInterface
 {
     protected RemoteIdMappingRepository $mappingRepository;
 

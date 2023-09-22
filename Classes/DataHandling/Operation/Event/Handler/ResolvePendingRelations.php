@@ -14,7 +14,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Sets the UID in the operation if it was successful.
  */
-class ResolvePendingRelationsEventHandler implements RecordOperationEventHandlerInterface
+class ResolvePendingRelations implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

@@ -14,7 +14,7 @@ use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ProcessDeferredRecordOperationsEventHandler implements RecordOperationEventHandlerInterface
+class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

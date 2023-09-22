@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\DataHandlerSu
 /**
  * Instructs DataHandler to process the cmdmap array.
  */
-class ProcessCmdmapEventHandler implements RecordOperationEventHandlerInterface
+class ProcessCmdmap implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Slot;
 
-use Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFileEventHandler;
+use Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFile;
 use TYPO3\CMS\Core\Resource\AbstractFile;
 
 /**
@@ -14,6 +14,6 @@ class DeleteRemoteIdForDeletedFileSlot
 {
     public function __invoke(AbstractFile $file)
     {
-        DeleteRemoteIdForDeletedFileEventHandler::removeRemoteIdForFile($file);
+        DeleteRemoteIdForDeletedFile::removeRemoteIdForFile($file);
     }
 }

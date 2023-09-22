@@ -14,7 +14,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * If a record has been successfully created, we can remove the pending relations records that were pointing to it. They
  * were processed earlier, but we couldn't remove them until we knew the record had been successfully created.
  *
- * @see ResolvePendingRelationsEventHandler
+ * @see ResolvePendingRelations
  */
 class RemovePendingRelationsForCreatedRecord implements RecordOperationEventHandlerInterface
 {

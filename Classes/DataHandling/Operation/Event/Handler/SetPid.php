@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
 /**
  * Sets the 'pid' key in the data array from the storage PID, if necessary.
  */
-class SetPidEventHandler implements RecordOperationEventHandlerInterface
+class SetPid implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

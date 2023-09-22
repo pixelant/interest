@@ -9,13 +9,9 @@ use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 
 /**
- * Prepare relations in the data.
- *
- * All relations to records are either changed from the remote ID to the correct localID or marked as a pending
- * relation. Pending relation information is temporarily added to $this->pendingRelations and persisted using
- * persistPendingRelations().
+ * Unsets fields with null value, so they don't create problems.
  */
-class PrepareRelationsEventHandler implements RecordOperationEventHandlerInterface
+class RemoveFieldsWithNullValue implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
@@ -29,14 +25,9 @@ class PrepareRelationsEventHandler implements RecordOperationEventHandlerInterfa
         $recordOperation = $event->getRecordOperation();
 
         foreach ($recordOperation->getDataForDataHandler() as $fieldName => $fieldValue) {
-            // Skip non-relational fields.
-            if (!is_array($fieldValue)) {
-                continue;
+            if ($recordOperation->getDataFieldForDataHandler($fieldName) === null) {
+                $recordOperation->unsetDataField($fieldName);
             }
-
-            $fieldValue = array_filter($fieldValue);
-
-            $recordOperation->setDataFieldForDataHandler($fieldName, implode(',', $fieldValue));
         }
     }
 }

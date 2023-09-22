@@ -14,7 +14,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Process updated foreign field values to find values to delete by adding them to cmdmap.
  */
-class ProcessUpdatedForeignFieldValuesEventHandler implements RecordOperationEventHandlerInterface
+class ProcessUpdatedForeignFieldValues implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

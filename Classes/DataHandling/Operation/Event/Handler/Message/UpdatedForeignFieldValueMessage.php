@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler\Message;
 
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\DetectUpdatedForeignFieldValuesEventHandler;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\DetectUpdatedForeignFieldValues;
 use Pixelant\Interest\DataHandling\Operation\Message\RequiredMessageInterface;
 
 /**
  * Information on an updated foreign relation field.
  *
- * @see DetectUpdatedForeignFieldValuesEventHandler
+ * @see DetectUpdatedForeignFieldValues
  */
 class UpdatedForeignFieldValueMessage implements RequiredMessageInterface
 {

@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerIn
 /**
  * Sets the UID in the operation if it was successful.
  */
-class SetUidEventHandler implements RecordOperationEventHandlerInterface
+class SetUid implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

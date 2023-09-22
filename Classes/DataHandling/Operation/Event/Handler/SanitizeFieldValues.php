@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Ensures that fields only have allowed data types. Arrays are relations, other fields are float, int, or string.
  * Fields with null values are unset.
  */
-class SanitizeFieldValuesEventHandler implements RecordOperationEventHandlerInterface
+class SanitizeFieldValues implements RecordOperationEventHandlerInterface
 {
     protected AbstractRecordOperation $recordOperation;
 

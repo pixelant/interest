@@ -7,11 +7,12 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
+use Pixelant\Interest\Utility\RelationUtility;
 
 /**
- * Unsets fields with null value, so they don't create problems.
+ * Converts all array values to comma-separated values.
  */
-class RemoveFieldsWithNullValueEventHandler implements RecordOperationEventHandlerInterface
+class ConvertArrayValuesToScalar implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
@@ -22,12 +23,15 @@ class RemoveFieldsWithNullValueEventHandler implements RecordOperationEventHandl
             return;
         }
 
-        $recordOperation = $event->getRecordOperation();
-
-        foreach ($recordOperation->getDataForDataHandler() as $fieldName => $fieldValue) {
-            if ($recordOperation->getDataFieldForDataHandler($fieldName) === null) {
-                $recordOperation->unsetDataField($fieldName);
+        foreach ($event->getRecordOperation()->getDataForDataHandler() as $fieldName => $fieldValue) {
+            if (!is_array($fieldValue)) {
+                continue;
             }
+
+            $event->getRecordOperation()->setDataFieldForDataHandler(
+                $fieldName,
+                RelationUtility::reduceArrayToScalar($event->getRecordOperation()->getTable(), $fieldName, $fieldValue)
+            );
         }
     }
 }

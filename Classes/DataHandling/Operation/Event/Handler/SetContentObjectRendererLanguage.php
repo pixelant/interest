@@ -11,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 /**
  * Simply sets the language in the ContentObjectRenderer's data array.
  */
-class SetContentObjectRendererLanguageEventHandler implements RecordOperationEventHandlerInterface
+class SetContentObjectRendererLanguage implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

@@ -21,12 +21,12 @@ use Pixelant\Interest\Utility\RelationUtility;
  *
  * If the record count is higher than the actual number of relations, Extbase will trigger an exception.
  *
- * Given a DeleteRecordOperation, this EventHandler iterates through all tables and fields that potentially could have
+ * Given a DeleteRecordOperation, this  iterates through all tables and fields that potentially could have
  * a parent relationship to the record being deleted. When it finds a parent record, it will count the number of child
- * relations, subtract 1 for the record being deleted, and update the count field in the parent record. The EventHandler
+ * relations, subtract 1 for the record being deleted, and update the count field in the parent record. The
  * also takes record-type-related changes to a field's configuration into account.
  */
-class UpdateCountOnForeignSideOfInlineRecordEventHandler implements RecordOperationEventHandlerInterface
+class UpdateCountOnForeignSideOfInlineRecord implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

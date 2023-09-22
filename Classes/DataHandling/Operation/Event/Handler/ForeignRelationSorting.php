@@ -20,9 +20,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Checks MM relations from a recently created record and makes sure the record has the correct order in the list of
  * items on the remote side.
  *
- * @see RelationSortingAsMetaDataEventHandler
+ * @see RelationSortingAsMetaData
  */
-class ForeignRelationSortingEventHandler implements RecordOperationEventHandlerInterface
+class ForeignRelationSorting implements RecordOperationEventHandlerInterface
 {
     protected ?RemoteIdMappingRepository $mappingRepository = null;
 
@@ -109,7 +109,7 @@ class ForeignRelationSortingEventHandler implements RecordOperationEventHandlerI
 
         $orderingIntents = $this->mappingRepository->getMetaDataValue(
             $foreignRemoteId,
-            RelationSortingAsMetaDataEventHandler::class
+            RelationSortingAsMetaData::class
         ) ?? [];
 
         foreach ($orderingIntents as $fieldName => $orderingIntent) {

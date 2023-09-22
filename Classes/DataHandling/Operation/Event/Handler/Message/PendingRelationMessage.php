@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler\Message;
 
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\FilterPendingRelationsEventHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistPendingRelationInformationEventHandler;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\FilterPendingRelations;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistPendingRelationInformation;
 use Pixelant\Interest\DataHandling\Operation\Message\RequiredMessageInterface;
 
 /**
  * A message concerning pending relations to be persisted.
  *
- * @see FilterPendingRelationsEventHandler
- * @see PersistPendingRelationInformationEventHandler
+ * @see FilterPendingRelations
+ * @see PersistPendingRelationInformation
  */
 class PendingRelationMessage implements RequiredMessageInterface
 {

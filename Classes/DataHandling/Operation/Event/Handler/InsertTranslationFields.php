@@ -14,7 +14,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Create the translation fields if the table is translatable, language is set and nonzero, and the language field
  * hasn't already been set.
  */
-class InsertTranslationFieldsEventHandler implements RecordOperationEventHandlerInterface
+class InsertTranslationFields implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc

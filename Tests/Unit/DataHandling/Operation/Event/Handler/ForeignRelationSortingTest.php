@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSorting;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
-class ForeignRelationSortingEventHandlerTest extends UnitTestCase
+class ForeignRelationSortingTest extends UnitTestCase
 {
     protected function setUp(): void
     {
@@ -47,7 +47,7 @@ class ForeignRelationSortingEventHandlerTest extends UnitTestCase
         $event = new RecordOperationInvocationEvent($recordOperationMock);
 
         $subjectMock = $this
-            ->getMockBuilder(ForeignRelationSortingEventHandler::class)
+            ->getMockBuilder(ForeignRelationSorting::class)
             ->onlyMethods(['getMmFieldConfigurations', 'orderOnForeignSideOfRelation', 'persistData'])
             ->getMock();
 
