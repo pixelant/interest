@@ -8,10 +8,10 @@ use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException as OperationConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException as OperationDataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException as OperationIdentityConflictException;
+use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException as OpIncompleteOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException as OperationInvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException as OperationMissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException as OperationNotFoundException;
-use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException as OperationIncompleteOperationException;
 use Pixelant\Interest\RequestHandler\Exception\ConflictException;
 use Pixelant\Interest\RequestHandler\Exception\DataHandlerErrorException;
 use Pixelant\Interest\RequestHandler\Exception\IncompleteOperationException;
@@ -26,7 +26,7 @@ final class OperationToRequestHandlerExceptionConverter
         OperationConflictException::class => ConflictException::class,
         OperationDataHandlerErrorException::class => DataHandlerErrorException::class,
         OperationIdentityConflictException::class => ConflictException::class,
-        OperationIncompleteOperationException::class => IncompleteOperationException::class,
+        OpIncompleteOperationException::class => IncompleteOperationException::class,
         OperationInvalidArgumentException::class => InvalidArgumentException::class,
         OperationNotFoundException::class => NotFoundException::class,
         OperationMissingArgumentException::class => MissingArgumentException::class,

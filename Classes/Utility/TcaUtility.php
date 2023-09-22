@@ -236,18 +236,18 @@ class TcaUtility
         );
 
         return (
-                $tca['type'] === 'group'
-                && (
-                    ($tca['internal_type'] ?? null) === 'db'
-                    || isset($tca['allowed'])
-                )
+            $tca['type'] === 'group'
+            && (
+                ($tca['internal_type'] ?? null) === 'db'
+                || isset($tca['allowed'])
             )
+        )
             || (
                 in_array($tca['type'], ['inline', 'select'], true)
                 && isset($tca['foreign_table'])
             )
             || (
-            in_array($tca['type'], ['category', 'file', 'image'], true)
+                in_array($tca['type'], ['category', 'file', 'image'], true)
             );
     }
 
@@ -293,8 +293,6 @@ class TcaUtility
         array $row,
         ?string $remoteId
     ): string {
-
-
         /** @var RemoteIdMappingRepository $mappingRepository */
         $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 

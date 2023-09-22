@@ -16,7 +16,6 @@ use Pixelant\Interest\DataHandling\Operation\Message\RequiredMessageInterface;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -255,7 +254,6 @@ abstract class AbstractRecordOperation
      * Unset a field in the data array.
      *
      * @param string $fieldName
-     * @return void
      */
     public function unsetDataField(string $fieldName)
     {
@@ -406,7 +404,6 @@ abstract class AbstractRecordOperation
      * Dispatch a message to be picked up later.
      *
      * @param MessageInterface $message
-     * @return void
      */
     public function dispatchMessage(MessageInterface $message)
     {
@@ -432,7 +429,7 @@ abstract class AbstractRecordOperation
     public function retrieveMessage(string $messageFqcn): ?MessageInterface
     {
         if (!isset($this->messageQueue[$messageFqcn])) {
-             return null;
+            return null;
         }
 
         return array_pop($this->messageQueue[$messageFqcn]);

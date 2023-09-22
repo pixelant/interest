@@ -151,7 +151,7 @@ class RecordInstanceIdentifier
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getUidPlaceholder(): string
     {

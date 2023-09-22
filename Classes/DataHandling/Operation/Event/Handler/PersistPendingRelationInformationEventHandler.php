@@ -25,6 +25,7 @@ class PersistPendingRelationInformationEventHandler implements AfterRecordOperat
         $repository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
         do {
+            /** @var PendingRelationMessage $message */
             $message = $event->getRecordOperation()->retrieveMessage(PendingRelationMessage::class);
 
             if ($message !== null) {

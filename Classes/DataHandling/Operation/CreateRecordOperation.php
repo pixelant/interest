@@ -8,7 +8,6 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
  * Handle a record creation operation.

@@ -39,7 +39,5 @@ class ResolveStoragePidEventHandlerTest extends UnitTestCase
         $event = new BeforeRecordOperationEvent($mockCreateRecordOperation);
 
         (new ResolveStoragePidEventHandler())($event);
-
-        //self::assertEquals(0, $subject->getDataForDataHandler()['pid']);
     }
 }
