@@ -203,10 +203,17 @@ services:
         event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
         before: cleanUpPendingRelations
 
-  Pixelant\Interest\DataHandling\Operation\Event\Handler\CleanUpPendingRelationsEventHandler:
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\RemovePendingRelationsForCreatedRecord:
     tags:
       - name: event.listener
-        identifier: cleanUpPendingRelations
+        identifier: removePendingRelationsForCreatedRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
+        after: foreignRelationSorting
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\RemovePendingRelationsForDeletedRecord:
+    tags:
+      - name: event.listener
+        identifier: removePendingRelationsForDeletedRecord
         event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
         after: foreignRelationSorting
 

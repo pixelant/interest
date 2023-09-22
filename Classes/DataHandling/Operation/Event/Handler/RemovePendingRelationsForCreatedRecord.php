@@ -11,9 +11,12 @@ use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Sets the UID in the operation if it was successful.
+ * If a record has been successfully created, we can remove the pending relations records that were pointing to it. They
+ * were processed earlier, but we couldn't remove them until we knew the record had been successfully created.
+ *
+ * @see ResolvePendingRelationsEventHandler
  */
-class CleanUpPendingRelationsEventHandler implements RecordOperationEventHandlerInterface
+class RemovePendingRelationsForCreatedRecord implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {

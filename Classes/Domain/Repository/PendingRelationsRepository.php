@@ -92,10 +92,10 @@ class PendingRelationsRepository extends AbstractRepository
      * Removes all existing pending relations for $field in record $uid in $table.
      *
      * @param string $table
-     * @param string $field
+     * @param string|null $field If null, all pending relations for this UID will be removed.
      * @param int $uid
      */
-    public function removeLocal(string $table, string $field, int $uid): void
+    public function removeLocal(string $table, ?string $field, int $uid): void
     {
         $queryBuilder = $this->getQueryBuilder();
 
@@ -107,15 +107,21 @@ class PendingRelationsRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($table)
                 ),
                 $queryBuilder->expr()->eq(
-                    'field',
-                    $queryBuilder->createNamedParameter($field)
-                ),
-                $queryBuilder->expr()->eq(
                     'record_uid',
                     $queryBuilder->createNamedParameter($uid)
                 )
-            )
-            ->executeStatement();
+            );
+
+        if ($field !== null) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->eq(
+                    'field',
+                    $queryBuilder->createNamedParameter($field)
+                )
+            );
+        }
+
+        $queryBuilder->executeStatement();
     }
 
     /**
