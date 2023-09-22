@@ -6,8 +6,8 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;

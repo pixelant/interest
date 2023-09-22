@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\FixSortingPositionsOnRemoteRelationRecords;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;

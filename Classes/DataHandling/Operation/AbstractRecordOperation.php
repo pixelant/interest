@@ -6,8 +6,8 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\DataHandlerSuccessMessage;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException;
 use Pixelant\Interest\DataHandling\Operation\Message\MessageInterface;
