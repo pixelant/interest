@@ -201,14 +201,7 @@ services:
       - name: event.listener
         identifier: foreignRelationSorting
         event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
-        before: cleanUpPendingRelations
-
-  Pixelant\Interest\DataHandling\Operation\Event\Handler\CleanUpPendingRelationsEventHandler:
-    tags:
-      - name: event.listener
-        identifier: cleanUpPendingRelations
-        event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
-        after: foreignRelationSorting
+        before: deleteRemoteIdForDeletedFile
 
   Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFileEventHandler:
     tags:
