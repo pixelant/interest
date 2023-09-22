@@ -29,10 +29,12 @@ class ApplyFieldDataTransformations implements RecordOperationEventHandlerInterf
         foreach (
             $settings['transformations.'][$recordOperation->getTable() . '.'] ?? [] as $fieldName => $configuration
         ) {
+            $fieldName = substr($fieldName, 0, -1);
+
             $recordOperation->setDataFieldForDataHandler(
                 $fieldName,
                 $recordOperation->getContentObjectRenderer()->stdWrap(
-                    $recordOperation()->getDataForDataHandler()[substr($fieldName, 0, -1)] ?? '',
+                    $recordOperation->getDataForDataHandler()[$fieldName] ?? '',
                     $configuration
                 )
             );
