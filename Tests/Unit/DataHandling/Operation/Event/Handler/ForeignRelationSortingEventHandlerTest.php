@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -44,7 +44,7 @@ class ForeignRelationSortingEventHandlerTest extends UnitTestCase
             ->method('getDataForDataHandler')
             ->willReturn($localRecordData);
 
-        $event = new AfterRecordOperationEvent($recordOperationMock);
+        $event = new RecordOperationInvocationEvent($recordOperationMock);
 
         $subjectMock = $this
             ->getMockBuilder(ForeignRelationSortingEventHandler::class)

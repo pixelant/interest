@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\UpdatedForeignFieldValueMessage;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Utility\TcaUtility;
@@ -14,9 +14,9 @@ use Pixelant\Interest\Utility\TcaUtility;
  * Check datamap fields with foreign field and store value(s) in array. After process_datamap values can be used to
  * compare what is actually stored in the database, and we can delete removed values.
  */
-class DetectUpdatedForeignFieldValuesEventHandler implements AfterRecordOperationEventHandlerInterface
+class DetectUpdatedForeignFieldValuesEventHandler implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if (!($event->getRecordOperation() instanceof UpdateRecordOperation)) {
             return;

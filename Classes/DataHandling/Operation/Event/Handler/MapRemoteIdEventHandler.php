@@ -6,17 +6,17 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Sets the UID in the operation if it was successful.
  */
-class MapRemoteIdEventHandler implements AfterRecordOperationEventHandlerInterface
+class MapRemoteIdEventHandler implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

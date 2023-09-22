@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 
 /**
  * Sets the UID in the operation if it was successful.
  */
-class SetUidEventHandler implements AfterRecordOperationEventHandlerInterface
+class SetUidEventHandler implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if (
             $event->getRecordOperation()->isSuccessful()

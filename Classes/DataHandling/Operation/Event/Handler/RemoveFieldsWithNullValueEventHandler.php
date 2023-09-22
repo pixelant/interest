@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 
 /**
  * Unsets fields with null value, so they don't create problems.
  */
-class RemoveFieldsWithNullValueEventHandler implements BeforeRecordOperationEventHandlerInterface
+class RemoveFieldsWithNullValueEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -15,13 +15,13 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 /**
  * Attempts to resolve the storage PID.
  */
-class ResolveStoragePidEventHandler implements BeforeRecordOperationEventHandlerInterface
+class ResolveStoragePidEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      * @throws InvalidArgumentException
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if (
             !isset($event->getRecordOperation()->getDataForDataHandler()['pid'])

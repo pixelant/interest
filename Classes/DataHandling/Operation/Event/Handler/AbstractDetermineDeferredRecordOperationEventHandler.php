@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface as EventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface as EventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -19,16 +19,16 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 abstract class AbstractDetermineDeferredRecordOperationEventHandler implements EventHandlerInterface
 {
     /**
-     * @var BeforeRecordOperationEvent
+     * @var AbstractRecordOperationEvent
      */
     protected $event;
 
     /**
      * Defers the operation if deferRecordOperation() returns true.
      *
-     * @param BeforeRecordOperationEvent $event
+     * @param AbstractRecordOperationEvent $event
      */
-    final public function __invoke(BeforeRecordOperationEvent $event): void
+    final public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;
@@ -77,7 +77,7 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler implements E
     }
 
     /**
-     * @return BeforeRecordOperationEvent
+     * @return AbstractRecordOperationEvent
      */
     public function getEvent()
     {

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 
 /**
  * Simply sets the language in the ContentObjectRenderer's data array.
  */
-class SetContentObjectRendererLanguageEventHandler implements BeforeRecordOperationEventHandlerInterface
+class SetContentObjectRendererLanguageEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      * @throws InvalidArgumentException
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation()->getLanguage() === null) {
             $event->getRecordOperation()->getContentObjectRenderer()->data['language'] = null;

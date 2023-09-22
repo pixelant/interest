@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 
 /**
  * Simply sets the language in the ContentObjectRenderer's data array.
  */
-class ApplyFieldDataTransformationsEventHandler implements BeforeRecordOperationEventHandlerInterface
+class ApplyFieldDataTransformationsEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

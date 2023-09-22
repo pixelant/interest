@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
 
 /**
  * Attempts to resolve the storage PID.
  */
-class ValidateFieldNamesEventHandler implements BeforeRecordOperationEventHandlerInterface
+class ValidateFieldNamesEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      * @throws ConflictException
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

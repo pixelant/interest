@@ -6,7 +6,7 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
@@ -42,7 +42,7 @@ abstract class AbstractConstructiveRecordOperation extends AbstractRecordOperati
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
         try {
-            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
+            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new RecordOperationSetupEvent($this));
         } catch (StopRecordOperationException $exception) {
             $this->operationStopped = true;
 

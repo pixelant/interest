@@ -6,8 +6,8 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Ensures that fields only have allowed data types. Arrays are relations, other fields are float, int, or string.
  * Fields with null values are unset.
  */
-class SanitizeFieldValuesEventHandler implements BeforeRecordOperationEventHandlerInterface
+class SanitizeFieldValuesEventHandler implements RecordOperationEventHandlerInterface
 {
     protected AbstractRecordOperation $recordOperation;
 
@@ -24,7 +24,7 @@ class SanitizeFieldValuesEventHandler implements BeforeRecordOperationEventHandl
      * @inheritDoc
      * @throws InvalidArgumentException
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

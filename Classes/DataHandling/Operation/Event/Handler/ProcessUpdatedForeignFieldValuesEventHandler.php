@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\UpdatedForeignFieldValueMessage;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Utility\RelationUtility;
@@ -14,9 +14,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Process updated foreign field values to find values to delete by adding them to cmdmap.
  */
-class ProcessUpdatedForeignFieldValuesEventHandler implements AfterRecordOperationEventHandlerInterface
+class ProcessUpdatedForeignFieldValuesEventHandler implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if (!($event->getRecordOperation() instanceof UpdateRecordOperation)) {
             return;

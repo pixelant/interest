@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -18,17 +18,17 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *
  * @see ForeignRelationSortingEventHandler
  */
-class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEventHandlerInterface
+class RelationSortingAsMetaDataEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
-     * @var BeforeRecordOperationEvent
+     * @var AbstractRecordOperationEvent
      */
-    protected BeforeRecordOperationEvent $event;
+    protected AbstractRecordOperationEvent $event;
 
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

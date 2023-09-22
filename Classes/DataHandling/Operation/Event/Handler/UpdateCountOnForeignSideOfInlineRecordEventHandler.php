@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\Utility\RelationUtility;
 
 /**
@@ -26,12 +26,12 @@ use Pixelant\Interest\Utility\RelationUtility;
  * relations, subtract 1 for the record being deleted, and update the count field in the parent record. The EventHandler
  * also takes record-type-related changes to a field's configuration into account.
  */
-class UpdateCountOnForeignSideOfInlineRecordEventHandler implements AfterRecordOperationEventHandlerInterface
+class UpdateCountOnForeignSideOfInlineRecordEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      */
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if (!($event->getRecordOperation() instanceof DeleteRecordOperation)) {
             return;

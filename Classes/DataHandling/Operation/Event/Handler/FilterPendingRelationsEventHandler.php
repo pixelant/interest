@@ -6,8 +6,8 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\PendingRelationMessage;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\TcaUtility;
@@ -17,7 +17,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Filters out pending relations (relations to records not yet created) and issues a PendingRelationMessage for handling
  * later.
  */
-class FilterPendingRelationsEventHandler implements BeforeRecordOperationEventHandlerInterface
+class FilterPendingRelationsEventHandler implements RecordOperationEventHandlerInterface
 {
     protected RemoteIdMappingRepository $mappingRepository;
 
@@ -26,7 +26,7 @@ class FilterPendingRelationsEventHandler implements BeforeRecordOperationEventHa
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

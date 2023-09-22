@@ -6,7 +6,7 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\DataHandlerSuccessMessage;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException;
@@ -128,7 +128,7 @@ abstract class AbstractRecordOperation
             return;
         }
 
-        GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new AfterRecordOperationEvent($this));
+        GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new RecordOperationInvocationEvent($this));
 
         if ($this->isSuccessful() === false) {
             throw new DataHandlerErrorException(

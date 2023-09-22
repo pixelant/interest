@@ -6,17 +6,17 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\BeforeRecordOperationEventException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperationEventHandlerInterface
+class ProcessDeferredRecordOperationsEventHandler implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

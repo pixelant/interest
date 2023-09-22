@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -14,12 +14,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Create the translation fields if the table is translatable, language is set and nonzero, and the language field
  * hasn't already been set.
  */
-class InsertTranslationFieldsEventHandler implements BeforeRecordOperationEventHandlerInterface
+class InsertTranslationFieldsEventHandler implements RecordOperationEventHandlerInterface
 {
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         $recordOperation = $event->getRecordOperation();
 
