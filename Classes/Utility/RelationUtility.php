@@ -238,4 +238,27 @@ class RelationUtility
             }
         }
     }
+
+    /**
+     * Transform single-value array into scalar value to prevent Data Handler error.
+     *
+     * @param string $table
+     * @param string $field
+     * @param array $value
+     * @return string
+     */
+    public static function reduceArrayToScalar(string $table, string $field, array $value): string
+    {
+        if (
+            $value === []
+            && (
+                $field === TcaUtility::getTranslationSourceField($table)
+                || $field === TcaUtility::getTransOrigPointerField($table)
+            )
+        ) {
+            return '0';
+        }
+
+        return implode(',', $value);
+    }
 }

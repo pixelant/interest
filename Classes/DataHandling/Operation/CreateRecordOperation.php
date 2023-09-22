@@ -30,32 +30,14 @@ class CreateRecordOperation extends AbstractConstructiveRecordOperation
 
         parent::__construct($recordRepresentation, $metaData);
 
-        if (!isset($this->getDataForDataHandler()['pid'])) {
-            $this->setDataForDataHandler(
-                array_merge(
-                    $this->getDataForDataHandler(),
-                    ['pid' => $this->getStoragePid()]
-                )
-            );
-        }
-
         $uid = $this->getUid();
 
         if ($uid === 0) {
-            $uid = StringUtility::getUniqueId('NEW');
+            $uid = $this->getUidPlaceholder();
         }
 
         $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
 
         $this->dataHandler->datamap[$table][$uid] = $this->getDataForDataHandler();
-
-        $this->resolvePendingRelations($uid);
-    }
-
-    public function __invoke()
-    {
-        parent::__invoke();
-
-        $this->pendingRelationsRepository->removeRemote($this->getRemoteId());
     }
 }

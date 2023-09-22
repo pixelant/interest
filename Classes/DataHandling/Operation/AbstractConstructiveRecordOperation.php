@@ -39,15 +39,7 @@ abstract class AbstractConstructiveRecordOperation extends AbstractRecordOperati
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->createTranslationFields();
-
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
-
-        if (isset($this->getDataForDataHandler()['pid']) || $this instanceof CreateRecordOperation) {
-            $this->storagePid = $this->resolveStoragePid();
-        }
-
-        $this->hash = md5(static::class . serialize($this->getArguments()));
 
         try {
             GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
@@ -57,20 +49,7 @@ abstract class AbstractConstructiveRecordOperation extends AbstractRecordOperati
             throw $exception;
         }
 
-        $this->validateFieldNames();
-
-        $this->contentObjectRenderer->data['language']
-            = $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
-
-        $this->applyFieldDataTransformations();
-
-        $this->prepareRelations();
-
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
-
-        if (!isset($this->getDataForDataHandler()['pid']) && $this instanceof CreateRecordOperation) {
-            $this->dataForDataHandler['pid'] = $this->storagePid;
-        }
     }
 }

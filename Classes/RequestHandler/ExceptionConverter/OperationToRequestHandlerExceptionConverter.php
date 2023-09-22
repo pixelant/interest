@@ -11,8 +11,10 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException as OperationInvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException as OperationMissingArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException as OperationNotFoundException;
+use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException as OperationIncompleteOperationException;
 use Pixelant\Interest\RequestHandler\Exception\ConflictException;
 use Pixelant\Interest\RequestHandler\Exception\DataHandlerErrorException;
+use Pixelant\Interest\RequestHandler\Exception\IncompleteOperationException;
 use Pixelant\Interest\RequestHandler\Exception\InvalidArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\MissingArgumentException;
 use Pixelant\Interest\RequestHandler\Exception\NotFoundException;
@@ -24,6 +26,7 @@ final class OperationToRequestHandlerExceptionConverter
         OperationConflictException::class => ConflictException::class,
         OperationDataHandlerErrorException::class => DataHandlerErrorException::class,
         OperationIdentityConflictException::class => ConflictException::class,
+        OperationIncompleteOperationException::class => IncompleteOperationException::class,
         OperationInvalidArgumentException::class => InvalidArgumentException::class,
         OperationNotFoundException::class => NotFoundException::class,
         OperationMissingArgumentException::class => MissingArgumentException::class,

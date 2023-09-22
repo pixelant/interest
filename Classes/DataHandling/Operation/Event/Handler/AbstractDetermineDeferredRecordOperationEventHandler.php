@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface as EventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
@@ -29,6 +30,10 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler implements E
      */
     final public function __invoke(BeforeRecordOperationEvent $event): void
     {
+        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+            return;
+        }
+
         $this->event = $event;
 
         $this->deferRecordOperation($this->getDependentRemoteId());
@@ -66,7 +71,7 @@ abstract class AbstractDetermineDeferredRecordOperationEventHandler implements E
 
         throw new StopRecordOperationException(
             'Deferred record operation on remote ID "' . $this->getEvent()->getRecordOperation()->getRemoteId()
-            . '. ' . ' Waiting for remote ID "' . $dependentRemoteId . '".',
+            . '". ' . ' Waiting for remote ID "' . $dependentRemoteId . '".',
             1634553398351
         );
     }

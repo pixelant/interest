@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -29,6 +30,10 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
      */
     public function __invoke(BeforeRecordOperationEvent $event): void
     {
+        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+            return;
+        }
+
         $this->event = $event;
 
         $mmFieldConfigurations = $this->getSortedMmRelationFieldConfigurations();

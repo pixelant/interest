@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Pixelant\Interest\RequestHandler\Exception;
 
 /**
- * Exception issued in cases where HTTP Authentication fails. Should not be used for TYPO3 backend user access
- * restriction errors.
+ * @see \Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException
  */
 class DataHandlerErrorException extends AbstractRequestHandlerException
 {

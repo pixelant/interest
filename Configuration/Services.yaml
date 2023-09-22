@@ -7,47 +7,208 @@ services:
   Pixelant\Interest\:
     resource: '../Classes/*'
 
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\InsertTranslationFieldsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: insertTranslationFields
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: resolveStoragePid
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ResolveStoragePidEventHandler:
+    tags:
+      - name: event.listener
+        identifier: resolveStoragePid
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: generateRecordOperationHash
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\GenerateRecordOperationHashEventHandler:
+    tags:
+      - name: event.listener
+        identifier: generateRecordOperationHash
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: stopIfRepeatingPreviousRecord
+
   Pixelant\Interest\DataHandling\Operation\Event\Handler\StopIfRepeatingPreviousRecordOperation:
     tags:
       - name: event.listener
         identifier: stopIfRepeatingPreviousRecord
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: persistFileData
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler:
     tags:
       - name: event.listener
-        identifier: persistFileDataEventHandler
+        identifier: persistFileData
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: deferSysFileReferenceRecordOperation
 
-  Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileReferenceRecordOperationEventHandler:
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferSysFileReferenceEventHandler:
     tags:
       - name: event.listener
         identifier: deferSysFileReferenceRecordOperation
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: relationSortingAsMetaData
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaDataEventHandler:
     tags:
       - name: event.listener
         identifier: relationSortingAsMetaData
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: validateFieldNamesEventHandler
 
-  Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler:
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ValidateFieldNamesEventHandler:
     tags:
       - name: event.listener
-        identifier: updateCountOnForeignSideOfInlineRecord
+        identifier: validateFieldNamesEventHandler
         event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: setContentObjectRendererLanguage
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\SetContentObjectRendererLanguageEventHandler:
+    tags:
+      - name: event.listener
+        identifier: setContentObjectRendererLanguage
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: applyFieldDataTransformations
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ApplyFieldDataTransformationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: applyFieldDataTransformations
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: sanitizeFieldValues
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\SanitizeFieldValuesEventHandler:
+    tags:
+      - name: event.listener
+        identifier: sanitizeFieldValues
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: deferMissingPidRemoteId
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\DeferMissingPidRemoteIdEventHandler:
+    tags:
+      - name: event.listener
+        identifier: deferMissingPidRemoteId
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: filterPendingRelations
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\FilterPendingRelationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: filterPendingRelations
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: prepareRelations
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\PrepareRelationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: prepareRelations
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: removeFieldsWithNullValue
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\RemoveFieldsWithNullValueEventHandler:
+    tags:
+      - name: event.listener
+        identifier: removeFieldsWithNullValue
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        before: setPid
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\SetPidEventHandler:
+    tags:
+      - name: event.listener
+        identifier: setPid
+        event: Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent
+        after: removeFieldsWithNullValue
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\DetectUpdatedForeignFieldValuesEventHandler:
+    tags:
+      - name: event.listener
+        identifier: detectUpdatedForeignFieldValues
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: convertArrayValuesToScalar
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ConvertArrayValuesToScalarEventHandler:
+    tags:
+      - name: event.listener
+        identifier: convertArrayValuesToScalar
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: resolvePendingRelations
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ResolvePendingRelationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: resolvePendingRelations
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: processDatamap
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDatamapEventHandler:
+    tags:
+      - name: event.listener
+        identifier: processDatamap
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: processUpdatedForeignFieldValues
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessUpdatedForeignFieldValuesEventHandler:
+    tags:
+      - name: event.listener
+        identifier: processUpdatedForeignFieldValues
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: processCmdmap
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessCmdmapEventHandler:
+    tags:
+      - name: event.listener
+        identifier: processCmdmap
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: setUid
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\SetUidEventHandler:
+    tags:
+      - name: event.listener
+        identifier: setUid
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: mapRemoteId
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\MapRemoteIdEventHandler:
+    tags:
+      - name: event.listener
+        identifier: mapRemoteId
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: persistPendingRelationInformation
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistPendingRelationInformationEventHandler:
+    tags:
+      - name: event.listener
+        identifier: persistPendingRelationInformation
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: processDeferredRecordOperations
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\ProcessDeferredRecordOperationsEventHandler:
     tags:
       - name: event.listener
         identifier: processDeferredRecordOperations
         event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: updateCountOnForeignSideOfInlineRecord
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\UpdateCountOnForeignSideOfInlineRecordEventHandler:
+    tags:
+      - name: event.listener
+        identifier: updateCountOnForeignSideOfInlineRecord
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: cleanUpPendingRelations
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler:
     tags:
       - name: event.listener
         identifier: foreignRelationSorting
         event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        before: cleanUpPendingRelations
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\CleanUpPendingRelationsEventHandler:
+    tags:
+      - name: event.listener
+        identifier: cleanUpPendingRelations
+        event: Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent
+        after: foreignRelationSorting
 
   Pixelant\Interest\EventHandler\DeleteRemoteIdForDeletedFileEventHandler:
     tags:

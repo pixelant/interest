@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
 
+use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
@@ -31,6 +32,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
 
         $remoteId = $recordRepresentation->getRecordInstanceIdentifier()->getRemoteIdWithAspects();
+
         if (!$this->mappingRepository->exists($remoteId)) {
             throw new NotFoundException(
                 'The remote ID "' . $remoteId . '" doesn\'t exist.',
@@ -41,9 +43,11 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->metaData = [];
         $this->dataForDataHandler = [];
 
+        $this->configurationProvider = GeneralUtility::makeInstance(ConfigurationProvider::class);
+
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->hash = md5(static::class . serialize($this->getArguments()));
+        $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
         try {
             GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
