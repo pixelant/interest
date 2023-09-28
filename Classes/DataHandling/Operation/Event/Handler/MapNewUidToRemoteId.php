@@ -18,13 +18,12 @@ class MapNewUidToRemoteId implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {
-        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
-            return;
-        }
-
         $recordOperation = $event->getRecordOperation();
 
-        if (!$recordOperation->isSuccessful()) {
+        if (
+            $recordOperation instanceof DeleteRecordOperation
+            || !$recordOperation->isSuccessful()
+        ) {
             return;
         }
 
