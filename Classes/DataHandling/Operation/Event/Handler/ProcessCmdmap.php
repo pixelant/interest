@@ -15,12 +15,14 @@ class ProcessCmdmap implements RecordOperationEventHandlerInterface
 {
     public function __invoke(AbstractRecordOperationEvent $event): void
     {
-        if (count($event->getRecordOperation()->getDataHandler()->cmdmap) > 0) {
-            $event->getRecordOperation()->getDataHandler()->process_cmdmap();
-
-            $event->getRecordOperation()->dispatchMessage(new DataHandlerSuccessMessage(
-                count($event->getRecordOperation()->getDataHandler()->errorLog) === 0
-            ));
+        if (count($event->getRecordOperation()->getDataHandler()->cmdmap) === 0) {
+            return;
         }
+
+        $event->getRecordOperation()->getDataHandler()->process_cmdmap();
+
+        $event->getRecordOperation()->dispatchMessage(new DataHandlerSuccessMessage(
+            count($event->getRecordOperation()->getDataHandler()->errorLog) === 0
+        ));
     }
 }
