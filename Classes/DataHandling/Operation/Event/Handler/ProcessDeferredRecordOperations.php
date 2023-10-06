@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\AbstractConstructiveRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
@@ -43,13 +45,19 @@ class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInte
 
                 try {
                     try {
-                        $deferredOperation = new $deferredRow['class']($deferredRow['arguments']);
+                        $deferredOperation = $this->createRecordOperation(
+                            $deferredRow['class'],
+                            $deferredRow['arguments']
+                        );
                     } catch (IdentityConflictException $exception) {
                         if (
                             $deferredRow['class'] === CreateRecordOperation::class
                             || in_array(CreateRecordOperation::class, $deferredRowClassParents, true)
                         ) {
-                            $deferredOperation = new UpdateRecordOperation(... $deferredRow['arguments']);
+                            $deferredOperation = $this->createRecordOperation(
+                                UpdateRecordOperation::class,
+                                $deferredRow['arguments']
+                            );
                         } else {
                             throw $exception;
                         }
@@ -64,5 +72,22 @@ class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInte
 
             $repository->delete($deferredRow['uid']);
         }
+    }
+
+    /**
+     * Create a record operation of $className with $constructorArguments. This method is useful for testing, but also
+     * ensures that $className is a subclass of AbstractConstructiveRecordOperation.
+     *
+     * @param string $className
+     * @param array $constructorArguments
+     * @return AbstractConstructiveRecordOperation
+     *
+     * @internal
+     */
+    public function createRecordOperation(
+        string $className,
+        array $constructorArguments
+    ): AbstractConstructiveRecordOperation {
+        return new $className(... $constructorArguments);
     }
 }
