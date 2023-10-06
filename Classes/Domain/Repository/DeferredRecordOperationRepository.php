@@ -74,19 +74,6 @@ class DeferredRecordOperationRepository extends AbstractRepository
             $row['_hash'] = md5($row['dependent_remote_id'] . $row['class'] . $row['arguments']);
 
             $row['arguments'] = unserialize($row['arguments']);
-
-            // Compatibility with earlier versions. REMOVE IN v2
-            if (is_array($row['arguments'])) {
-                $row['arguments'] = new RecordRepresentation(
-                    $row['arguments'][0],
-                    new RecordInstanceIdentifier(
-                        (string)$row['arguments'][1],
-                        (string)$row['arguments'][2],
-                        (string)$row['arguments'][3],
-                        (string)$row['arguments'][4]
-                    )
-                );
-            }
         }
 
         return $rows;
