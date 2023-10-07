@@ -44,7 +44,7 @@ class RegisterValuesOfRelationFields implements RecordOperationEventHandlerInter
     }
 
     /**
-     * Wrapper for TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(). Mocked in testing.
+     * Wrapper for TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(). Mockable in testing.
      *
      * @param AbstractRecordOperation $recordOperation
      * @param string $field

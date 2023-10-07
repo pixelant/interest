@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
@@ -49,10 +50,11 @@ class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
      * Returns the TCA configurations (with overrides) for the table's MM fields.
      *
      * @return array
+     * @internal
      */
-    protected function getSortedMmRelationFieldConfigurations(): array
+    public function getSortedMmRelationFieldConfigurations(): array
     {
-        $recordOperation = $this->event->getRecordOperation();
+        $recordOperation = $this->getEvent()->getRecordOperation();
 
         if (!isset($GLOBALS['TCA'][$recordOperation->getTable()]['columns'])) {
             return [];
@@ -60,11 +62,9 @@ class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
 
         $fieldConfigurations = [];
         foreach (array_keys($GLOBALS['TCA'][$recordOperation->getTable()]['columns']) as $fieldName) {
-            $fieldConfiguration = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
-                $recordOperation->getTable(),
-                $fieldName,
-                $recordOperation->getDataForDataHandler(),
-                $recordOperation->getRemoteId()
+            $fieldConfiguration = $this->getTcaFieldConfigurationAndRespectColumnsOverrides(
+                $recordOperation,
+                $fieldName
             );
 
             if (
@@ -82,10 +82,11 @@ class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
      * Persists the sorting intent (ordered remoteIds) to meta data.
      *
      * @param array $fieldConfigurations
+     * @internal
      */
-    protected function addSortingIntentToMetaData(array $fieldConfigurations)
+    public function addSortingIntentToMetaData(array $fieldConfigurations)
     {
-        $recordOperation = $this->event->getRecordOperation();
+        $recordOperation = $this->getEvent()->getRecordOperation();
 
         $sortingIntents = [];
         foreach ($fieldConfigurations as $fieldName => $configuration) {
@@ -108,6 +109,34 @@ class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
             $recordOperation->getRemoteId(),
             self::class,
             $sortingIntents
+        );
+    }
+
+    /**
+     * @return AbstractRecordOperationEvent
+     */
+    public function getEvent(): AbstractRecordOperationEvent
+    {
+        return $this->event;
+    }
+
+    /**
+     * Wrapper for TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(). Mockable in testing.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     * @param string $field
+     * @return array
+     * @internal
+     */
+    public function getTcaFieldConfigurationAndRespectColumnsOverrides(
+        AbstractRecordOperation $recordOperation,
+        string $field
+    ): array {
+        return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $recordOperation->getTable(),
+            $field,
+            $recordOperation->getDataForDataHandler(),
+            $recordOperation->getRemoteId()
         );
     }
 }
