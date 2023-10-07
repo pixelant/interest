@@ -26,19 +26,20 @@ class SanitizeFieldValues implements RecordOperationEventHandlerInterface
      */
     public function __invoke(AbstractRecordOperationEvent $event): void
     {
-        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+        $this->recordOperation = $event->getRecordOperation();
+
+        if ($this->recordOperation instanceof DeleteRecordOperation) {
             return;
         }
-
-        $this->recordOperation = $event->getRecordOperation();
 
         foreach ($this->recordOperation->getDataForDataHandler() as $fieldName => $fieldValue) {
             if ($this->isRelationalField($fieldName)) {
                 if (!is_array($fieldValue)) {
-                    $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
+                    $this->recordOperation->setDataFieldForDataHandler(
+                        $fieldName,
+                        GeneralUtility::trimExplode(',', $fieldValue, true)
+                    );
                 }
-
-                $this->recordOperation->setDataFieldForDataHandler($fieldName, $fieldValue);
 
                 continue;
             }
@@ -59,8 +60,9 @@ class SanitizeFieldValues implements RecordOperationEventHandlerInterface
      *
      * @param string $field
      * @return bool
+     * @internal
      */
-    protected function isRelationalField(string $field): bool
+    public function isRelationalField(string $field): bool
     {
         $settings = $this->recordOperation->getSettings();
 
