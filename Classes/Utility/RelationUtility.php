@@ -216,9 +216,7 @@ class RelationUtility
 
                     $count = array_reduce(
                         $relations,
-                        function (int $carry, array $records) {
-                            return $carry + count($records);
-                        },
+                        fn (int $carry, array $records) => $carry + count($records),
                         0
                     );
 

@@ -38,19 +38,29 @@ class ProcessUpdatedForeignFieldValues implements RecordOperationEventHandlerInt
                 $newValues = GeneralUtility::trimExplode(',', $message->getValue(), true);
             }
 
-            $fieldRelations = RelationUtility::getRelationsFromField(
-                $message->getTable(),
-                $message->getId(),
-                $message->getField()
-            );
-
-            foreach ($fieldRelations as $relationTable => $relationTableValues) {
-                foreach ($relationTableValues as $relationTableValue) {
-                    if (!in_array((string)$relationTableValue, $newValues, true)) {
-                        $recordOperation->getDataHandler()->cmdmap[$relationTable][$relationTableValue]['delete'] = 1;
+            foreach ($this->getRelationsFromMessage($message) as $relationTable => $relationTableValues) {
+                foreach ($relationTableValues as $relationRecordId) {
+                    if (!in_array((string)$relationRecordId, $newValues, true)) {
+                        $recordOperation->getDataHandler()->cmdmap[$relationTable][$relationRecordId]['delete'] = 1;
                     }
                 }
             }
         } while (true);
+    }
+
+    /**
+     * Wrapper for RelationUtility::getRelationsFromField(), mocked during testing.
+     *
+     * @param RelationFieldValueMessage $message
+     * @return array
+     * @internal
+     */
+    public function getRelationsFromMessage(RelationFieldValueMessage $message): array
+    {
+        return RelationUtility::getRelationsFromField(
+            $message->getTable(),
+            $message->getId(),
+            $message->getField()
+        );
     }
 }
