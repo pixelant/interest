@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\RelationFieldValueMessage;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
@@ -26,12 +27,7 @@ class RegisterValuesOfRelationFields implements RecordOperationEventHandlerInter
 
         foreach ($recordOperation->getDataHandler()->datamap[$recordOperation->getTable()] as $id => $data) {
             foreach ($data as $field => $value) {
-                $tcaFieldConf = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
-                    $recordOperation->getTable(),
-                    $field,
-                    $recordOperation->getDataForDataHandler(),
-                    $recordOperation->getRemoteId()
-                );
+                $tcaFieldConf = $this->getTcaFieldConfigurationAndRespectColumnOverrides($recordOperation, $field);
 
                 if ($tcaFieldConf['foreign_field'] ?? false) {
                     $recordOperation->dispatchMessage(
@@ -45,5 +41,25 @@ class RegisterValuesOfRelationFields implements RecordOperationEventHandlerInter
                 }
             }
         }
+    }
+
+    /**
+     * Wrapper for TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(). Mocked in testing.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     * @param string $field
+     * @return array
+     * @internal
+     */
+    public function getTcaFieldConfigurationAndRespectColumnOverrides(
+        AbstractRecordOperation $recordOperation,
+        string $field
+    ): array {
+        return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $recordOperation->getTable(),
+            $field,
+            $recordOperation->getDataForDataHandler(),
+            $recordOperation->getRemoteId()
+        );
     }
 }
