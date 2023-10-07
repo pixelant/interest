@@ -25,7 +25,7 @@ class RemoveFieldsWithNullValue implements RecordOperationEventHandlerInterface
         $recordOperation = $event->getRecordOperation();
 
         foreach ($recordOperation->getDataForDataHandler() as $fieldName => $fieldValue) {
-            if ($recordOperation->getDataFieldForDataHandler($fieldName) === null) {
+            if ($fieldValue === null) {
                 $recordOperation->unsetDataField($fieldName);
             }
         }

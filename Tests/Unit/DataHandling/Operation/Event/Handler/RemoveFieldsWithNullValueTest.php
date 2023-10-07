@@ -6,12 +6,12 @@ namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\RemoveEmptyValuesFromRelationFieldArrays;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\RemoveFieldsWithNullValue;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
-class RemoveEmptyValuesFromRelationFieldArraysTest extends UnitTestCase
+class RemoveFieldsWithNullValueTest extends UnitTestCase
 {
     /**
      * @test
@@ -26,7 +26,7 @@ class RemoveEmptyValuesFromRelationFieldArraysTest extends UnitTestCase
 
         $event = new RecordOperationSetupEvent($mockOperation);
 
-        (new RemoveEmptyValuesFromRelationFieldArrays())($event);
+        (new RemoveFieldsWithNullValue())($event);
     }
 
     /**
@@ -38,15 +38,10 @@ class RemoveEmptyValuesFromRelationFieldArraysTest extends UnitTestCase
             'nonRelationField' => 'nonRelationFieldValue',
             'emptyRelationField' => [],
             'relationFieldWithNoEmptyValues' => ['remoteId1', 'remoteId2', 'remoteId3'],
-            'relationFieldWithSomeEmptyValues' => ['remoteId4', null, 0, false, '0', '', 'remoteId5', 'remoteId6'],
-            'relationFieldWithOnlyEmptyValues' => [null, 0, false, '0', ''],
-        ];
-
-        $expectedSetDataFieldForDataHandlerArguments = [
-            ['emptyRelationField', []],
-            ['relationFieldWithNoEmptyValues', ['remoteId1', 'remoteId2', 'remoteId3']],
-            ['relationFieldWithSomeEmptyValues', ['remoteId4', 'remoteId5', 'remoteId6']],
-            ['relationFieldWithOnlyEmptyValues', []]
+            'relationFieldWithSomeNullValues' => ['remoteId4', null, null, 'remoteId5', 'remoteId6'],
+            'relationFieldWithOnlyNullValues' => [null, null, null],
+            'nullValueField1' => null,
+            'nullValueField2' => null,
         ];
 
         foreach ([CreateRecordOperation::class, UpdateRecordOperation::class] as $operationClass) {
@@ -58,13 +53,13 @@ class RemoveEmptyValuesFromRelationFieldArraysTest extends UnitTestCase
                 ->willReturn($dataForDataHandler);
 
             $mockOperation
-                ->expects(self::exactly(count($expectedSetDataFieldForDataHandlerArguments)))
-                ->method('setDataFieldForDataHandler')
-                ->withConsecutive(... $expectedSetDataFieldForDataHandlerArguments);
+                ->expects(self::exactly(2))
+                ->method('unsetDataField')
+                ->withConsecutive(['nullValueField1'], ['nullValueField2']);
 
             $event = new RecordOperationSetupEvent($mockOperation);
 
-            (new RemoveEmptyValuesFromRelationFieldArrays())($event);
+            (new RemoveFieldsWithNullValue())($event);
         }
     }
 }
