@@ -37,6 +37,18 @@ class UpdateCountOnForeignSideOfInlineRecord implements RecordOperationEventHand
             return;
         }
 
+        $this->getRecordInlineFieldRelationCount($event);
+    }
+
+    /**
+     * Wrapper for testing purposes.
+     *
+     * @param AbstractRecordOperationEvent $event
+     * @return void
+     * @internal
+     */
+    public function getRecordInlineFieldRelationCount(AbstractRecordOperationEvent $event): void
+    {
         RelationUtility::updateParentRecordInlineFieldRelationCount(
             $event->getRecordOperation()->getTable(),
             $event->getRecordOperation()->getUid(),
