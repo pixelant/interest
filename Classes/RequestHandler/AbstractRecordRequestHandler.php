@@ -237,7 +237,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             do {
                 $layerCount++;
 
-                $currentLayer = current($currentLayer);
+                $currentLayer = current((array)$currentLayer);
             } while ($currentLayer !== false && !$this->isRecordData($currentLayer));
 
             $addDimensions = function (&$item) use (&$addDimensions, $layerCount, $workspace, $language) {
