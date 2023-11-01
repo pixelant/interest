@@ -24,7 +24,7 @@ class SetContentObjectRendererLanguageTest extends UnitTestCase
             [
                 CreateRecordOperation::class,
                 UpdateRecordOperation::class,
-                DeleteRecordOperation::class
+                DeleteRecordOperation::class,
             ] as $operationClass
         ) {
             $mockContentObjectRenderer = $this->createMock(ContentObjectRenderer::class);
@@ -44,7 +44,7 @@ class SetContentObjectRendererLanguageTest extends UnitTestCase
 
             (new SetContentObjectRendererLanguage())($event);
 
-            self::assertEquals(null, $mockContentObjectRenderer->data['language']);
+            self::assertNull($mockContentObjectRenderer->data['language']);
         }
     }
 
@@ -57,7 +57,7 @@ class SetContentObjectRendererLanguageTest extends UnitTestCase
             [
                 CreateRecordOperation::class,
                 UpdateRecordOperation::class,
-                DeleteRecordOperation::class
+                DeleteRecordOperation::class,
             ] as $operationClass
         ) {
             $mockLanguage = $this->createMock(SiteLanguage::class);

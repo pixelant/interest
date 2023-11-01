@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
-use cogpowered\FineDiff\Granularity\Character;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistPendingRelationInformation;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\RelationSortingAsMetaData;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
@@ -177,7 +175,7 @@ class RelationSortingAsMetaDataTest extends UnitTestCase
             'fieldWithNoMaxItems' => [
                 'fieldWithNoMaxItemsRelation1',
                 'fieldWithNoMaxItemsRelation2' ,
-                'fieldWithNoMaxItemsRelation3'
+                'fieldWithNoMaxItemsRelation3',
             ],
             'fieldWithMaxItemsOne' => 'fieldWithMaxItemsOneValue',
             'fieldWithMaxItemsTwo' => 'fieldWithMaxItemsTwoRelation1,fieldWithMaxItemsTwoRelation2',
@@ -187,11 +185,11 @@ class RelationSortingAsMetaDataTest extends UnitTestCase
             'fieldWithNoMaxItems' => [
                 'fieldWithNoMaxItemsRelation1',
                 'fieldWithNoMaxItemsRelation2' ,
-                'fieldWithNoMaxItemsRelation3'
+                'fieldWithNoMaxItemsRelation3',
             ],
             'fieldWithMaxItemsTwo' => [
                 'fieldWithMaxItemsTwoRelation1',
-                'fieldWithMaxItemsTwoRelation2'
+                'fieldWithMaxItemsTwoRelation2',
             ],
         ];
 
@@ -231,13 +229,12 @@ class RelationSortingAsMetaDataTest extends UnitTestCase
 
     /**
      * @param string $tableName
-     * @return void
      */
     protected function setTcaConfiguration(string $tableName): void
     {
         $GLOBALS['TCA'][$tableName]['columns'] = [
             'fieldWithNoRelation' => [
-                'config' => []
+                'config' => [],
             ],
             'fieldWithNoMaxItems' => [
                 'config' => [

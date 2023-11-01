@@ -192,8 +192,8 @@ class InsertTranslationFieldsTest extends UnitTestCase
                     ];
                 },
                 [
-                    ['languageField1', 12]
-                ]
+                    ['languageField1', 12],
+                ],
             ],
             [
                 function () {
@@ -205,7 +205,7 @@ class InsertTranslationFieldsTest extends UnitTestCase
                 [
                     ['languageField2', 12],
                     ['transOrigPointerField2', 'baseLanguageRemoteId'],
-                ]
+                ],
             ],
             [
                 function () {
@@ -219,7 +219,7 @@ class InsertTranslationFieldsTest extends UnitTestCase
                     ['languageField3', 12],
                     ['transOrigPointerField3', 'baseLanguageRemoteId'],
                     ['translationSource3', 'baseLanguageRemoteId'],
-                ]
+                ],
             ],
         ];
     }

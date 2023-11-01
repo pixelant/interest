@@ -8,8 +8,8 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\ValidateFieldNames;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
-use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
+use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class ValidateFieldNamesTest extends UnitTestCase

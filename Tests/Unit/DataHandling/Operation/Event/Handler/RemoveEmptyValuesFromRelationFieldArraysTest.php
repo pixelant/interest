@@ -46,7 +46,7 @@ class RemoveEmptyValuesFromRelationFieldArraysTest extends UnitTestCase
             ['emptyRelationField', []],
             ['relationFieldWithNoEmptyValues', ['remoteId1', 'remoteId2', 'remoteId3']],
             ['relationFieldWithSomeEmptyValues', ['remoteId4', 'remoteId5', 'remoteId6']],
-            ['relationFieldWithOnlyEmptyValues', []]
+            ['relationFieldWithOnlyEmptyValues', []],
         ];
 
         foreach ([CreateRecordOperation::class, UpdateRecordOperation::class] as $operationClass) {

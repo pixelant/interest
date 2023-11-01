@@ -44,7 +44,6 @@ class UpdateCountOnForeignSideOfInlineRecord implements RecordOperationEventHand
      * Wrapper for testing purposes.
      *
      * @param AbstractRecordOperationEvent $event
-     * @return void
      * @internal
      */
     public function getRecordInlineFieldRelationCount(AbstractRecordOperationEvent $event): void

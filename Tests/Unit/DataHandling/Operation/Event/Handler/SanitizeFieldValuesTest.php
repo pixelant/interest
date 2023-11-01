@@ -6,7 +6,6 @@ namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\RemoveFieldsWithNullValue;
 use Pixelant\Interest\DataHandling\Operation\Event\Handler\SanitizeFieldValues;
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;

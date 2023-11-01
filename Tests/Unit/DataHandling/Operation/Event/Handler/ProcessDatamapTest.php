@@ -54,7 +54,7 @@ class ProcessDatamapTest extends UnitTestCase
                     ->expects(self::once())
                     ->method('process_datamap');
 
-                $mockDataHandler->datamap = ['iAmNotEmpty'];
+                $mockDataHandler->datamap = ['iAmNotEmpty' => ['noEmptyValue' => ['123']]];
 
                 $mockDataHandler->errorLog = $errorLog;
 

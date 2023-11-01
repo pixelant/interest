@@ -6,8 +6,6 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use Doctrine\DBAL\Result;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
-use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
-use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 
 class DeferredRecordOperationRepository extends AbstractRepository

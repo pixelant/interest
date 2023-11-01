@@ -38,16 +38,16 @@ class ProcessUpdatedForeignFieldValuesTest extends UnitTestCase
      */
     public function processWhenUpdateOperationAndReturnWhenNoMessages()
     {
-            $mockOperation = $this->createMock(UpdateRecordOperation::class);
+        $mockOperation = $this->createMock(UpdateRecordOperation::class);
 
-            $mockOperation
-                ->expects(self::once())
-                ->method('retrieveMessage')
-                ->willReturn(null);
+        $mockOperation
+            ->expects(self::once())
+            ->method('retrieveMessage')
+            ->willReturn(null);
 
-            $event = new RecordOperationInvocationEvent($mockOperation);
+        $event = new RecordOperationInvocationEvent($mockOperation);
 
-            (new ProcessUpdatedForeignFieldValues())($event);
+        (new ProcessUpdatedForeignFieldValues())($event);
     }
 
     /**
@@ -64,14 +64,14 @@ class ProcessUpdatedForeignFieldValuesTest extends UnitTestCase
         $relationReturns = [
             [
                 'relationTableA' => [1, 2, 3],
-                'relationTableB' => [4, 5, 6, 10]
+                'relationTableB' => [4, 5, 6, 10],
             ],
             [
                 'relationTableA' => [4, 5, 6],
             ],
             [
                 'relationTableA' => [7, 8, 9],
-                'relationTableB' => [4, 5, 6, 10]
+                'relationTableB' => [4, 5, 6, 10],
             ],
         ];
 

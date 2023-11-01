@@ -54,7 +54,7 @@ class ProcessCmdmapTest extends UnitTestCase
                     ->expects(self::once())
                     ->method('process_cmdmap');
 
-                $mockDataHandler->cmdmap = ['iAmNotEmpty'];
+                $mockDataHandler->cmdmap = ['iAmNotEmpty' => ['noEmptyValue' => ['123']]];
 
                 $mockDataHandler->errorLog = $errorLog;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
@@ -203,11 +204,10 @@ class ProcessDeferredRecordOperationsTest extends UnitTestCase
 
     /**
      * @param string $operationClass
-     * @return AbstractRecordOperation
+     * @return MockObject|(object&MockObject)|string|AbstractRecordOperation
      */
     protected function getMockOperation(string $operationClass)
     {
-        /** @var AbstractRecordOperation $mockOperation */
         $mockOperation = $this->createMock($operationClass);
 
         $mockOperation
@@ -233,7 +233,7 @@ class ProcessDeferredRecordOperationsTest extends UnitTestCase
                         'deferredRecordRemoteId'
                     )
                 ),
-                []
+                [],
             ],
             'uid' => 123,
             'class' => $deferredOperationClass,

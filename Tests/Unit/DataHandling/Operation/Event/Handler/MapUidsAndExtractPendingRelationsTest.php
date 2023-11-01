@@ -75,7 +75,7 @@ class MapUidsAndExtractPendingRelationsTest extends UnitTestCase
         $GLOBALS['TCA'][$table]['columns'] = [
             'relationField1' => [
                 'config' => [
-                    'type' => 'notGroup'
+                    'type' => 'notGroup',
                 ],
             ],
             'relationField2' => [
