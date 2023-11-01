@@ -9,7 +9,7 @@ use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 /**
  * Event called after the completion of an AbstractRecordOperation.
  */
-class AfterRecordOperationEvent
+abstract class AbstractRecordOperationEvent
 {
     protected AbstractRecordOperation $recordOperation;
 

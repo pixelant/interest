@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
+use Pixelant\Interest\DataHandling\Operation\AbstractConstructiveRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\BeforeRecordOperationEventException;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperationEventHandlerInterface
+class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInterface
 {
-    public function __invoke(AfterRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;
@@ -43,13 +44,19 @@ class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperatio
 
                 try {
                     try {
-                        $deferredOperation = new $deferredRow['class']($deferredRow['arguments']);
+                        $deferredOperation = $this->createRecordOperation(
+                            $deferredRow['class'],
+                            $deferredRow['arguments']
+                        );
                     } catch (IdentityConflictException $exception) {
                         if (
                             $deferredRow['class'] === CreateRecordOperation::class
                             || in_array(CreateRecordOperation::class, $deferredRowClassParents, true)
                         ) {
-                            $deferredOperation = new UpdateRecordOperation(... $deferredRow['arguments']);
+                            $deferredOperation = $this->createRecordOperation(
+                                UpdateRecordOperation::class,
+                                $deferredRow['arguments']
+                            );
                         } else {
                             throw $exception;
                         }
@@ -64,5 +71,22 @@ class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperatio
 
             $repository->delete($deferredRow['uid']);
         }
+    }
+
+    /**
+     * Create a record operation of $className with $constructorArguments. This method is useful for testing, but also
+     * ensures that $className is a subclass of AbstractConstructiveRecordOperation.
+     *
+     * @param string $className
+     * @param array $constructorArguments
+     * @return AbstractConstructiveRecordOperation
+     *
+     * @internal
+     */
+    public function createRecordOperation(
+        string $className,
+        array $constructorArguments
+    ): AbstractConstructiveRecordOperation {
+        return new $className(... $constructorArguments);
     }
 }

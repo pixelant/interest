@@ -6,8 +6,8 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationSetupEvent;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
@@ -39,38 +39,17 @@ abstract class AbstractConstructiveRecordOperation extends AbstractRecordOperati
 
         $this->pendingRelationsRepository = GeneralUtility::makeInstance(PendingRelationsRepository::class);
 
-        $this->createTranslationFields();
-
         $this->contentObjectRenderer = $this->createContentObjectRenderer();
 
-        if (isset($this->getDataForDataHandler()['pid']) || $this instanceof CreateRecordOperation) {
-            $this->storagePid = $this->resolveStoragePid();
-        }
-
-        $this->hash = md5(static::class . serialize($this->getArguments()));
-
         try {
-            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
+            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new RecordOperationSetupEvent($this));
         } catch (StopRecordOperationException $exception) {
             $this->operationStopped = true;
 
             throw $exception;
         }
 
-        $this->validateFieldNames();
-
-        $this->contentObjectRenderer->data['language']
-            = $this->getLanguage() === null ? null : $this->getLanguage()->getHreflang();
-
-        $this->applyFieldDataTransformations();
-
-        $this->prepareRelations();
-
         $this->dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $this->dataHandler->start([], []);
-
-        if (!isset($this->getDataForDataHandler()['pid']) && $this instanceof CreateRecordOperation) {
-            $this->dataForDataHandler['pid'] = $this->storagePid;
-        }
     }
 }

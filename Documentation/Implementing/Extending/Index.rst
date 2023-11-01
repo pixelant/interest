@@ -48,11 +48,11 @@ The events are listed in order of execution.
 
 .. php:namespace::  Pixelant\Interest\DataHandling\Operation\Event
 
-.. php:class:: BeforeRecordOperationEvent
+.. php:class:: RecordOperationSetupEvent
 
    Called inside the :php:`AbstractRecordOperation::__construct()` when a :php:`*RecordOperation` object has been initialized, but before data validations.
 
-   EventHandlers for this event should implement :php:`Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface`.
+   EventHandlers for this event should implement :php:`Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface`.
 
    EventHandlers for this event can throw these exceptions:
 
@@ -68,7 +68,7 @@ The events are listed in order of execution.
 
 .. php:namespace::  Pixelant\Interest\DataHandling\Operation\Event
 
-.. php:class:: AfterRecordOperationEvent
+.. php:class:: RecordOperationInvocationEvent
 
    Called as the last thing inside the :php:`AbstractRecordOperation::__invoke()` method, after all data persistence and pending relations have been resolved.
 
@@ -152,21 +152,17 @@ There are three record operations:
 * Update
 * Delete
 
-All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation`, and both Create and Update share its API, while Delete has a reduced constructor.
-
-.. info::
-
-   The constructor of :php:`Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation` **might change in the future**. A delete operation requires no field data. It is unnecessary (and only a requirement of the parent class) to require a :php:`Pixelant\Interest\Domain\Model\Dto\RecordRepresentation`. It should be sufficient to supply a :php:`Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier`.
+All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation`, and share its API. :php:`CreateRecordOperation` and :php:`CreateRecordOperation` are direct subclasses of :php:`AbstractConstructiveRecordOperation`, which adds a more complex constructor.
 
 .. php:namespace:: Pixelant\Interest\DataHandling\Operation
 
-.. php:class:: AbstractRecordOperation
+.. php:class:: AbstractConstructiveRecordOperation
 
-..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+.. php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
 
 .. php:class:: CreateRecordOperation
 
-..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+.. php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
 
 .. php:class:: UpdateRecordOperation
 
@@ -175,28 +171,6 @@ All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRec
       :param Pixelant\Interest\Domain\Model\Dto\RecordRepresentation $recordRepresentation:
 
       :param array $metaData:
-
-   .. php:method:: getDataForDataHandler()
-
-      Get the data that will be written to the DataHandler. This is a modified version of the data in :php:`$this->getRecordRepresentation()->getData()`.
-
-      :returntype: array
-
-   .. php:method:: setDataForDataHandler($dataForDataHandler)
-
-      Set the data that will be written to the DataHandler.
-
-      :param array $dataForDataHandler:
-
-   .. php:method:: getRecordRepresentation()
-
-      :returntype: Pixelant\Interest\Domain\Model\Dto\RecordRepresentation
-
-   .. php:method:: getMetaData()
-
-      Returns the metadata array for the operation. This metadata is not used other than to generate the uniqueness hash for the operation. You can use it to transfer useful information, e.g. for transformations. See: :ref:`userts-accessing-metadata`
-
-      :returntype: array
 
    .. php:method:: getContentRenderer()
 
@@ -215,13 +189,183 @@ All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRec
 
       :returntype: TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
 
+   .. php:method:: dispatchMessage($message)
+
+      :param \Pixelant\Interest\DataHandling\Operation\Message\MessageInterface $message:
+
+      Dispatch a message, to be picked up later, in another part of the operation's execution flow.
+
+      :returntype: mixed
+
+   .. php:method:: getDataFieldForDataHandler($fieldName)
+
+      :param string $fieldName:
+
+      Get the value of a specific field in the data for DataHandler. Same as :php:`$this->getDataForDataHandler()[$fieldName]`.
+
+      :returntype: mixed
+
+   .. php:method:: getDataForDataHandler()
+
+      Get the data that will be written to the DataHandler. This is a modified version of the data in :php:`$this->getRecordRepresentation()->getData()`.
+
+      :returntype: array
+
+   .. php:method:: getDataHandler()
+
+      Returns the internal DataHandler object used in the operation.
+
+      :returntype: \Pixelant\Interest\DataHandling\DataHandler
+
    .. php:method:: getHash()
 
       Get the unique hash of this operation. The hash is generated when the operation object is initialized, and it is not changed. This hash makes it possible for the Interest extension to know whether the same operation has been run before.
 
       :returntype: string
 
-..  php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
+   .. php:method:: getLanguage()
+
+      Returns the record language represented by a :php:`\TYPO3\CMS\Core\Site\Entity\SiteLanguage` object, if set. :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->getLanguage()`
+
+      :returntype: \TYPO3\CMS\Core\Site\Entity\SiteLanguage|null
+
+   .. php:method:: getMetaData()
+
+      Returns the metadata array for the operation. This metadata is not used other than to generate the uniqueness hash for the operation. You can use it to transfer useful information, e.g. for transformations. See: :ref:`userts-accessing-metadata`
+
+      :returntype: array
+
+   .. php:method:: getRemoteId()
+
+      Returns the table name. Shortcut for :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->getRemoteIdWithAspects()`
+
+      :returntype: string
+
+   .. php:method:: getTable()
+
+      Returns the table name. Shortcut for :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->getTable()`
+
+      :returntype: string
+
+   .. php:method:: getRecordRepresentation()
+
+      :returntype: Pixelant\Interest\Domain\Model\Dto\RecordRepresentation
+
+   .. php:method:: getStoragePid()
+
+      Gets the PID of the record as originally set during object construction, usually by the :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\ResolveStoragePid` event.
+
+      :returntype: void
+
+   .. php:method:: getSettings()
+
+      Returns the settings array from UserTS (`tx_interest.*`).
+
+      :returntype: array
+
+   .. php:method:: getUid()
+
+      Returns the record UID, or zero if not yet set. :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->getUid()`
+
+      :returntype: int
+
+   .. php:method:: getUidPlaceholder()
+
+      Returns a DataHandler UID placeholder. If it has not yet been set, it will be generated as a random string prefixed with "NEW". :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->getUidPlaceholder()`
+
+      :returntype: string
+
+   .. php:method:: hasExecuted()
+
+      Returns true if the operation has executed the DataHandler operations.
+
+      :returntype: bool
+
+   .. php:method:: isDataFieldSet($fieldName)
+
+      :param string $fieldName:
+
+      Check if a field in the data array is set. Same as :php:`isset($this->getDataForDataHandler()[$fieldName])`.
+
+      :returntype: bool
+
+   .. php:method:: isSuccessful()
+
+      Returns true if the operation has executed the DataHandler operations without errors.
+
+      :returntype: bool
+
+   .. php:method:: retrieveMessage($message)
+
+      :param string $messageFqcn:
+
+      Pick the last message of class :php:`$messageFqcn` from the message queue. Returns null if no messages are left in the queue.
+
+      :returntype: \Pixelant\Interest\DataHandling\Operation\Message\MessageInterface|null
+
+   .. php:method:: setDataFieldForDataHandler($fieldName, $value)
+
+      :param string $fieldName:
+
+      Set the value of a specific field in the data for DataHandler. Same as:
+
+      .. code-block: php
+
+         $data = $this->getDataForDataHandler();
+
+         $data[$fieldName] = $value;
+
+         $this->setDataForDataHandler($data);
+
+      :returntype: void
+
+   .. php:method:: setDataForDataHandler($dataForDataHandler)
+
+      Set the data that will be written to the DataHandler.
+
+      :param array $dataForDataHandler:
+
+   .. php:method:: setHash($hash)
+
+      :param string $hash:
+
+      Override the record operation's uniqueness hash. Changing this value can have severe consequences for data integrity.
+
+      :returntype: void
+
+   .. php:method:: setStoragePid($storagePid)
+
+      :param int $storagePid:
+
+      Sets the storage PID. This might override a PID set by the :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\ResolveStoragePid` event, which usually handles this task.
+
+      :returntype: void
+
+   .. php:method:: setUid($uid)
+
+      :param int $uid:
+
+      Sets the record UID. :php:`$this->getRecordRepresentation()->getRecordInstanceIdentifier()->setUid($uid)`
+
+      :returntype: void
+
+   .. php:method:: unsetDataField($fieldName)
+
+      :param string $fieldName:
+
+      Unset a field in the data array. Same as:
+
+      .. code-block: php
+
+         $data = $this->getDataForDataHandler();
+
+         unset($data[$fieldName]);
+
+         $this->setDataForDataHandler($data);
+
+      :returntype: void
+
+.. php:currentnamespace:: Pixelant\Interest\DataHandling\Operation
 
 .. php:class:: DeleteRecordOperation
 
@@ -230,6 +374,47 @@ All are subclasses of :php:`Pixelant\Interest\DataHandling\Operation\AbstractRec
       You cannot send metadata information to a delete operation.
 
       :param Pixelant\Interest\Domain\Model\Dto\RecordRepresentation $recordRepresentation:
+
+.. _extending-record-operation-messages:
+
+Record Operation Messages
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Classes implementing :php:`\Pixelant\Interest\DataHandling\Operation\Message\MessageInterface` can be used to carry information within the execution flow of an instance of :php:`\Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation`. This is especially useful between EventHandlers.
+
+For example, :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\PendingRelationMessage` is used to carry information about pending relations between the event that discovers them and the event that persists the information to the database — if the record operation was successful.
+
+Sending a message in :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\MapUidsAndExtractPendingRelations`:
+
+.. code-block: php
+
+   if ($pendingRelations !== []) {
+       $this->recordOperation->dispatchMessage(
+           new PendingRelationMessage(
+               $this->recordOperation->getTable(),
+               $fieldName,
+               $pendingRelations
+           )
+       );
+   }
+
+Retrieving messages and using the message data to persist the information to the database in :php:`\Pixelant\Interest\DataHandling\Operation\Event\Handler\PersistPendingRelationInformation`:
+
+.. code-block: php
+
+   do {
+       /** @var PendingRelationMessage $message */
+       $message = $event->getRecordOperation()->retrieveMessage(PendingRelationMessage::class);
+
+       if ($message !== null) {
+           $repository->set(
+               $message->getTable(),
+               $message->getField(),
+               $event->getRecordOperation()->getUid(),
+               $message->getRemoteIds()
+           );
+       }
+   } while ($message !== null);
 
 .. _extending-mapping:
 

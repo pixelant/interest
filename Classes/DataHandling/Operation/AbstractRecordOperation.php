@@ -6,22 +6,19 @@ namespace Pixelant\Interest\DataHandling\Operation;
 
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\DataHandler;
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Exception\ConflictException;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\Message\DataHandlerSuccessMessage;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\Exception\DataHandlerErrorException;
-use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
-use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
+use Pixelant\Interest\DataHandling\Operation\Exception\IncompleteOperationException;
+use Pixelant\Interest\DataHandling\Operation\Message\MessageInterface;
+use Pixelant\Interest\DataHandling\Operation\Message\ReplacesPreviousMessageInterface;
+use Pixelant\Interest\DataHandling\Operation\Message\RequiredMessageInterface;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\DatabaseUtility;
-use Pixelant\Interest\Utility\RelationUtility;
-use Pixelant\Interest\Utility\TcaUtility;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
@@ -108,6 +105,19 @@ abstract class AbstractRecordOperation
     protected RecordRepresentation $recordRepresentation;
 
     /**
+     * Is set to true or false if the DataHandler operations were successful. Will be null before the operations have
+     * been executed.
+     *
+     * @var bool|null
+     */
+    protected ?bool $successful = null;
+
+    /**
+     * @var array<array<MessageInterface>>
+     */
+    protected array $messageQueue = [];
+
+    /**
      * @var array
      */
     protected array $updatedForeignFieldValues = [];
@@ -118,23 +128,9 @@ abstract class AbstractRecordOperation
             return;
         }
 
-        if ($this instanceof UpdateRecordOperation) {
-            $this->detectUpdatedForeignFieldValues();
-        }
+        GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new RecordOperationInvocationEvent($this));
 
-        if (count($this->dataHandler->datamap) > 0) {
-            $this->dataHandler->process_datamap();
-        }
-
-        if ($this instanceof UpdateRecordOperation && count($this->updatedForeignFieldValues) > 0) {
-            $this->processUpdatedForeignFieldValues();
-        }
-
-        if (count($this->dataHandler->cmdmap) > 0) {
-            $this->dataHandler->process_cmdmap();
-        }
-
-        if (count($this->dataHandler->errorLog) > 0) {
+        if ($this->isSuccessful() === false) {
             throw new DataHandlerErrorException(
                 'Error occurred during the data handling: ' . implode(', ', $this->dataHandler->errorLog)
                 . ' Datamap: ' . json_encode($this->dataHandler->datamap)
@@ -143,39 +139,14 @@ abstract class AbstractRecordOperation
             );
         }
 
-        if ($this instanceof CreateRecordOperation && $this->getUid() === 0) {
-            $this->setUid($this->dataHandler->substNEWwithIDs[array_key_first($this->dataHandler->substNEWwithIDs)]);
+        foreach (array_filter(array_values($this->messageQueue)) as $messageObject) {
+            if ($messageObject instanceof RequiredMessageInterface) {
+                throw new IncompleteOperationException(
+                    'All required messages were not retrieved. Found: ' . get_class($messageObject),
+                    1695260831
+                );
+            }
         }
-
-        if (
-            $this instanceof CreateRecordOperation
-            || (
-                // The UID might have been set by another operation already (e.g. a file), but not added to mapping.
-                !$this->mappingRepository->exists($this->getRemoteId())
-                && $this->getUid() > 0
-            )
-        ) {
-            $this->mappingRepository->add(
-                $this->getRemoteId(),
-                $this->getTable(),
-                // This assumes we have only done a single operation and there is only one NEW key.
-                // The UID might have been set by another operation already, even though this is CreateRecordOperation.
-                $this->getUid(),
-                $this
-            );
-
-            $this->setUid(
-                $this->mappingRepository->get(
-                    $this->getRecordRepresentation()->getRecordInstanceIdentifier()->getRemoteIdWithAspects()
-                )
-            );
-        } else {
-            $this->mappingRepository->update($this);
-        }
-
-        $this->persistPendingRelations();
-
-        GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new AfterRecordOperationEvent($this));
     }
 
     /**
@@ -196,71 +167,6 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * Checks that all field names in $this->data are actually defined.
-     *
-     * @throws ConflictException
-     */
-    protected function validateFieldNames(): void
-    {
-        $fieldsNotInTca = array_diff_key(
-            $this->getDataForDataHandler(),
-            $GLOBALS['TCA'][$this->getTable()]['columns'] ?? []
-        );
-
-        if (count(array_diff(array_keys($fieldsNotInTca), ['pid'])) > 0) {
-            throw new ConflictException(
-                'Unknown field(s) in field list: ' . implode(', ', array_keys($fieldsNotInTca)),
-                1634119601036
-            );
-        }
-    }
-
-    /**
-     * Resolve the storage PID from `tx_interest.persistence.storagePid`. Accepts stdWrap.
-     *
-     * @return int
-     * @throws NotFoundException
-     * @throws InvalidArgumentException
-     */
-    protected function resolveStoragePid(): int
-    {
-        if (($GLOBALS['TCA'][$this->getTable()]['ctrl']['rootLevel'] ?? null) === 1) {
-            return 0;
-        }
-
-        if (isset($this->getDataForDataHandler()['pid'])) {
-            if (!$this->mappingRepository->exists((string)$this->getDataForDataHandler()['pid'])) {
-                throw new NotFoundException(
-                    'Unable to set PID. The remote ID "' . $this->getDataForDataHandler()['pid'] . '" does not exist.',
-                    1634205352895
-                );
-            }
-
-            return $this->mappingRepository->get((string)$this->getDataForDataHandler()['pid']);
-        }
-
-        $settings = $this->configurationProvider->getSettings();
-
-        $pid = $this->contentObjectRenderer->stdWrap(
-            $settings['persistence.']['storagePid'] ?? '',
-            $settings['persistence.']['storagePid.'] ?? []
-        );
-
-        if ($pid === null || $pid === '') {
-            $pid = 0;
-        }
-
-        if (!MathUtility::canBeInterpretedAsInteger($pid)) {
-            throw new InvalidArgumentException(
-                'The PID "' . $pid . '" is invalid and must be an integer.',
-                1634213325242
-            );
-        }
-
-        return (int)$pid;
-    }
-
-    /**
      * @return ContentObjectRenderer
      */
     protected function createContentObjectRenderer(): ContentObjectRenderer
@@ -277,254 +183,6 @@ abstract class AbstractRecordOperation
         ];
 
         return $contentObjectRenderer;
-    }
-
-    /**
-     * Applies field value transformations defined in `tx_interest.transformations.<tableName>.<fieldName>`.
-     */
-    protected function applyFieldDataTransformations(): void
-    {
-        $settings = $this->configurationProvider->getSettings();
-
-        foreach ($settings['transformations.'][$this->getTable() . '.'] ?? [] as $fieldName => $configuration) {
-            $settings['transformations.'][$this->getTable() . '.'][$fieldName] = $this->contentObjectRenderer->stdWrap(
-                $this->dataForDataHandler[substr($fieldName, 0, -1)] ?? '',
-                $configuration
-            );
-        }
-    }
-
-    /**
-     * Prepare relations and return a modified version of $importData.
-     *
-     * You must call persistPendingRelations() after processing $importData with DataHandler. All relations to records
-     * are either changed from the remote ID to the correct localID or marked as a pending relation. Pending relation
-     * information is temporarily added to $this->pendingRelations and persisted using persistPendingRelations().
-     *
-     * @see persistPendingRelations()
-     */
-    protected function prepareRelations()
-    {
-        foreach ($this->dataForDataHandler as $fieldName => $fieldValue) {
-            if (!$this->isRelationalField($fieldName)) {
-                continue;
-            }
-
-            if ($fieldName === 'pid') {
-                $tcaConfiguration = TcaUtility::getFakePidTcaConfiguration();
-            } else {
-                $tcaConfiguration = $GLOBALS['TCA'][$this->getTable()]['columns'][$fieldName]['config'];
-            }
-
-            if (!is_array($fieldValue)) {
-                $fieldValue = GeneralUtility::trimExplode(',', $fieldValue, true);
-            } else {
-                $fieldValue = array_filter($fieldValue);
-            }
-
-            $this->detectPendingRelations(
-                $fieldName,
-                $fieldValue,
-                $this->isPrefixWithTable($tcaConfiguration)
-            );
-
-            $this->convertInlineRelationsValueToCsv($fieldName, $tcaConfiguration['type']);
-        }
-
-        // Transform single-value array into a scalar value to prevent Data Handler error.
-        $this->reduceSingleValueArrayToScalar();
-    }
-
-    /**
-     * Persists information about pending relations to the database.
-     *
-     * @see prepareRelations()
-     */
-    protected function persistPendingRelations(): void
-    {
-        foreach ($this->pendingRelations as $fieldName => $relations) {
-            $this->pendingRelationsRepository->set(
-                $this->mappingRepository->table($this->getRemoteId()),
-                $fieldName,
-                $this->mappingRepository->get($this->getRemoteId()),
-                $relations
-            );
-        }
-    }
-
-    /**
-     * Returns the type value of the local record representing $remoteId.
-     *
-     * @param string $table
-     * @param string $remoteId
-     * @return string The type value or '0' if not set or found.
-     */
-    protected function getTypeValue(string $table, string $remoteId): string
-    {
-        if (isset($this->getTypeValueCache[$table . '_' . $remoteId])) {
-            return $this->getTypeValueCache[$table . '_' . $remoteId];
-        }
-
-        if (!$this->mappingRepository->exists($remoteId)) {
-            self::$getTypeValueCache[$table . '_' . $remoteId] = '0';
-
-            return '0';
-        }
-
-        self::$getTypeValueCache[$table . '_' . $remoteId] = BackendUtility::getTCAtypeValue(
-            $table,
-            DatabaseUtility::getRecord(
-                $table,
-                $this->mappingRepository->get($remoteId)
-            )
-        );
-
-        return self::$getTypeValueCache[$table . '_' . $remoteId];
-    }
-
-    /**
-     * Specifies if field must be processed as relational or not.
-     *
-     * @param string $field
-     * @return bool
-     */
-    protected function isRelationalField(string $field): bool
-    {
-        if (
-            $field === TcaUtility::getTranslationSourceField($this->getTable())
-            || $field === TcaUtility::getTransOrigPointerField($this->getTable())
-        ) {
-            return true;
-        }
-
-        $settings = $this->configurationProvider->getSettings();
-
-        if (
-            isset($settings['relationOverrides.'][$this->getTable() . '.'][$field])
-            || isset($settings['relationOverrides.'][$this->getTable() . '.'][$field . '.'])
-        ) {
-            return (bool)$this->contentObjectRenderer->stdWrap(
-                $settings['relationOverrides.'][$this->getTable() . '.'][$field] ?? '',
-                $settings['relationOverrides.'][$this->getTable() . '.'][$field . '.'] ?? []
-            );
-        }
-
-        $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
-
-        return (
-            $tca['type'] === 'group'
-            && (
-                ($tca['internal_type'] ?? null) === 'db'
-                || isset($tca['allowed'])
-            )
-        )
-        || (
-            in_array($tca['type'], ['inline', 'select'], true)
-            && isset($tca['foreign_table'])
-        )
-        || (
-            in_array($tca['type'], ['category', 'file', 'image'], true)
-        );
-    }
-
-    /**
-     * Returns true if the field contains a single n:1 relation without an MM table.
-     *
-     * @param string $field
-     * @return bool
-     */
-    protected function isSingleRelationField(string $field): bool
-    {
-        if (!$this->isRelationalField($field)) {
-            return false;
-        }
-
-        $settings = $this->configurationProvider->getSettings();
-
-        if (
-            isset($settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field])
-            || isset($settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field . '.'])
-        ) {
-            return (bool)$this->contentObjectRenderer->stdWrap(
-                $settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field] ?? '',
-                $settings['isSingleRelationOverrides.'][$this->getTable() . '.'][$field . '.'] ?? []
-            );
-        }
-
-        $tca = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
-
-        return ($tca['maxitems'] ?? 0) === 1 && (($tca['foreign_table'] ?? '') === '');
-    }
-
-    /**
-     * Returns TCA configuration for a field with type-related overrides.
-     *
-     * @param string $field
-     * @return array
-     */
-    protected function getTcaFieldConfigurationAndRespectColumnsOverrides(string $field): array
-    {
-        // Make sure single-value array is transformed into scalar value to prevent Data Handler error.
-        $this->reduceFieldSingleValueArrayToScalar($field);
-        return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
-            $this->getTable(),
-            $field,
-            $this->getDataForDataHandler(),
-            $this->getRemoteId()
-        );
-    }
-
-    /**
-     * Create the translation fields if the table is translatable, language is set and nonzero, and the language field
-     * hasn't already been set.
-     */
-    protected function createTranslationFields()
-    {
-        if (
-            $this->getLanguage() !== null
-            && $this->getLanguage()->getLanguageId() !== 0
-            && TcaUtility::isLocalizable($this->getTable())
-            && !isset($this->dataForDataHandler[TcaUtility::getLanguageField($this->getTable())])
-        ) {
-            $baseLanguageRemoteId = $this->mappingRepository->removeAspectsFromRemoteId($this->getRemoteId());
-
-            $this->dataForDataHandler[TcaUtility::getLanguageField($this->getTable())]
-                = $this->getLanguage()->getLanguageId();
-
-            $transOrigPointerField = TcaUtility::getTransOrigPointerField($this->getTable());
-            if (
-                ($transOrigPointerField ?? '') !== ''
-                && !isset($this->dataForDataHandler[$transOrigPointerField])
-            ) {
-                $this->dataForDataHandler[$transOrigPointerField] = $baseLanguageRemoteId;
-            }
-
-            $translationSourceField = TcaUtility::getTranslationSourceField($this->getTable());
-            if (
-                ($translationSourceField ?? '') !== ''
-                && !isset($this->dataForDataHandler[$translationSourceField])
-            ) {
-                $this->dataForDataHandler[$translationSourceField] = $baseLanguageRemoteId;
-            }
-        }
-    }
-
-    /**
-     * Finds pending relations for a $remoteId record that is being inserted into the database and adds DataHandler
-     * datamap array inserting any pending relations into the database as well.
-     *
-     * @param string|int $uid Could be a newly inserted UID or a temporary ID (e.g. NEW1234abcd)
-     */
-    protected function resolvePendingRelations($uid): void
-    {
-        foreach ($this->pendingRelationsRepository->get($this->getRemoteId()) as $pendingRelation) {
-            RelationUtility::addResolvedPendingRelationToDataHandler(
-                $this->dataHandler,
-                $pendingRelation,
-                $this->getTable(),
-                $uid
-            );
-        }
     }
 
     /**
@@ -560,6 +218,49 @@ abstract class AbstractRecordOperation
     }
 
     /**
+     * Get the value of a specific field in the data for DataHandler.
+     *
+     * @param string $fieldName
+     * @return mixed
+     */
+    public function getDataFieldForDataHandler(string $fieldName)
+    {
+        return $this->dataForDataHandler[$fieldName];
+    }
+
+    /**
+     * Set the value of a specific field in the data for DataHandler.
+     *
+     * @param string $fieldName
+     * @param string|int|float|array $value
+     */
+    public function setDataFieldForDataHandler(string $fieldName, $value)
+    {
+        $this->dataForDataHandler[$fieldName] = $value;
+    }
+
+    /**
+     * Check if a field in the data array is set.
+     *
+     * @param string $fieldName
+     * @return bool
+     */
+    public function isDataFieldSet(string $fieldName): bool
+    {
+        return isset($this->dataForDataHandler[$fieldName]);
+    }
+
+    /**
+     * Unset a field in the data array.
+     *
+     * @param string $fieldName
+     */
+    public function unsetDataField(string $fieldName)
+    {
+        unset($this->dataForDataHandler[$fieldName]);
+    }
+
+    /**
      * @return int
      */
     public function getUid(): int
@@ -575,12 +276,25 @@ abstract class AbstractRecordOperation
         $this->recordRepresentation->getRecordInstanceIdentifier()->setUid($uid);
     }
 
+    public function getUidPlaceholder(): string
+    {
+        return $this->recordRepresentation->getRecordInstanceIdentifier()->getUidPlaceholder();
+    }
+
     /**
      * @return int
      */
     public function getStoragePid(): int
     {
         return $this->storagePid;
+    }
+
+    /**
+     * @param int $storagePid
+     */
+    public function setStoragePid(int $storagePid)
+    {
+        $this->storagePid = $storagePid;
     }
 
     /**
@@ -618,6 +332,14 @@ abstract class AbstractRecordOperation
     }
 
     /**
+     * @param string $hash
+     */
+    public function setHash(string $hash)
+    {
+        $this->hash = $hash;
+    }
+
+    /**
      * @return RecordRepresentation
      */
     public function getRecordRepresentation(): RecordRepresentation
@@ -626,163 +348,90 @@ abstract class AbstractRecordOperation
     }
 
     /**
-     * Detects and adds pending relations to `$this->pendingRelations`.
-     *
-     * @param string $fieldName
-     * @param array $fieldValue
-     * @param bool $prefixWithTable
+     * @return array
      */
-    private function detectPendingRelations(string $fieldName, array $fieldValue, bool $prefixWithTable)
+    public function getSettings(): array
     {
-        $this->dataForDataHandler[$fieldName] = [];
-        foreach ($fieldValue as $remoteIdRelation) {
-            if ($this->mappingRepository->exists($remoteIdRelation)) {
-                $uid = $this->mappingRepository->get($remoteIdRelation);
+        return $this->configurationProvider->getSettings();
+    }
 
-                if ($prefixWithTable) {
-                    $uid = $this->mappingRepository->table($remoteIdRelation) . '_' . $uid;
-                }
+    /**
+     * Checks if there's an update in the DataHandler success status.
+     */
+    private function retrieveSuccessMessage()
+    {
+        /** @var DataHandlerSuccessMessage $message */
+        $message = $this->retrieveMessage(DataHandlerSuccessMessage::class);
 
-                $this->dataForDataHandler[$fieldName][] = $uid;
-
-                continue;
-            }
-
-            $this->pendingRelations[$fieldName][] = $remoteIdRelation;
+        if ($message !== null) {
+            $this->successful = $message->isSuccess();
         }
     }
 
     /**
-     * Returns true if the configuration specifies that the field supports records from multiple tables, meaning that
-     * the UID should be prefixed with the table name: table_name_123.
+     * Returns true if the DataHandler operations have been executed.
      *
-     * @param array $tcaConfiguration
      * @return bool
      */
-    protected function isPrefixWithTable(array $tcaConfiguration): bool
+    public function hasExecuted(): bool
     {
-        $prefixWithTable = false;
+        $this->retrieveSuccessMessage();
 
-        if (
-            $tcaConfiguration['type'] === 'group'
-            && (
-                $tcaConfiguration['allowed'] === '*'
-                || strpos(',', $tcaConfiguration['allowed']) !== false
-            )
-        ) {
-            $prefixWithTable = true;
-        }
-
-        return $prefixWithTable;
+        return $this->successful !== null;
     }
 
     /**
-     * Ensures that inline fields have the UIDs of IRRE records as a commaseparated value string.
+     * Returns true if the DataHandler operations were successful. False if not. Null if not yet executed.
      *
-     * @param string $fieldName
-     * @param string|int $type
+     * @return bool|null
      */
-    protected function convertInlineRelationsValueToCsv(string $fieldName, $type): void
+    public function isSuccessful(): ?bool
     {
-        if (
-            is_array($this->dataForDataHandler[$fieldName])
-            && $this->contentObjectRenderer->stdWrap(
-                $type,
-                $this
-                    ->configurationProvider
-                    ->getSettings()['relationTypeOverride.'][$this->getTable() . '.'][$fieldName . '.']
-                ?? []
-            ) === 'inline'
-        ) {
-            $this->dataForDataHandler[$fieldName] = implode(',', $this->dataForDataHandler[$fieldName]);
-        }
+        $this->retrieveSuccessMessage();
+
+        return $this->successful;
     }
 
     /**
-     * Transform single-value array into scalar value to prevent Data Handler error.
+     * @return DataHandler
      */
-    protected function reduceSingleValueArrayToScalar(): void
+    public function getDataHandler(): DataHandler
     {
-        foreach (array_keys($this->dataForDataHandler) as $fieldName) {
-            $this->reduceFieldSingleValueArrayToScalar($fieldName);
-        }
+        return $this->dataHandler;
     }
 
     /**
-     * Transform single-value array into scalar value to prevent Data Handler error.
+     * Dispatch a message to be picked up later.
+     *
+     * @param MessageInterface $message
      */
-    protected function reduceFieldSingleValueArrayToScalar(string $fieldName): void
+    public function dispatchMessage(MessageInterface $message)
     {
-        if (isset($this->dataForDataHandler[$fieldName]) && $this->dataForDataHandler[$fieldName] === null) {
-            unset($this->dataForDataHandler[$fieldName]);
+        if ($message instanceof ReplacesPreviousMessageInterface) {
+            $this->messageQueue[get_class($message)] = [$message];
 
             return;
         }
 
-        $fieldValue = $this->dataForDataHandler[$fieldName];
-
-        if (!is_array($fieldValue)) {
-            return;
+        if (!isset($this->messageQueue[get_class($message)])) {
+            $this->messageQueue[get_class($message)] = [];
         }
 
-        if (
-            $fieldValue === []
-            && (
-                $fieldName === TcaUtility::getTranslationSourceField($this->getTable())
-                || $fieldName === TcaUtility::getTransOrigPointerField($this->getTable())
-            )
-        ) {
-            $this->dataForDataHandler[$fieldName] = 0;
-
-            return;
-        }
-
-        $this->dataForDataHandler[$fieldName] = implode(',', $fieldValue);
+        $this->messageQueue[get_class($message)][] = $message;
     }
 
     /**
-     * Check datamap fields with foreign field and store value(s) in array.
-     * After process_datamap values can be used to compare what is actually
-     * stored in the database and we can delete removed values.
+     * Returns the most recent message and removes it from the queue.
+     *
+     * @param string $messageFqcn Fully qualified message class name
+     * @return MessageInterface|null
      */
-    protected function detectUpdatedForeignFieldValues(): void
+    public function retrieveMessage(string $messageFqcn): ?MessageInterface
     {
-        foreach ($this->dataHandler->datamap[$this->getTable()] as $id => $data) {
-            foreach ($data as $field => $value) {
-                $tcaFieldConf = $this->getTcaFieldConfigurationAndRespectColumnsOverrides($field);
-                if ($tcaFieldConf['foreign_field'] ?? false) {
-                    $this->updatedForeignFieldValues[$this->getTable()][$id][$field] = $value;
-                }
-            }
+        if (!isset($this->messageQueue[$messageFqcn])) {
+            return null;
         }
-    }
 
-    /**
-     * Process updated foreign field values to find values to delete by
-     * adding them to cmpmap.
-     */
-    protected function processUpdatedForeignFieldValues(): void
-    {
-        foreach ($this->updatedForeignFieldValues[$this->getTable()] as $id => $data) {
-            foreach ($data as $field => $value) {
-                $newValues = GeneralUtility::trimExplode(',', $value, true);
-                $fieldRelations = RelationUtility::getRelationsFromField($this->getTable(), $id, $field);
-                foreach ($fieldRelations as $relationTable => $relationTableValues) {
-                    foreach ($relationTableValues as $relationTableValue) {
-                        if (!in_array((string)$relationTableValue, $newValues, true)) {
-                            $this->dataHandler->cmdmap[$relationTable][$relationTableValue]['delete'] = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public function __wakeup()
-    {
-        // Remove in v2. For compatibility with renamed property in deferred data.
-        if (isset($this->data)) {
-            $this->dataForDataHandler = $this->data;
-        }
+        return array_pop($this->messageQueue[$messageFqcn]);
     }
 }

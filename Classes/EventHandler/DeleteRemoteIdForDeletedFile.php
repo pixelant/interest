@@ -10,7 +10,7 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class DeleteRemoteIdForDeletedFileEventHandler
+class DeleteRemoteIdForDeletedFile
 {
     public function __invoke(AfterFileDeletedEvent $event)
     {

@@ -7,7 +7,7 @@ namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 /**
  * Defers a sys_file_reference operation if the local file has not yet been created.
  */
-class DeferSysFileReferenceRecordOperationEventHandler extends AbstractDetermineDeferredRecordOperationEventHandler
+class DeferSysFileReference extends AbstractDetermineDeferredRecordOperation
 {
     protected function getDependentRemoteId(): ?string
     {

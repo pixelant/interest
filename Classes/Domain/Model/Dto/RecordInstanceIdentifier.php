@@ -11,6 +11,7 @@ use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\StringUtility;
 
 /**
  * DTO to handle record instance identifier.
@@ -47,6 +48,13 @@ class RecordInstanceIdentifier
      * @var int|null
      */
     protected ?int $uid = null;
+
+    /**
+     * Holds the temporary UID for DataHandler.
+     *
+     * @var string|null
+     */
+    protected ?string $uidPlaceholder = null;
 
     /**
      * @param string $table
@@ -140,6 +148,21 @@ class RecordInstanceIdentifier
     public function setUid(int $uid)
     {
         $this->uid = $uid;
+    }
+
+    /**
+     * Returns a DataHandler UID placeholder. If it has not yet been set, it will be generated as a random string
+     * prefixed with "NEW".
+     *
+     * @return string
+     */
+    public function getUidPlaceholder(): string
+    {
+        if ($this->uidPlaceholder === null) {
+            $this->uidPlaceholder = StringUtility::getUniqueId('NEW');
+        }
+
+        return $this->uidPlaceholder;
     }
 
     /**

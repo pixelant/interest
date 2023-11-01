@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Tests\Unit\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\AfterRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\Handler\ForeignRelationSortingEventHandler;
+use Pixelant\Interest\DataHandling\Operation\Event\Handler\FixSortingPositionsOnRemoteRelationRecords;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
-class ForeignRelationSortingEventHandlerTest extends UnitTestCase
+class FixSortingPositionsOnRemoteRelationRecordsTest extends UnitTestCase
 {
     protected function setUp(): void
     {
@@ -37,17 +37,21 @@ class ForeignRelationSortingEventHandlerTest extends UnitTestCase
         $recordOperationMock = $this
             ->getMockBuilder(UpdateRecordOperation::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['setDataForDataHandler', 'getDataForDataHandler'])
+            ->onlyMethods(['setDataForDataHandler', 'getDataForDataHandler', 'isSuccessful'])
             ->getMock();
 
         $recordOperationMock
             ->method('getDataForDataHandler')
             ->willReturn($localRecordData);
 
-        $event = new AfterRecordOperationEvent($recordOperationMock);
+        $recordOperationMock
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $event = new RecordOperationInvocationEvent($recordOperationMock);
 
         $subjectMock = $this
-            ->getMockBuilder(ForeignRelationSortingEventHandler::class)
+            ->getMockBuilder(FixSortingPositionsOnRemoteRelationRecords::class)
             ->onlyMethods(['getMmFieldConfigurations', 'orderOnForeignSideOfRelation', 'persistData'])
             ->getMock();
 

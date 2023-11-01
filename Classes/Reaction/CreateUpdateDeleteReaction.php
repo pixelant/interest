@@ -42,6 +42,17 @@ class CreateUpdateDeleteReaction implements ReactionInterface
         array $payload,
         ReactionInstruction $reaction
     ): ResponseInterface {
+        if ($payload === []) {
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => false,
+                    'message' => 'Empty payload or JSON parse error.',
+                ],
+                405
+            );
+        }
+
         if (($payload['method'] ?? '') === '') {
             return GeneralUtility::makeInstance(
                 JsonResponse::class,

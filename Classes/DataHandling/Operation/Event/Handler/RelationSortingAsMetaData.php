@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Utility\TcaUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -15,20 +17,24 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * when persisting the foreign side of the relation to ensure the ordering is correct, even if the foreign relations are
  * created one-by-one.
  *
- * @see ForeignRelationSortingEventHandler
+ * @see FixSortingPositionsOnRemoteRelationRecords
  */
-class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEventHandlerInterface
+class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
 {
     /**
-     * @var BeforeRecordOperationEvent
+     * @var AbstractRecordOperationEvent
      */
-    protected BeforeRecordOperationEvent $event;
+    protected AbstractRecordOperationEvent $event;
 
     /**
      * @inheritDoc
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
+        if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
+            return;
+        }
+
         $this->event = $event;
 
         $mmFieldConfigurations = $this->getSortedMmRelationFieldConfigurations();
@@ -44,10 +50,11 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
      * Returns the TCA configurations (with overrides) for the table's MM fields.
      *
      * @return array
+     * @internal
      */
-    protected function getSortedMmRelationFieldConfigurations(): array
+    public function getSortedMmRelationFieldConfigurations(): array
     {
-        $recordOperation = $this->event->getRecordOperation();
+        $recordOperation = $this->getEvent()->getRecordOperation();
 
         if (!isset($GLOBALS['TCA'][$recordOperation->getTable()]['columns'])) {
             return [];
@@ -55,11 +62,9 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
 
         $fieldConfigurations = [];
         foreach (array_keys($GLOBALS['TCA'][$recordOperation->getTable()]['columns']) as $fieldName) {
-            $fieldConfiguration = TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
-                $recordOperation->getTable(),
-                $fieldName,
-                $recordOperation->getDataForDataHandler(),
-                $recordOperation->getRemoteId()
+            $fieldConfiguration = $this->getTcaFieldConfigurationAndRespectColumnsOverrides(
+                $recordOperation,
+                $fieldName
             );
 
             if (
@@ -77,10 +82,11 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
      * Persists the sorting intent (ordered remoteIds) to meta data.
      *
      * @param array $fieldConfigurations
+     * @internal
      */
-    protected function addSortingIntentToMetaData(array $fieldConfigurations)
+    public function addSortingIntentToMetaData(array $fieldConfigurations)
     {
-        $recordOperation = $this->event->getRecordOperation();
+        $recordOperation = $this->getEvent()->getRecordOperation();
 
         $sortingIntents = [];
         foreach ($fieldConfigurations as $fieldName => $configuration) {
@@ -103,6 +109,34 @@ class RelationSortingAsMetaDataEventHandler implements BeforeRecordOperationEven
             $recordOperation->getRemoteId(),
             self::class,
             $sortingIntents
+        );
+    }
+
+    /**
+     * @return AbstractRecordOperationEvent
+     */
+    public function getEvent(): AbstractRecordOperationEvent
+    {
+        return $this->event;
+    }
+
+    /**
+     * Wrapper for TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(). Mockable in testing.
+     *
+     * @param AbstractRecordOperation $recordOperation
+     * @param string $field
+     * @return array
+     * @internal
+     */
+    public function getTcaFieldConfigurationAndRespectColumnsOverrides(
+        AbstractRecordOperation $recordOperation,
+        string $field
+    ): array {
+        return TcaUtility::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $recordOperation->getTable(),
+            $field,
+            $recordOperation->getDataForDataHandler(),
+            $recordOperation->getRemoteId()
         );
     }
 }

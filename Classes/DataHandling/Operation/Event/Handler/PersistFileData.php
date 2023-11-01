@@ -8,9 +8,9 @@ use GuzzleHttp\Exception\ClientException;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
-use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
+use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
@@ -36,20 +36,20 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 /**
  * Intercepts a sys_file request to store the file data in the filesystem.
  */
-class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerInterface
+class PersistFileData implements RecordOperationEventHandlerInterface
 {
     protected RemoteIdMappingRepository $mappingRepository;
 
     protected ResourceFactory $resourceFactory;
 
-    protected BeforeRecordOperationEvent $event;
+    protected AbstractRecordOperationEvent $event;
 
     /**
-     * @param BeforeRecordOperationEvent $event
+     * @param AbstractRecordOperationEvent $event
      * @throws InvalidFileNameException
      * @throws \RuntimeException
      */
-    public function __invoke(BeforeRecordOperationEvent $event): void
+    public function __invoke(AbstractRecordOperationEvent $event): void
     {
         if ($event->getRecordOperation() instanceof DeleteRecordOperation) {
             return;

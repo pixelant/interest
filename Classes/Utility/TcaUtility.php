@@ -73,10 +73,10 @@ class TcaUtility
     /**
      * Returns TCA configuration for a field with type-related overrides.
      *
-     * @param string $remoteId
      * @param string $table
      * @param string $field
      * @param array $row
+     * @param string $remoteId
      * @return array
      * @throws \UnexpectedValueException
      */
@@ -90,22 +90,9 @@ class TcaUtility
             return self::getFakePidTcaConfiguration();
         }
 
-        /** @var RemoteIdMappingRepository $mappingRepository */
-        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
-
         $tcaFieldConf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 
-        if ($remoteId !== null && $mappingRepository->exists($remoteId)) {
-            $row = array_merge(
-                DatabaseUtility::getRecord(
-                    $table,
-                    $mappingRepository->get($remoteId)
-                ),
-                $row
-            );
-        }
-
-        $recordType = BackendUtility::getTCAtypeValue($table, $row);
+        $recordType = self::getTcaFieldType($table, $row, $remoteId);
 
         $columnOverrideConfigForField
             = $GLOBALS['TCA'][$table]['types'][$recordType]['columnsOverrides'][$field]['config'] ?? null;
@@ -216,5 +203,109 @@ class TcaUtility
             'minitems' => 1,
             'default' => 0,
         ];
+    }
+
+    /**
+     * Check if the field is relational.
+     *
+     * @param string $table
+     * @param string $field
+     * @param array $row
+     * @param string|null $remoteId
+     * @return bool
+     */
+    public static function isRelationalField(
+        string $table,
+        string $field,
+        array $row = [],
+        ?string $remoteId = null
+    ): bool {
+        if (
+            $field === 'pid'
+            || $field === self::getTranslationSourceField($table)
+            || $field === self::getTransOrigPointerField($table)
+        ) {
+            return true;
+        }
+
+        $tca = self::getTcaFieldConfigurationAndRespectColumnsOverrides(
+            $table,
+            $field,
+            $row,
+            $remoteId
+        );
+
+        return (
+            $tca['type'] === 'group'
+            && (
+                ($tca['internal_type'] ?? null) === 'db'
+                || isset($tca['allowed'])
+            )
+        )
+            || (
+                in_array($tca['type'], ['inline', 'select'], true)
+                && isset($tca['foreign_table'])
+            )
+            || (
+                in_array($tca['type'], ['category', 'file', 'image'], true)
+            );
+    }
+
+    /**
+     * Returns true if $field of $table is a relation field that supports records from multiple tables, meaning that
+     * the UID should be prefixed with the table name: table_name_123.
+     *
+     * @param string $table
+     * @param string $field
+     * @return bool
+     */
+    public static function hasRelationToMultipleTables(string $table, string $field): bool
+    {
+        if ($field === 'pid') {
+            return false;
+        }
+
+        $tcaConfiguration = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
+
+        $prefixWithTable = false;
+
+        if (
+            $tcaConfiguration['type'] === 'group'
+            && (
+                $tcaConfiguration['allowed'] === '*'
+                || strpos(',', $tcaConfiguration['allowed']) !== false
+            )
+        ) {
+            $prefixWithTable = true;
+        }
+
+        return $prefixWithTable;
+    }
+
+    /**
+     * @param string $table
+     * @param array $row
+     * @param string|null $remoteId
+     * @return string
+     */
+    protected static function getTcaFieldType(
+        string $table,
+        array $row,
+        ?string $remoteId
+    ): string {
+        /** @var RemoteIdMappingRepository $mappingRepository */
+        $mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
+
+        if ($remoteId !== null && $mappingRepository->exists($remoteId)) {
+            $row = array_merge(
+                DatabaseUtility::getRecord(
+                    $table,
+                    $mappingRepository->get($remoteId)
+                ),
+                $row
+            );
+        }
+
+        return BackendUtility::getTCAtypeValue($table, $row);
     }
 }
