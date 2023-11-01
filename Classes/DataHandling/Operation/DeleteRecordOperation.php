@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @noinspection PhpMissingParentConstructorInspection
- */
-
 declare(strict_types=1);
 
 namespace Pixelant\Interest\DataHandling\Operation;
@@ -15,7 +11,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\PendingRelationsRepository;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\CompatibilityUtility;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -23,9 +19,13 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class DeleteRecordOperation extends AbstractRecordOperation
 {
-    public function __construct(
-        RecordRepresentation $recordRepresentation
-    ) {
+    /**
+     * @param RecordRepresentation $recordRepresentation
+     * @throws \Pixelant\Interest\RequestHandler\Exception\NotFoundException
+     * @throws StopRecordOperationException
+     */
+    public function __construct(RecordRepresentation $recordRepresentation)
+    {
         $this->recordRepresentation = $recordRepresentation;
 
         $this->mappingRepository = GeneralUtility::makeInstance(RemoteIdMappingRepository::class);
@@ -46,7 +46,7 @@ class DeleteRecordOperation extends AbstractRecordOperation
         $this->hash = md5(static::class . serialize($this->getArguments()));
 
         try {
-            CompatibilityUtility::dispatchEvent(new BeforeRecordOperationEvent($this));
+            GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(new BeforeRecordOperationEvent($this));
         } catch (StopRecordOperationException $exception) {
             $this->operationStopped = true;
 

@@ -1,16 +1,13 @@
 <?php
 
-/** @noinspection ALL */
+/**
+ * @noinspection ALL
+ * phpcs:ignoreFile
+ */
 
 namespace Pixelant\Interest\Utility;
 
-use Pixelant\Interest\Compatibility\Resource\Security\FileNameValidator as InterestFileNameValidator;
-use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
-use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
-use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
 
 /**
  * Miscellaneous functions relating to compatibility with different TYPO3 versions
@@ -19,21 +16,6 @@ use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
  */
 class CompatibilityUtility
 {
-    /**
-     * Return the application context
-     *
-     * @return \TYPO3\CMS\Core\Core\ApplicationContext
-     */
-    public static function getApplicationContext()
-    {
-        if (self::typo3VersionIsLessThan('10.2')) {
-            // @phpstan-ignore-next-line
-            return GeneralUtility::getApplicationContext();
-        }
-
-        return Environment::getContext();
-    }
-
     /**
      * Returns true if the current TYPO3 version is less than $version
      *
@@ -89,79 +71,65 @@ class CompatibilityUtility
     }
 
     /**
-     * Dispatch an event as PSR-14 in TYPO3 v10+ and signal in TYPO3 v9.
+     * Converts a TYPO3 v12 TCA array to one that is compatible with TYPO3 v11.
      *
-     * @param object $event
-     * @return object
+     * @param array $tableTca The TCA array for a table. [ctrl => ..., ...]
      */
-    public static function dispatchEvent(object $event): object
+    public static function backportVersion12TcaFeaturesForTable(array $tableTca)
     {
-        if (self::typo3VersionIsLessThan('10')) {
-            /** @var Dispatcher $signalSlotDispatcher */
-            $signalSlotDispatcher = GeneralUtility::makeInstance(Dispatcher::class);
+        foreach ($tableTca['columns'] as &$fieldTca) {
+            foreach ($fieldTca['config'] as $configurationProperty => $configurationValue) {
+                switch ($configurationProperty) {
+                    case 'items':
+                        $items = [];
 
-            $eventClassName = get_class($event);
+                        foreach ($configurationValue as $item) {
+                            $items[] = [
+                                $item['label'] ?? '',
+                                $item['value'] ?? null,
+                                $item['icon'] ?? null,
+                                $item['group'] ?? null,
+                                $item['description'] ?? null,
+                            ];
+                        }
 
-            $signalSlotDispatcher->dispatch(
-                $eventClassName,
-                self::classNameToSignalName($eventClassName),
-                [$event]
-            );
+                        $fieldTca['config']['items'] = $items;
 
-            return $event;
+                        break;
+                    case 'required':
+                        if ($configurationValue === true) {
+                            if (!isset($fieldTca['config']['eval'])) {
+                                $fieldTca['config']['eval'] = 'required';
+                            } else {
+                                $fieldTca['config']['eval'] .= ',required';
+                            }
+                        }
+
+                        unset($fieldTca['config']['required']);
+
+                        break;
+                    case 'type':
+                        switch ($configurationValue) {
+                            case 'datetime':
+                                $fieldTca['config']['type'] = 'input';
+                                $fieldTca['config']['renderType'] = 'inputDateTime';
+                                break;
+                            case 'number':
+                                $fieldTca['config']['type'] = 'input';
+
+                                if (!isset($fieldTca['config']['eval'])) {
+                                    $fieldTca['config']['eval'] = 'int';
+                                } else {
+                                    $fieldTca['config']['eval'] .= ',int';
+                                }
+                                break;
+                        }
+
+                        break;
+                }
+            }
         }
 
-        /** @var EventDispatcher $eventDispatcher */
-        $eventDispatcher = GeneralUtility::makeInstance(EventDispatcher::class);
-
-        return $eventDispatcher->dispatch($event);
-    }
-
-    /**
-     * Register a PSR-14 event as a signal slot in TYPO3 v9.
-     *
-     * @param string $eventClassName
-     * @param string $eventHandlerClassName
-     */
-    public static function registerEventHandlerAsSignalSlot(string $eventClassName, string $eventHandlerClassName)
-    {
-        if (self::typo3VersionIsGreaterThanOrEqualTo('10')) {
-            return;
-        }
-
-        /** @var Dispatcher $signalSlotDispatcher */
-        $signalSlotDispatcher = GeneralUtility::makeInstance(Dispatcher::class);
-
-        $signalSlotDispatcher->connect(
-            $eventClassName,
-            self::classNameToSignalName($eventClassName),
-            $eventHandlerClassName,
-            '__invoke'
-        );
-    }
-
-    /**
-     * Returns "className" from "Foo\Bar\ClassName".
-     *
-     * @param string $className
-     * @return string
-     */
-    protected static function classNameToSignalName(string $className)
-    {
-        $explodedFqcn = explode('\\', $className);
-
-        return lcfirst(array_pop($explodedFqcn));
-    }
-
-    /**
-     * @return InterestFileNameValidator|FileNameValidator
-     */
-    public static function getFileNameValidator(): object
-    {
-        if (self::typo3VersionIsLessThan('10.4')) {
-            return GeneralUtility::makeInstance(InterestFileNameValidator::class);
-        }
-
-        return GeneralUtility::makeInstance(FileNameValidator::class);
+        return $tableTca;
     }
 }

@@ -28,10 +28,16 @@ class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperatio
         $previousHash = '';
 
         foreach ($repository->get($event->getRecordOperation()->getRemoteId()) as $deferredRow) {
+            $deferredRowClassParents = class_parents($deferredRow['class']);
+
+            if (!is_array($deferredRowClassParents)) {
+                $deferredRowClassParents = [];
+            }
+
             if (
                 $previousHash !== $deferredRow['_hash']
                 && $deferredRow['class'] !== DeleteRecordOperation::class
-                && !in_array(DeleteRecordOperation::class, class_parents($deferredRow['class']) ?: [])
+                && !in_array(DeleteRecordOperation::class, $deferredRowClassParents, true)
             ) {
                 $previousHash = $deferredRow['_hash'];
 
@@ -41,7 +47,7 @@ class ProcessDeferredRecordOperationsEventHandler implements AfterRecordOperatio
                     } catch (IdentityConflictException $exception) {
                         if (
                             $deferredRow['class'] === CreateRecordOperation::class
-                            || in_array(CreateRecordOperation::class, class_parents($deferredRow['class']) ?: [])
+                            || in_array(CreateRecordOperation::class, $deferredRowClassParents, true)
                         ) {
                             $deferredOperation = new UpdateRecordOperation(... $deferredRow['arguments']);
                         } else {

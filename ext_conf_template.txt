@@ -7,6 +7,9 @@ tokenLifetime = 86400
 # cat=Behavior; type=options[Fail with exception=cancel,Rename the new file=rename,Replace the existing file=replace]; label=Handle Existing Files: How to handle files that already exist in the filesystem.
 handleExistingFile = cancel
 
+# cat=Behavior; type=options[Treat as normal file=0,Stop record processing=1,Fail=2]; label=Handle Empty Files: How to handle files that are empty.
+handleEmptyFile = 0
+
 # cat=Logging; type=options[Disabled=0,Headers=1,Database=2,Both=3]; label=Enable logging: In response headers and/or database.
 log = 0
 

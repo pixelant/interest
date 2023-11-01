@@ -169,7 +169,7 @@ class RelationUtility
             $parentTableFieldConfig
         );
 
-        if (!in_array($localUid, $relations[$localTable])) {
+        if (!in_array($localUid, $relations[$localTable], true)) {
             return [];
         }
 
@@ -233,7 +233,7 @@ class RelationUtility
                                 $foreignUid
                             )
                         )
-                        ->execute();
+                        ->executeStatement();
                 }
             }
         }

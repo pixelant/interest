@@ -35,7 +35,8 @@ class ClearRecordHashCommandController extends Command
                 'contains',
                 'c',
                 InputOption::VALUE_NONE,
-                'The remoteId argument is a partial remote ID. Match all IDs containing the string.'
+                'The remoteId argument is a partial remote ID. Match all IDs containing the string.',
+                false
             );
     }
 
@@ -44,7 +45,7 @@ class ClearRecordHashCommandController extends Command
         $queryBuilder = $this->getQueryBuilder();
 
         if ($input->getArgument('remoteId') !== null) {
-            if ($input->getOption('contains')) {
+            if ($input->getOption('contains') === true) {
                 $queryBuilder->where($queryBuilder->expr()->like(
                     'remote_id',
                     $queryBuilder->createNamedParameter(
@@ -59,10 +60,10 @@ class ClearRecordHashCommandController extends Command
             }
         }
 
-        $rows = (int)$queryBuilder
+        $rows = $queryBuilder
             ->update(RemoteIdMappingRepository::TABLE_NAME)
             ->set('record_hash', '')
-            ->execute();
+            ->executeStatement();
 
         $output->writeln('Cleared hash in ' . $rows . ' rows.');
 

@@ -10,9 +10,9 @@ use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 class TokenRepositoryTest extends FunctionalTestCase
 {
     /**
-     * @var array<int, non-empty-string>
+     * @var array<non-empty-string>
      */
-    protected $testExtensionsToLoad = ['typo3conf/ext/interest'];
+    protected array $testExtensionsToLoad = ['typo3conf/ext/interest'];
 
     /**
      * @var TokenRepository
@@ -34,7 +34,7 @@ class TokenRepositoryTest extends FunctionalTestCase
         $token = $this->subject->createTokenForBackendUser(1);
 
         self::assertIsString($token, 'Token is a string.');
-        self::assertRegExp('/^[0-9a-f]{32}$/', $token, 'Token is a 32-character hexademical string.');
+        self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $token, 'Token is a 32-character hexademical string.');
 
         $databaseRow = $this
             ->getConnectionPool()

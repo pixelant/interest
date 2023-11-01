@@ -5,7 +5,6 @@ namespace Pixelant\Interest\Middleware;
 use Pixelant\Interest\Configuration\ConfigurationProvider;
 use Pixelant\Interest\Middleware\Event\HttpResponseEvent;
 use Pixelant\Interest\Router\HttpRequestRouter;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -13,6 +12,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class RequestMiddleware implements MiddlewareInterface
@@ -37,7 +37,7 @@ class RequestMiddleware implements MiddlewareInterface
 
             $response = HttpRequestRouter::route($request);
 
-            $response = CompatibilityUtility::dispatchEvent(
+            $response = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
                 new HttpResponseEvent($response)
             )->getResponse();
 
@@ -89,7 +89,7 @@ class RequestMiddleware implements MiddlewareInterface
                         'response_headers' => substr(json_encode($response->getHeaders()), 0, 65535),
                         'response_body' => substr((string)$response->getBody(), 0, 16777215),
                     ])
-                    ->execute();
+                    ->executeStatement();
             }
         }
     }

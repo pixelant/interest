@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
@@ -61,7 +61,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
                 )
             )
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -140,7 +140,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                 'touched' => time(),
                 'metadata' => json_encode(self::$unmappedMetaDataEntries[$remoteId] ?? []),
             ])
-            ->execute();
+            ->executeStatement();
 
         self::$remoteToLocalIdCache[$remoteId] = $uid;
         self::$remoteIdToTableCache[$remoteId] = $tableName;
@@ -159,11 +159,13 @@ class RemoteIdMappingRepository extends AbstractRepository
         $queryBuilder
             ->update(self::TABLE_NAME)
             ->set('touched', time())
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId)
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId)
+                )
+            )
+            ->executeStatement();
     }
 
     /**
@@ -179,11 +181,13 @@ class RemoteIdMappingRepository extends AbstractRepository
         return (int)$queryBuilder
             ->select('touched')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId)
-            ))
-            ->execute()
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId)
+                )
+            )
+            ->executeQuery()
             ->fetchOne();
     }
 
@@ -208,7 +212,7 @@ class RemoteIdMappingRepository extends AbstractRepository
         return $queryBuilder
             ->select('remote_id')
             ->from(self::TABLE_NAME)
-            ->execute()
+            ->executeQuery()
             ->fetchFirstColumn();
     }
 
@@ -233,7 +237,7 @@ class RemoteIdMappingRepository extends AbstractRepository
         return $queryBuilder
             ->select('remote_id')
             ->from(self::TABLE_NAME)
-            ->execute()
+            ->executeQuery()
             ->fetchFirstColumn();
     }
 
@@ -242,7 +246,6 @@ class RemoteIdMappingRepository extends AbstractRepository
      *
      * @param string $remoteId
      * @return bool
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
     public function exists(string $remoteId): bool
     {
@@ -265,11 +268,13 @@ class RemoteIdMappingRepository extends AbstractRepository
 
         $queryBuilder
             ->delete(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId)
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId)
+                )
+            )
+            ->executeStatement();
     }
 
     /**
@@ -288,12 +293,18 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->select('remote_id')
             ->from(self::TABLE_NAME)
             ->where(
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq('table', $queryBuilder->createNamedParameter($table)),
-                    $queryBuilder->expr()->eq('uid_local', $queryBuilder->createNamedParameter($uid))
+                $queryBuilder->expr()->and(
+                    $queryBuilder->expr()->eq(
+                        'table',
+                        $queryBuilder->createNamedParameter($table)
+                    ),
+                    $queryBuilder->expr()->eq(
+                        'uid_local',
+                        $queryBuilder->createNamedParameter($uid)
+                    )
                 )
             )
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -319,11 +330,13 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->set('record_hash', $recordOperation->getHash())
             ->set('tstamp', time())
             ->set('touched', time())
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($recordOperation->getRemoteId())
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($recordOperation->getRemoteId())
+                )
+            )
+            ->executeStatement();
     }
 
     /**
@@ -356,7 +369,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($recordOperation->getHash())
                 )
             )
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -388,7 +401,7 @@ class RemoteIdMappingRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
                 )
             )
-            ->execute();
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -456,11 +469,13 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->update(self::TABLE_NAME)
             ->set('metadata', json_encode($metaData))
             ->set('tstamp', time())
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId)
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId)
+                )
+            )
+            ->executeStatement();
     }
 
     /**

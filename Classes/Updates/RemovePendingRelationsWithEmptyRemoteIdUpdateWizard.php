@@ -38,7 +38,7 @@ class RemovePendingRelationsWithEmptyRemoteIdUpdateWizard extends AbstractUpdate
             ->where(
                 $queryBuilder->expr()->eq('remote_id', $queryBuilder->quote(''))
             )
-            ->execute();
+            ->executeStatement();
 
         if ($this->output !== null) {
             $this->output->writeln('Deleted ' . $deletedCount . ' pending relations with empty remote ID.');
@@ -58,9 +58,12 @@ class RemovePendingRelationsWithEmptyRemoteIdUpdateWizard extends AbstractUpdate
             ->count('*')
             ->from(PendingRelationsRepository::TABLE_NAME)
             ->where(
-                $queryBuilder->expr()->eq('remote_id', $queryBuilder->quote(''))
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->quote('')
+                )
             )
-            ->execute()
+            ->executeQuery()
             ->fetchOne();
     }
 

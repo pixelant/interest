@@ -32,7 +32,8 @@ class CreateCommandController extends AbstractReceiveCommandController
                 'update',
                 'u',
                 InputOption::VALUE_NONE,
-                'Quietly update the record if it already exists.'
+                'Quietly update the record if it already exists.',
+                false
             );
     }
 
@@ -66,7 +67,7 @@ class CreateCommandController extends AbstractReceiveCommandController
 
                 continue;
             } catch (IdentityConflictException $exception) {
-                if (!$input->getOption('update')) {
+                if ($input->getOption('update') === false) {
                     throw $exception;
                 }
 

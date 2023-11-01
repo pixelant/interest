@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Utility;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -25,7 +25,7 @@ class DatabaseUtility
     public static function getRecord(string $table, int $uid, array $fields = ['*'])
     {
         // Ensure we have a valid uid (not 0 and not NEWxxxx) and a valid TCA
-        if (!empty($GLOBALS['TCA'][$table])) {
+        if (($GLOBALS['TCA'][$table] ?? []) !== []) {
             $queryBuilder = self::getQueryBuilderForTable($table);
 
             // do not use enabled fields here
@@ -36,9 +36,9 @@ class DatabaseUtility
             $queryBuilder
                 ->select(...$fields)
                 ->from($table)
-                ->where($queryBuilder->expr()->eq('uid', (int)$uid));
+                ->where($queryBuilder->expr()->eq('uid', $uid));
 
-            $result = $queryBuilder->execute();
+            $result = $queryBuilder->executeQuery();
 
             if (!($result instanceof Result)) {
                 throw new InvalidQueryResultException(

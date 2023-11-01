@@ -13,7 +13,7 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 /**
  * Handle a record creation operation.
  */
-class CreateRecordOperation extends AbstractRecordOperation
+class CreateRecordOperation extends AbstractConstructiveRecordOperation
 {
     public function __construct(
         RecordRepresentation $recordRepresentation,
@@ -39,7 +39,12 @@ class CreateRecordOperation extends AbstractRecordOperation
             );
         }
 
-        $uid = $this->getUid() ?: StringUtility::getUniqueId('NEW');
+        $uid = $this->getUid();
+
+        if ($uid === 0) {
+            $uid = StringUtility::getUniqueId('NEW');
+        }
+
         $table = $recordRepresentation->getRecordInstanceIdentifier()->getTable();
 
         $this->dataHandler->datamap[$table][$uid] = $this->getDataForDataHandler();

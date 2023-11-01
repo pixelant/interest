@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Router;
 
-use Pixelant\Interest\Authentication\HttpBackendUserAuthentication;
+use Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v11;
+use Pixelant\Interest\Authentication\HttpBackendUserAuthenticationForTypo3v12;
 use Pixelant\Interest\DataHandling\Operation\Exception\AbstractException;
 use Pixelant\Interest\Domain\Repository\TokenRepository;
-use Pixelant\Interest\DynamicCompatibility\Authentication\HttpBackendUserAuthenticationBeforeTypo3v11;
 use Pixelant\Interest\RequestHandler\AuthenticateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateOrUpdateRequestHandler;
 use Pixelant\Interest\RequestHandler\CreateRequestHandler;
@@ -24,7 +24,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Routing\PageArguments;
 use TYPO3\CMS\Core\Site\Entity\Site;
@@ -90,7 +92,7 @@ class HttpRequestRouter
         } catch (\Throwable $throwable) {
             $trace = [];
 
-            if (CompatibilityUtility::getApplicationContext()->isDevelopment()) {
+            if (Environment::getContext()->isDevelopment()) {
                 $trace = self::generateExceptionTrace($throwable);
             }
 
@@ -148,17 +150,23 @@ class HttpRequestRouter
      */
     protected static function initialize(ServerRequestInterface $request)
     {
-        if (CompatibilityUtility::typo3VersionIsLessThan('11')) {
+        if (CompatibilityUtility::typo3VersionIsLessThan('12.0')) {
             require_once GeneralUtility::getFileAbsFileName(
-                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationBeforeTypo3v11.php'
+                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationForTypo3v11.php'
             );
 
             // @phpstan-ignore-next-line
-            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationBeforeTypo3v11::class);
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v11::class, $request);
         } else {
-            Bootstrap::initializeBackendUser(HttpBackendUserAuthentication::class);
-            self::bootFrontendController($request);
+            require_once GeneralUtility::getFileAbsFileName(
+                'EXT:interest/DynamicCompatibility/Authentication/HttpBackendUserAuthenticationForTypo3v12.php'
+            );
+
+            // @phpstan-ignore-next-line
+            Bootstrap::initializeBackendUser(HttpBackendUserAuthenticationForTypo3v12::class, $request);
         }
+
+        self::bootFrontendController($request);
 
         ExtensionManagementUtility::loadExtTables();
         Bootstrap::initializeLanguageObject();
@@ -204,7 +212,7 @@ class HttpRequestRouter
      */
     protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
-        $event = CompatibilityUtility::dispatchEvent(
+        $event = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
             new HttpRequestRouterHandleByEvent($request, $entryPointParts)
         );
 

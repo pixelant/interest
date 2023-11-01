@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pixelant\Interest\Domain\Repository;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 
 /**
@@ -28,11 +28,13 @@ class PendingRelationsRepository extends AbstractRepository
         $result = $queryBuilder
             ->select('*')
             ->from(self::TABLE_NAME)
-            ->where($queryBuilder->expr()->eq(
-                'remote_id',
-                $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
-            ))
-            ->execute();
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'remote_id',
+                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                )
+            )
+            ->executeQuery();
 
         if (!($result instanceof Result)) {
             throw new InvalidQueryResultException(
@@ -70,7 +72,6 @@ class PendingRelationsRepository extends AbstractRepository
      * @param string $field
      * @param int $uid
      * @param string $remoteId
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function setSingle(string $table, string $field, int $uid, string $remoteId)
     {
@@ -84,7 +85,7 @@ class PendingRelationsRepository extends AbstractRepository
                 'field' => $field,
                 'record_uid' => $uid,
             ])
-            ->execute();
+            ->executeStatement();
     }
 
     /**
@@ -112,9 +113,9 @@ class PendingRelationsRepository extends AbstractRepository
                 $queryBuilder->expr()->eq(
                     'record_uid',
                     $queryBuilder->createNamedParameter($uid)
-                ),
+                )
             )
-            ->execute();
+            ->executeStatement();
     }
 
     /**
@@ -134,6 +135,6 @@ class PendingRelationsRepository extends AbstractRepository
                     $queryBuilder->createNamedParameter($remoteId)
                 )
             )
-            ->execute();
+            ->executeStatement();
     }
 }

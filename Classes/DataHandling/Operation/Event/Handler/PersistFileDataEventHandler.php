@@ -10,11 +10,11 @@ use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEvent;
 use Pixelant\Interest\DataHandling\Operation\Event\BeforeRecordOperationEventHandlerInterface;
+use Pixelant\Interest\DataHandling\Operation\Event\Exception\StopRecordOperationException;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
-use Pixelant\Interest\DataHandling\Operation\Exception\MissingArgumentException;
+use Pixelant\Interest\DataHandling\Operation\Exception\InvalidArgumentException;
 use Pixelant\Interest\DataHandling\Operation\Exception\NotFoundException;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
-use Pixelant\Interest\Utility\CompatibilityUtility;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\DuplicationBehavior;
@@ -24,9 +24,11 @@ use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\InaccessibleFolder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -63,7 +65,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $fileBaseName = $data['name'] ?? '';
 
-        if (!CompatibilityUtility::getFileNameValidator()->isValid($fileBaseName)) {
+        if (!GeneralUtility::makeInstance(FileNameValidator::class)->isValid($fileBaseName)) {
             throw new InvalidFileNameException(
                 'Invalid file name: "' . $fileBaseName . '"',
                 1634664683340
@@ -101,8 +103,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
             $downloadFolder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier('0:fileadmin/_temp_/');
         }
 
-        /** @var File $file */
-        [$data, $file] = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
+        $file = $this->getFileWithContent($data, $downloadFolder, $fileBaseName);
 
         if ($replaceFile) {
             $temporaryFile = $file;
@@ -204,7 +205,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @throws ClientException
      * @throws NotFoundException
      */
-    protected function handleUrlInput(string $url): ?string
+    protected function fetchContentFromUrl(string $url): ?string
     {
         /** @var RequestFactory $httpClient */
         $httpClient = GeneralUtility::makeInstance(RequestFactory::class);
@@ -216,11 +217,11 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $headers = [];
 
-        if (!empty($metaData['date'])) {
+        if (($metaData['date'] ?? []) !== []) {
             $headers['If-Modified-Since'] = $metaData['date'];
         }
 
-        if (!empty($metaData['etag'])) {
+        if (($metaData['etag'] ?? []) !== []) {
             $headers['If-None-Match'] = $metaData['etag'];
         }
 
@@ -272,7 +273,7 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param ResourceStorage $storage
      * @param array $persistenceSettings
      * @param string $fileBaseName
-     * @return Folder|\TYPO3\CMS\Core\Resource\InaccessibleFolder|void
+     * @return Folder|InaccessibleFolder|void
      */
     protected function getDownloadFolder(
         string $storagePath,
@@ -348,33 +349,28 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
      * @param array $data
      * @param Folder $downloadFolder
      * @param string $fileBaseName
-     * @return array
+     * @return File
      * @throws InvalidFileNameException
-     * @throws MissingArgumentException
      */
-    protected function getFileWithContent(array $data, Folder $downloadFolder, string $fileBaseName): array
+    protected function getFileWithContent(array $data, Folder $downloadFolder, string $fileBaseName): File
     {
         $file = null;
+        $fileContent = null;
 
-        if (!empty($data['fileData'])) {
+        if (($data['fileData'] ?? '') !== '') {
             $fileContent = $this->handleBase64Input($data['fileData']);
-        } else {
-            if (
-                empty($data['url'])
-                && get_class($this->event->getRecordOperation()) === CreateRecordOperation::class
-            ) {
-                throw new MissingArgumentException(
-                    'Cannot download file. Missing property "url" in the data.',
-                    1634667221986
-                );
-            }
-            if (!empty($data['url'])) {
-                $file = $this->getFileFromMediaUrl($data['url'], $downloadFolder, $fileBaseName);
+        } elseif (($data['url'] ?? '') !== '') {
+            $file = $this->getFileFromMediaUrl($data['url'], $downloadFolder, $fileBaseName);
 
-                if ($file === null) {
-                    $fileContent = $this->handleUrlInput($data['url']);
-                }
+            if ($file === null) {
+                $fileContent = $this->fetchContentFromUrl($data['url']);
             }
+        } else {
+            $fileContent = '';
+        }
+
+        if ($fileContent === '' || ($file !== null && $file->getSize() > 0)) {
+            $this->handleEmptyFile();
         }
 
         if ($fileBaseName === '' && $file === null) {
@@ -386,13 +382,11 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         if ($file === null) {
             $file = $this->createFileObject($downloadFolder, $fileBaseName);
-        }
 
-        if (!empty($fileContent)) {
             $file->setContents($fileContent);
         }
 
-        return[$data, $file];
+        return $file;
     }
 
     /**
@@ -413,9 +407,11 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
 
         $fileInfo = PathUtility::pathinfo($fileName);
 
-        $originalExtension = ($fileInfo['extension'] ?? '') ? '.' . $fileInfo['extension'] : '';
+        $originalExtension = strlen($fileInfo['extension'] ?? '') > 0 ? '.' . $fileInfo['extension'] : '';
 
         $fileName = $fileInfo['filename'];
+
+        $newFileName = '';
 
         for ($a = 1; $a <= $maxNumber + 1; $a++) {
             if ($a <= $maxNumber) {
@@ -466,5 +462,24 @@ class PersistFileDataEventHandler implements BeforeRecordOperationEventHandlerIn
         }
 
         return [$fileBaseName, $replaceFile];
+    }
+
+    /**
+     * Handle empty files based on instructions in $data[emptyFileHandling].
+     *
+     * @throws StopRecordOperationException if $data[emptyFileHandling] === 1
+     * @throws InvalidArgumentException if $data[emptyFileHandling] === 2
+     */
+    protected function handleEmptyFile(): void
+    {
+        $handleEmptyFile = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get('interest', 'handleEmptyFile') ?? 0;
+
+        switch ((int)$handleEmptyFile) {
+            case 1:
+                throw new StopRecordOperationException('Empty file', 1692921622763);
+            case 2:
+                throw new InvalidArgumentException('Empty file', 1692921660432);
+        }
     }
 }
