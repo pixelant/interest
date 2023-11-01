@@ -39,8 +39,9 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     /**
      * @param array $entryPointParts
      * @param ServerRequestInterface $request
+     * @param array|null $parsedBody Supply parsed JSON body as associative array to avoid parsing JSON twice.
      */
-    public function __construct(array $entryPointParts, ServerRequestInterface $request)
+    public function __construct(array $entryPointParts, ServerRequestInterface $request, ?array $parsedBody = null)
     {
         parent::__construct($entryPointParts, $request);
 
@@ -57,57 +58,51 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             ];
         }
 
-        $this->compileData();
+        $this->compileData($parsedBody);
     }
 
     /**
      * Correctly compiles the $data and $metaData.
      *
+     * @param array|null $parsedBody Supply parsed JSON body as associative array to avoid parsing JSON twice.
+     *
      * phpcs:disable Generic.Metrics.CyclomaticComplexity
      */
-    protected function compileData(): void
+    protected function compileData(?array $parsedBody = null): void
     {
-        $body = '';
-
-        if ($this->getRequest()->getBody() instanceof StreamInterface) {
-            $this->getRequest()->getBody()->rewind();
-
-            $body = $this->getRequest()->getBody()->getContents();
+        if ($parsedBody === null) {
+            $parsedBody = $this->parseRequestBody();
         }
 
-        if (!static::EXPECT_EMPTY_REQUEST && $body === '') {
+        if (!static::EXPECT_EMPTY_REQUEST && $parsedBody === []) {
             return;
         }
 
-        if ($body === '') {
-            $decodedContent = [];
-        } else {
-            $decodedContent = json_decode($body) ?? [];
+        if (is_string($parsedBody['metaData'] ?? null)) {
+            $parsedBody['metaData'] = json_decode($parsedBody['metaData'], true, 512, JSON_THROW_ON_ERROR);
         }
 
-        if (is_string($decodedContent->metaData ?? null)) {
-            $decodedContent->metaData = json_decode($decodedContent->metaData) ?? [];
+        if (is_array($parsedBody['metaData'] ?? null)) {
+            $this->metaData = $parsedBody['metaData'];
         }
 
-        $this->metaData = $this->convertObjectToArrayRecursive((array)($decodedContent->metaData ?? []));
-
-        if (is_string($decodedContent->data ?? null)) {
-            $decodedContent->data = json_decode($decodedContent->data) ?? new \stdClass();
+        if (is_string($parsedBody['data'] ?? null)) {
+            $parsedBody['data'] = json_decode($parsedBody['data'], true, 512, JSON_THROW_ON_ERROR);
         }
 
-        $data = $decodedContent->data ?? new \stdClass();
+        $data = $parsedBody['data'] ?? [];
 
-        $table = $this->getEntryPointParts()[0] ?? $decodedContent->table ?? null;
+        $table = $this->getEntryPointParts()[0] ?? $parsedBody['table'] ?? null;
 
-        $remoteId = $this->getEntryPointParts()[1] ?? $decodedContent->remoteId ?? null;
+        $remoteId = $this->getEntryPointParts()[1] ?? $parsedBody['remoteId'] ?? null;
 
         $language = $this->getEntryPointParts()[2]
-            ?? $decodedContent->language
+            ?? $parsedBody['language']
             ?? $this->getRequest()->getQueryParams()['language']
             ?? null;
 
         $workspace = $this->getEntryPointParts()[3]
-            ?? $decodedContent->workspace
+            ?? $parsedBody['workspace']
             ?? $this->getRequest()->getQueryParams()['workspace']
             ?? null;
 
@@ -184,39 +179,14 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
     ): void;
 
     /**
-     * @param object $object
+     * @param array<string|array> $array
      * @return bool True if the object contains any other value than objects.
      */
-    private function isRecordData(object $object): bool
+    private function isRecordData(array $array): bool
     {
-        $array = (array)$object;
+        $item = array_pop($array) ?? '';
 
-        return !is_object($array[array_key_first($array)] ?? null);
-    }
-
-    /**
-     * Recursively convert an array of objects into an array of arrays.
-     *
-     * @param array $values
-     * @return array
-     */
-    private function convertObjectToArrayRecursive(array $values): array
-    {
-        foreach ($values as &$value) {
-            $valueCopy = (array)$value;
-
-            if (!is_object($valueCopy[array_key_first($valueCopy)])) {
-                continue;
-            }
-
-            if (!is_array($valueCopy[array_key_first($valueCopy)]) || is_object($value)) {
-                $value = $this->convertObjectToArrayRecursive((array)$value);
-            } elseif (is_array($value)) {
-                $value = $this->convertObjectToArrayRecursive($value);
-            }
-        }
-
-        return $values;
+        return is_scalar($item) || array_is_list($item);
     }
 
     /**
@@ -238,7 +208,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      *     ...
      * ];
      *
-     * @param \stdClass $data
+     * @param array $data
      * @param string|null $table
      * @param string|null $remoteId
      * @param string|null $language
@@ -246,7 +216,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
      * @return array
      */
     protected function formatDataArray(
-        \stdClass $data,
+        array $data,
         ?string $table,
         ?string $remoteId,
         ?string $language,
@@ -262,7 +232,7 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
             $layerCount++;
         }
 
-        if (!$this->isRecordData($data) && (array)$data !== []) {
+        if (!$this->isRecordData($data) && $data !== []) {
             $currentLayer = $data;
             do {
                 $layerCount++;
@@ -270,26 +240,27 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
                 $currentLayer = current((array)$currentLayer);
             } while ($currentLayer !== false && !$this->isRecordData($currentLayer));
 
-            $data = $this->convertObjectToArrayRecursive((array)$data);
+            $addDimensions = function (&$item) use (&$addDimensions, $layerCount, $workspace, $language) {
+                if (!$this->isRecordData($item)) {
+                    array_walk($item, $addDimensions);
 
-            array_walk_recursive(
-                $data,
-                function (&$item) use ($layerCount, $workspace, $language) {
-                    $item = (array)$item;
-
-                    if ($layerCount < 4 || $workspace !== null) {
-                        $item = [(string)$workspace => $item];
-                    }
-
-                    if ($layerCount < 3 || $language !== null) {
-                        $item = [(string)$language => $item];
-                    }
+                    return;
                 }
-            );
+
+                if ($layerCount < 4 || $workspace !== null) {
+                    $item = [(string)$workspace => $item];
+                }
+
+                if ($layerCount < 3 || $language !== null) {
+                    $item = [(string)$language => $item];
+                }
+            };
+
+            $addDimensions($data);
         } else {
             $data = [
                 (string)$language => [
-                    (string)$workspace => (array)$data,
+                    (string)$workspace => $data,
                 ],
             ];
         }
@@ -382,5 +353,27 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
         }
 
         return $exceptions;
+    }
+
+    /**
+     * @return array
+     */
+    protected function parseRequestBody(): array
+    {
+        $body = '';
+
+        if ($this->getRequest()->getBody() instanceof StreamInterface) {
+            $this->getRequest()->getBody()->rewind();
+
+            $body = $this->getRequest()->getBody()->getContents();
+        }
+
+        if ($body === '') {
+            $parsedBody = [];
+        } else {
+            $parsedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        }
+
+        return $parsedBody;
     }
 }
