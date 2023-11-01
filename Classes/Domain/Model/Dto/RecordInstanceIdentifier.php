@@ -151,6 +151,9 @@ class RecordInstanceIdentifier
     }
 
     /**
+     * Returns a DataHandler UID placeholder. If it has not yet been set, it will be generated as a random string
+     * prefixed with "NEW".
+     *
      * @return string
      */
     public function getUidPlaceholder(): string

@@ -98,11 +98,6 @@ Log
 
 Logging of REST calls, including request and response data and execution time.
 
-.. info::
-
-   **Not yet implemented.** These logging-related settings are currently not
-   implemented.
-
 .. confval:: Enable logging
 
    :Required: false
