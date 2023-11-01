@@ -23,7 +23,7 @@ EXT:interest
    import, data, cli, rest, datahandler
 
 :Copyright:
-   2022 by Pixelant.net
+   2023 by Pixelant.net
 
 :Authors:
    * Pixelant.net
