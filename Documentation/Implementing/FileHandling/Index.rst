@@ -101,4 +101,4 @@ If the `name` field is used, the file will use the name supplied there and the c
 File name sanitation
 ====================
 
-File names are santized using TYPO3's standard sanitation methods, so expect spaces to be replaced with underscores, etc.
+File names are sanitized using TYPO3's standard sanitation methods, so expect spaces to be replaced with underscores, etc.

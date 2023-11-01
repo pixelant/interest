@@ -6,13 +6,6 @@
 Command Line API
 ================
 
-.. warning::
-
-   Because Extbase takes a lot of time to initialize, this extension disables
-   extbase-based commands from being initialized when none-Extbase commands are
-   being executed. This doesn't affect the execution of Extbase-based commands,
-   but prevents the help command from working properly.
-
 .. _implementing-cli-authentication:
 
 Authentication
