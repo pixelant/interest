@@ -29,7 +29,7 @@ class DeferredRecordOperationRepository extends AbstractRepository
                 'crdate' => time(),
                 'dependent_remote_id' => $dependentRemoteId,
                 'class' => get_class($operation),
-                'arguments' => serialize($operation->getRecordRepresentation()),
+                'arguments' => serialize([$operation->getRecordRepresentation(), $operation->getMetaData()]),
             ])
             ->executeStatement();
     }
@@ -74,6 +74,11 @@ class DeferredRecordOperationRepository extends AbstractRepository
             $row['_hash'] = md5($row['dependent_remote_id'] . $row['class'] . $row['arguments']);
 
             $row['arguments'] = unserialize($row['arguments']);
+
+            if (!is_array($row['arguments'])) {
+                // Compatibility with v1. Remove in v3.
+                $row['arguments'] = [$row['arguments']];
+            }
         }
 
         return $rows;

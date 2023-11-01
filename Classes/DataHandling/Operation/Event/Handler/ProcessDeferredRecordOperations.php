@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pixelant\Interest\DataHandling\Operation\Event\Handler;
 
 use Pixelant\Interest\DataHandling\Operation\AbstractConstructiveRecordOperation;
-use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\CreateRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\DeleteRecordOperation;
 use Pixelant\Interest\DataHandling\Operation\Event\AbstractRecordOperationEvent;
@@ -13,7 +12,6 @@ use Pixelant\Interest\DataHandling\Operation\Event\Exception\BeforeRecordOperati
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
-use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -80,15 +78,15 @@ class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInte
      * ensures that $className is a subclass of AbstractConstructiveRecordOperation.
      *
      * @param string $className
-     * @param RecordRepresentation $recordRepresentation
+     * @param array $constructorArguments
      * @return AbstractConstructiveRecordOperation
      *
      * @internal
      */
     public function createRecordOperation(
         string $className,
-        RecordRepresentation $recordRepresentation
+        array $constructorArguments
     ): AbstractConstructiveRecordOperation {
-        return new $className($recordRepresentation);
+        return new $className(... $constructorArguments);
     }
 }
