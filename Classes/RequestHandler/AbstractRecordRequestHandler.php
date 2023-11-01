@@ -132,6 +132,17 @@ abstract class AbstractRecordRequestHandler extends AbstractRequestHandler
 
         $exceptions = $this->handleOperations($operationCount);
 
+        if ($operationCount === 0 && count($exceptions) === 0) {
+            return GeneralUtility::makeInstance(
+                JsonResponse::class,
+                [
+                    'success' => true,
+                    'message' => 'No operations supplied',
+                ],
+                422
+            );
+        }
+
         if (count($exceptions) === 0) {
             return GeneralUtility::makeInstance(
                 JsonResponse::class,

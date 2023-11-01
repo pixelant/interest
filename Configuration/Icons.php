@@ -11,4 +11,8 @@ return [
         'provider' => SvgIconProvider::class,
         'source' => 'EXT:interest/Resources/Public/Icons/ManualRemoteIdMapping.svg',
     ],
+    'ext-interest-cud-reaction' => [
+        'provider' => SvgIconProvider::class,
+        'source' => 'EXT:interest/Resources/Public/Icons/CreateUpdateDeleteReaction.svg',
+    ],
 ];

@@ -208,9 +208,10 @@ class HttpRequestRouter
      * @param ServerRequestInterface $request
      * @param array $entryPointParts
      * @return ResponseInterface
+     * @internal
      * phpcs:disable Squiz.Commenting.FunctionCommentThrowTag
      */
-    protected static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
+    public static function handleByMethod(ServerRequestInterface $request, array $entryPointParts): ResponseInterface
     {
         $event = GeneralUtility::makeInstance(EventDispatcher::class)->dispatch(
             new HttpRequestRouterHandleByEvent($request, $entryPointParts)

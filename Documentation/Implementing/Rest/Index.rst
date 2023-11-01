@@ -149,10 +149,10 @@ multiple tables:
 
    "pages": {
       "Page-1": {
-         "title": "My first page",
+         "title": "My first page"
       },
       "Page-2": {
-         "title": "My second page",
+         "title": "My second page"
       }
    },
    "tt_content": {
