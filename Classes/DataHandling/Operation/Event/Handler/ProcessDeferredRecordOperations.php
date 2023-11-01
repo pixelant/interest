@@ -13,6 +13,7 @@ use Pixelant\Interest\DataHandling\Operation\Event\Exception\BeforeRecordOperati
 use Pixelant\Interest\DataHandling\Operation\Event\RecordOperationEventHandlerInterface;
 use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException;
 use Pixelant\Interest\DataHandling\Operation\UpdateRecordOperation;
+use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\DeferredRecordOperationRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -79,15 +80,15 @@ class ProcessDeferredRecordOperations implements RecordOperationEventHandlerInte
      * ensures that $className is a subclass of AbstractConstructiveRecordOperation.
      *
      * @param string $className
-     * @param array $constructorArguments
+     * @param RecordRepresentation $recordRepresentation
      * @return AbstractConstructiveRecordOperation
      *
      * @internal
      */
     public function createRecordOperation(
         string $className,
-        array $constructorArguments
+        RecordRepresentation $recordRepresentation
     ): AbstractConstructiveRecordOperation {
-        return new $className(... $constructorArguments);
+        return new $className($recordRepresentation);
     }
 }
