@@ -45,9 +45,6 @@
 	"replace": {
 		"typo3-ter/interest": "self.version"
 	},
-	"conflict": {
-		"phpstan/phpstan": "1.7.12 || 1.7.13 || 1.7.14"
-	},
 	"suggest": {
 		"typo3/cms-reactions": "To use TYPO3 reactions as entry point and for authentication."
 	},
