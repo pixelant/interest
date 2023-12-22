@@ -166,6 +166,13 @@ services:
       - name: event.listener
         identifier: setUid
         event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
+        before: assignUidOfCopyResultToRemoteId
+
+  Pixelant\Interest\DataHandling\Operation\Event\Handler\AssignUidOfCopyResultToRemoteId:
+    tags:
+      - name: event.listener
+        identifier: assignUidOfCopyResultToRemoteId
+        event: Pixelant\Interest\DataHandling\Operation\Event\RecordOperationInvocationEvent
         before: mapNewUidToRemoteId
 
   Pixelant\Interest\DataHandling\Operation\Event\Handler\MapNewUidToRemoteId:
