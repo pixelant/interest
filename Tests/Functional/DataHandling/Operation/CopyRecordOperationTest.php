@@ -14,9 +14,26 @@ use Pixelant\Interest\Domain\Model\Dto\RecordInstanceIdentifier;
 use Pixelant\Interest\Domain\Model\Dto\RecordRepresentation;
 use Pixelant\Interest\Domain\Repository\RemoteIdMappingRepository;
 use Pixelant\Interest\Tests\Functional\DataHandling\Operation\AbstractRecordOperationFunctionalTestCase;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Utility\StringUtility;
 
 class CopyRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 {
+    /**
+     * Creates a mocked LanguageService that returns a random string ending in "%s". We need the "%s" to avoid an error
+     * when prefixing a record title when copying.
+     */
+    protected function initializeLanguageService()
+    {
+        $languageServiceMock = $this->createMock(LanguageService::class);
+
+        $languageServiceMock
+            ->method('sL')
+            ->willReturn(StringUtility::getUniqueId() . '%s');
+
+        $GLOBALS['LANG'] = $languageServiceMock;
+    }
+
     /**
      * @test
      */
@@ -45,20 +62,28 @@ class CopyRecordOperationTest extends AbstractRecordOperationFunctionalTestCase
 
         self::assertNotEquals(0, $resultingUid, 'The resulting UID is nonzero.');
 
+        $originalDatabaseRow = $this
+            ->getConnectionPool()
+            ->getConnectionForTable('pages')
+            ->executeQuery('SELECT * FROM pages WHERE uid = 4')
+            ->fetchAssociative();
+
         $resultingDatabaseRow = $this
             ->getConnectionPool()
             ->getConnectionForTable('pages')
             ->executeQuery('SELECT * FROM pages WHERE uid = ' . $resultingUid)
             ->fetchAssociative();
 
+        self::assertNotEmpty($originalDatabaseRow['title'], 'Original title is not empty');
+
         self::assertEquals(
-            4,
+            $originalDatabaseRow['uid'],
             $resultingDatabaseRow['t3_origuid'],
             'New record is a copy of original according to t3_origuid field'
         );
 
         self::assertStringContainsString(
-            'Dummy 1-2',
+            $originalDatabaseRow['title'],
             $resultingDatabaseRow['title'],
             'Title of copy result contains original title.'
         );

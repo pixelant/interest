@@ -51,6 +51,14 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
 
         GeneralUtility::setSingletonInstance(SiteConfiguration::class, $siteConfiguration);
 
+        $this->initializeLanguageService();
+    }
+
+    /**
+     * Creates a mocked LanguageService that simply returns the argument when calling sL().
+     */
+    protected function initializeLanguageService()
+    {
         $languageServiceMock = $this->createMock(LanguageService::class);
 
         $languageServiceMock
