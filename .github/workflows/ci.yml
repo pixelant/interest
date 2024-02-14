@@ -156,27 +156,27 @@ jobs:
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
   functional-tests:
     name: "Functional tests"
     runs-on: ubuntu-20.04
@@ -209,12 +209,12 @@ jobs:
       - name: "Install lowest dependencies with composer"
         if: "matrix.composer-dependencies == 'lowest'"
         run: |
-          composer update --no-ansi --no-interaction --no-progress --with-dependencies --prefer-lowest
+          composer update --no-ansi --no-interaction --no-progress --with-dependencies --prefer-lowest typo3/minimal:"$TYPO3" $ADDITIONAL_REQUIREMENTS
           composer show
       - name: "Install highest dependencies with composer"
         if: "matrix.composer-dependencies == 'highest'"
         run: |
-          composer update --no-ansi --no-interaction --no-progress --with-dependencies
+          composer update --no-ansi --no-interaction --no-progress --with-dependencies typo3/minimal:"$TYPO3" $ADDITIONAL_REQUIREMENTS
           composer show
       - name: "Start MySQL"
         run: "sudo /etc/init.d/mysql start"
@@ -262,24 +262,24 @@ jobs:
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions"
+            additional-requirements: "typo3/cms-reactions:^12.4"
