@@ -44,7 +44,7 @@ class UpdateCommandController extends AbstractReceiveCommandController
      *
      * @throws NotFoundException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $exceptions = [];
 
