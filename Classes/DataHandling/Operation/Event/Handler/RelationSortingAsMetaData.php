@@ -92,7 +92,7 @@ class RelationSortingAsMetaData implements RecordOperationEventHandlerInterface
         foreach ($fieldConfigurations as $fieldName => $configuration) {
             $sortingIntent = $recordOperation->getDataForDataHandler()[$fieldName] ?? [];
 
-            if (($sortingIntent ?? []) === []) {
+            if ($sortingIntent === []) {
                 continue;
             }
 
