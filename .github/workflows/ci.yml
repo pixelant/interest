@@ -156,27 +156,27 @@ jobs:
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.1
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.2
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: highest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
           - typo3-version: ^12.4
             php-version: 8.3
             composer-dependencies: lowest
-            additional-requirements: "typo3/cms-reactions:\"^12.4\""
+            additional-requirements: "typo3/cms-reactions"
   functional-tests:
     name: "Functional tests"
     runs-on: ubuntu-20.04
