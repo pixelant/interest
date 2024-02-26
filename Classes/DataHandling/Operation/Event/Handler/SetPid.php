@@ -21,6 +21,7 @@ class SetPid implements RecordOperationEventHandlerInterface
         if (
             !$event->getRecordOperation()->isDataFieldSet('pid')
             && $event->getRecordOperation() instanceof CreateRecordOperation
+            && $event->getRecordOperation()->getTable() !== 'sys_file'
         ) {
             $event->getRecordOperation()->setDataFieldForDataHandler(
                 'pid',
