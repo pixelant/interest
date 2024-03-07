@@ -35,8 +35,7 @@ class ClearRecordHashCommandController extends Command
                 'contains',
                 'c',
                 InputOption::VALUE_NONE,
-                'The remoteId argument is a partial remote ID. Match all IDs containing the string.',
-                false
+                'The remoteId argument is a partial remote ID. Match all IDs containing the string.'
             );
     }
 
