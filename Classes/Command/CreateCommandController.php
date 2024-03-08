@@ -32,8 +32,7 @@ class CreateCommandController extends AbstractReceiveCommandController
                 'update',
                 'u',
                 InputOption::VALUE_NONE,
-                'Quietly update the record if it already exists.',
-                false
+                'Quietly update the record if it already exists.'
             );
     }
 

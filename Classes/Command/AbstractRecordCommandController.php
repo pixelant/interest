@@ -42,15 +42,13 @@ abstract class AbstractRecordCommandController extends Command
                 'b',
                 InputOption::VALUE_NONE,
                 'If set, <remoteId> is ignored and <data> is an array where each key is a remote ID and each '
-                . 'value field data. Each set of remote ID and field data will be processed.',
-                false
+                . 'value field data. Each set of remote ID and field data will be processed.'
             )
             ->addOption(
                 'disableReferenceIndex',
                 null,
                 InputOption::VALUE_NONE,
-                'If set, the reference index will not be updated.',
-                false
+                'If set, the reference index will not be updated.'
             );
     }
 
