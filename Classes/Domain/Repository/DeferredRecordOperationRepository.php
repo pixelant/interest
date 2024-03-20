@@ -7,6 +7,7 @@ namespace Pixelant\Interest\Domain\Repository;
 use Doctrine\DBAL\Result;
 use Pixelant\Interest\DataHandling\Operation\AbstractRecordOperation;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
+use TYPO3\CMS\Core\Database\Connection;
 
 class DeferredRecordOperationRepository extends AbstractRepository
 {
@@ -96,7 +97,7 @@ class DeferredRecordOperationRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'uid',
-                    $queryBuilder->createNamedParameter($uid, \PDO::PARAM_INT)
+                    $queryBuilder->createNamedParameter($uid, Connection::PARAM_INT)
                 )
             )
             ->executeStatement();

@@ -6,6 +6,7 @@ namespace Pixelant\Interest\Domain\Repository;
 
 use Doctrine\DBAL\Result;
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
+use TYPO3\CMS\Core\Database\Connection;
 
 /**
  * Database operations relating to pending relations to remote IDs that do not yet exist in the database.
@@ -31,7 +32,7 @@ class PendingRelationsRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'remote_id',
-                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                    $queryBuilder->createNamedParameter($remoteId, Connection::PARAM_STR)
                 )
             )
             ->executeQuery();
