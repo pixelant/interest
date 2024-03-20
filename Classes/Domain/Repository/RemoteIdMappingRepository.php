@@ -10,6 +10,7 @@ use Pixelant\Interest\DataHandling\Operation\Exception\IdentityConflictException
 use Pixelant\Interest\Domain\Repository\Exception\InvalidQueryResultException;
 use Pixelant\Interest\Utility\DatabaseUtility;
 use Pixelant\Interest\Utility\TcaUtility;
+use TYPO3\CMS\Core\Database\Connection;
 
 /**
  * Repository for interaction with the database table tx_interest_remote_id_mapping.
@@ -58,7 +59,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'remote_id',
-                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                    $queryBuilder->createNamedParameter($remoteId, Connection::PARAM_STR)
                 )
             )
             ->executeQuery();
@@ -398,7 +399,7 @@ class RemoteIdMappingRepository extends AbstractRepository
             ->where(
                 $queryBuilder->expr()->eq(
                     'remote_id',
-                    $queryBuilder->createNamedParameter($remoteId, \PDO::PARAM_STR)
+                    $queryBuilder->createNamedParameter($remoteId, Connection::PARAM_STR)
                 )
             )
             ->executeQuery();
