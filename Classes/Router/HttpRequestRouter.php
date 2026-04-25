@@ -37,8 +37,6 @@ class HttpRequestRouter
      */
     public static function route(ServerRequestInterface $request): ResponseInterface
     {
-        self::initialize($request);
-
         $extensionConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class);
 
         $entryPoint = substr(
@@ -54,6 +52,8 @@ class HttpRequestRouter
         );
 
         try {
+            self::initialize($request);
+
             if (($entryPointParts[0] ?? null) === 'authenticate') {
                 return GeneralUtility::makeInstance(
                     AuthenticateRequestHandler::class,
