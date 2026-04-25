@@ -115,7 +115,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
 
         [$scheme, $token] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
 
-        if (is_string($scheme) && strtolower($scheme) !== 'bearer') {
+        if (!is_string($scheme) || strtolower($scheme) !== 'bearer') {
             return;
         }
 
