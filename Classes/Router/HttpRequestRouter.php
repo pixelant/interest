@@ -11,6 +11,7 @@ use FriendsOfTYPO3\Interest\RequestHandler\CreateOrUpdateRequestHandler;
 use FriendsOfTYPO3\Interest\RequestHandler\CreateRequestHandler;
 use FriendsOfTYPO3\Interest\RequestHandler\DeleteRequestHandler;
 use FriendsOfTYPO3\Interest\RequestHandler\Exception\AbstractRequestHandlerException;
+use FriendsOfTYPO3\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use FriendsOfTYPO3\Interest\RequestHandler\ExceptionConverter\OperationToRequestHandlerExceptionConverter;
 use FriendsOfTYPO3\Interest\RequestHandler\UpdateRequestHandler;
 use FriendsOfTYPO3\Interest\Router\Event\HttpRequestRouterHandleByEvent;
@@ -55,6 +56,13 @@ class HttpRequestRouter
             self::initialize($request);
 
             if (($entryPointParts[0] ?? null) === 'authenticate') {
+                if (strtolower($request->getMethod()) !== 'post') {
+                    throw new UnauthorizedAccessException(
+                        'Authorization endpoint requires POST method.',
+                        $request
+                    );
+                }
+
                 return GeneralUtility::makeInstance(
                     AuthenticateRequestHandler::class,
                     $entryPointParts,
