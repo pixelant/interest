@@ -9,6 +9,7 @@ use FriendsOfTYPO3\Interest\RequestHandler\Exception\InvalidArgumentException;
 use FriendsOfTYPO3\Interest\RequestHandler\Exception\UnauthorizedAccessException;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class HttpBackendUserAuthentication extends BackendUserAuthentication
@@ -41,7 +42,17 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
             return;
         }
 
+        // Check if the user is authenticated via basic HTTP authentication.
         parent::checkAuthentication($request);
+
+        if (!$this->isAuthenticated()) {
+            throw new UnauthorizedAccessException(
+                'Basic HTTP authentication failed. Please check your credentials.',
+                $request
+            );
+        }
+
+        $this->workspaceInit();
     }
 
     /**
@@ -54,13 +65,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      */
     public function getLoginFormData(ServerRequestInterface $request)
     {
-        if (strtolower($request->getMethod()) !== 'post') {
-            throw new UnauthorizedAccessException(
-                'Authorization requires POST method.',
-                $request
-            );
-        }
-
         $authorizationHeader = $this->resolveAuthorizationHeader($request);
 
         [$scheme, $authorizationData] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
@@ -91,7 +95,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         [$username, $password] = explode(':', $authorizationData);
 
         $loginData = [
-            'status' => 'login',
+            'status' => LoginType::LOGIN->value,
             'uname'  => $username,
             'uident' => $password,
         ];
