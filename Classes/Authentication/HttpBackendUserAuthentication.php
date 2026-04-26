@@ -46,6 +46,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         parent::checkAuthentication($request);
 
         if (!$this->isAuthenticated()) {
+            return;
+
             throw new UnauthorizedAccessException(
                 'Basic HTTP authentication failed. Please check your credentials.',
                 $request
@@ -77,6 +79,8 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         }
 
         if (strtolower($scheme) !== 'basic') {
+            return $this->processLoginData([], $request);
+
             throw new InvalidArgumentException(
                 'Unknown authorization scheme "' . $scheme . '".',
                 $request

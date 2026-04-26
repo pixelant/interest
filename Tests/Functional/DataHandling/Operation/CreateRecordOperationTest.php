@@ -173,7 +173,7 @@ class CreateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
     #[Test]
     public function createAdvancedInlineMmRelationsInDifferentOrder(): void
     {
-        $fileData = base64_encode(file_get_contents(__DIR__ . '/Fixtures/Image.jpg'));
+        $fileData = base64_encode(file_get_contents(__DIR__ . '/../../Fixtures/Image.jpg'));
 
         $createContentElement = function (string $iteration) {
             (new CreateRecordOperation(
