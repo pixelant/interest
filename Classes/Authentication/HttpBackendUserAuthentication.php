@@ -38,21 +38,19 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
     {
         $this->authenticateBearerToken($request);
 
-        if ($this->isAuthenticated()) {
-            return;
+        if (!$this->isAuthenticated()) {
+            // Check if the user is authenticated via basic HTTP authentication.
+            parent::checkAuthentication($request);
         }
-
-        // Check if the user is authenticated via basic HTTP authentication.
-        parent::checkAuthentication($request);
 
         if (!$this->isAuthenticated()) {
             return;
-
-            throw new UnauthorizedAccessException(
-                'Basic HTTP authentication failed. Please check your credentials.',
-                $request
-            );
         }
+
+        $this->unpack_uc();
+
+        $this->fetchGroupData();
+        $this->backendSetUC();
 
         $this->workspaceInit();
     }
@@ -138,11 +136,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         }
 
         $this->setBeUserByUid($backendUserId);
-
-        $this->unpack_uc();
-
-        $this->fetchGroupData();
-        $this->backendSetUC();
     }
 
     /**
