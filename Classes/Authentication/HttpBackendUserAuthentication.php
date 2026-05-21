@@ -146,6 +146,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
     /**
      * @param ServerRequestInterface $request
      * @return string
+     * @throws UnauthorizedAccessException if no authorization scheme is provided.
      */
     protected function resolveAuthorizationHeader(ServerRequestInterface $request): string
     {
