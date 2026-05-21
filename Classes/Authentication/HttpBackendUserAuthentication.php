@@ -61,14 +61,12 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
             );
         }
 
-        $authorizationHeader = $request->getHeader('authorization')[0]
-            ?? $request->getHeader('redirect_http_authorization')[0]
-            ?? '';
+        $authorizationHeader = $this->resolveAuthorizationHeader($request);
 
         [$scheme, $authorizationData] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
 
         if ($scheme === null) {
-            throw new InvalidArgumentException(
+            throw new UnauthorizedAccessException(
                 'No authorization scheme provided.',
                 $request
             );
@@ -109,9 +107,7 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
      */
     protected function authenticateBearerToken(ServerRequestInterface $request): void
     {
-        $authorizationHeader = $request->getHeader('authorization')[0]
-            ?? $request->getHeader('redirect_http_authorization')[0]
-            ?? '';
+        $authorizationHeader = $this->resolveAuthorizationHeader($request);
 
         [$scheme, $token] = GeneralUtility::trimExplode(' ', $authorizationHeader, true);
 
@@ -153,5 +149,20 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
         $configuration['BE_fetchUserIfNoSession'] = true;
 
         return $configuration;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return string
+     * @throws UnauthorizedAccessException if no authorization scheme is provided.
+     */
+    protected function resolveAuthorizationHeader(ServerRequestInterface $request): string
+    {
+        return $request->getHeader('authorization')[0]
+            ?? $request->getHeader('redirect_http_authorization')[0]
+            ?? throw new UnauthorizedAccessException(
+                'No authorization scheme provided.',
+                $request
+            );
     }
 }
