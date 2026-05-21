@@ -34,7 +34,7 @@ class HttpRequestRouter
      * Route the request to correct handler.
      *
      * @return ResponseInterface
-     * @throws \Throwable
+     * @throws UnauthorizedAccessException if the user can't be authenticated.
      */
     public static function route(ServerRequestInterface $request): ResponseInterface
     {
