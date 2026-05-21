@@ -212,7 +212,7 @@ class UpdateRecordOperationTest extends AbstractRecordOperationFunctionalTestCas
     protected function createSysFiles(array $remoteIdentifiers)
     {
         $mappingRepository = new RemoteIdMappingRepository();
-        $fileData = base64_encode(file_get_contents(__DIR__ . '/Fixtures/Image.jpg'));
+        $fileData = base64_encode(file_get_contents(__DIR__ . '/../../Fixtures/Image.jpg'));
 
         $createSysFile = function (string $remoteId) use ($fileData) {
             (new CreateRecordOperation(
