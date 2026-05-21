@@ -16,9 +16,9 @@ trait UpdateRequestTestTrait
     public function updateRequestWithAuthentication(string $remoteId, string $authorizationValue): void
     {
         $recordTitle = 'Test Name ' . $remoteId . ' ' . bin2hex(random_bytes(16));
-        $remoteId = 'Dummy1234';
+        $remoteId = 'Dummy1234Page';
 
-        $request = (new InternalRequest('http://localhost/rest/pages/Dummy1234'))
+        $request = (new InternalRequest('http://localhost/rest/pages/Dummy1234Page'))
             ->withMethod(self::REQUEST_METHOD)
             ->withHeader('Authorization', $authorizationValue)
             ->withBody((new StreamFactory())->createStream('{"data":{"title":"' . $recordTitle . '"}}'));
