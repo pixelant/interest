@@ -61,7 +61,8 @@ trait UpdateRequestTestTrait
             ->fetchAssociative();
 
         self::assertEquals(
-            $recordTitle, $databaseRow['title'],
+            $recordTitle,
+            $databaseRow['title'],
             'Database row for remote ID "' . $remoteId . '" has correct title'
         );
     }

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace FriendsOfTYPO3\Interest\Tests\Functional\RequestHandler;
-
 
 use FriendsOfTYPO3\Interest\Domain\Repository\RemoteIdMappingRepository;
 use FriendsOfTYPO3\Interest\Tests\Functional\SiteBasedTestTrait;
@@ -61,12 +59,12 @@ abstract class AbstractRecordRequestHandlerTestCase extends FunctionalTestCase
             ],
             'admin user with password' => [
                 'testPage2',
-                'basic ' . base64_encode('admin:password')
+                'basic ' . base64_encode('admin:password'),
             ],
             'editor user with password' => [
                 'testPage3',
-                'basic ' . base64_encode('editor:password')
-            ]
+                'basic ' . base64_encode('editor:password'),
+            ],
         ];
     }
 }

@@ -38,14 +38,23 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
-        self::assertIsBool($responseData['success'],
-            'Response contains boolean success property');
-        self::assertFalse($responseData['success'],
-            'Response contains boolean success property with value false');
-        self::assertArrayHasKey('message', $responseData,
-            'Response contains message property');
-        self::assertIsString($responseData['message'],
-            'Response contains message property with string value');
+        self::assertIsBool(
+            $responseData['success'],
+            'Response contains boolean success property'
+        );
+        self::assertFalse(
+            $responseData['success'],
+            'Response contains boolean success property with value false'
+        );
+        self::assertArrayHasKey(
+            'message',
+            $responseData,
+            'Response contains message property'
+        );
+        self::assertIsString(
+            $responseData['message'],
+            'Response contains message property with string value'
+        );
     }
 
     #[Test]
@@ -66,14 +75,23 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
-        self::assertIsBool($responseData['success'],
-            'Response contains boolean success property');
-        self::assertFalse($responseData['success'],
-            'Response contains boolean success property with value false');
-        self::assertArrayHasKey('message', $responseData,
-            'Response contains message property');
-        self::assertIsString($responseData['message'],
-            'Response contains message property with string value');
+        self::assertIsBool(
+            $responseData['success'],
+            'Response contains boolean success property'
+        );
+        self::assertFalse(
+            $responseData['success'],
+            'Response contains boolean success property with value false'
+        );
+        self::assertArrayHasKey(
+            'message',
+            $responseData,
+            'Response contains message property'
+        );
+        self::assertIsString(
+            $responseData['message'],
+            'Response contains message property with string value'
+        );
     }
 
     public static function requestWithDifferentMethodDataProvider(): array
@@ -105,14 +123,23 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
-        self::assertIsBool($responseData['success'],
-            'Response contains boolean success property');
-        self::assertFalse($responseData['success'],
-            'Response contains boolean success property with value false');
-        self::assertArrayHasKey('message', $responseData,
-            'Response contains message property');
-        self::assertIsString($responseData['message'],
-            'Response contains message property with string value');
+        self::assertIsBool(
+            $responseData['success'],
+            'Response contains boolean success property'
+        );
+        self::assertFalse(
+            $responseData['success'],
+            'Response contains boolean success property with value false'
+        );
+        self::assertArrayHasKey(
+            'message',
+            $responseData,
+            'Response contains message property'
+        );
+        self::assertIsString(
+            $responseData['message'],
+            'Response contains message property with string value'
+        );
     }
 
     #[Test]
@@ -129,21 +156,36 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
 
         $responseData = json_decode($response->getBody()->getContents(), true);
 
-        self::assertIsBool($responseData['success'],
-            'Authentication response contains boolean success property');
-        self::assertTrue($responseData['success'],
-            'Authentication response contains boolean success property with value true');
-        self::assertArrayHasKey('token', $responseData,
-            'Authentication response contains token property');
-        self::assertIsString($responseData['token'],
-            'Authentication response contains token property with string value');
-        self::assertEquals(32, strlen($responseData['token']),
-            'Authentication response contains token property with string value of length 40');
+        self::assertIsBool(
+            $responseData['success'],
+            'Authentication response contains boolean success property'
+        );
+        self::assertTrue(
+            $responseData['success'],
+            'Authentication response contains boolean success property with value true'
+        );
+        self::assertArrayHasKey(
+            'token',
+            $responseData,
+            'Authentication response contains token property'
+        );
+        self::assertIsString(
+            $responseData['token'],
+            'Authentication response contains token property with string value'
+        );
+        self::assertEquals(
+            32,
+            strlen($responseData['token']),
+            'Authentication response contains token property with string value of length 40'
+        );
 
         $tokenRepository = new TokenRepository();
 
-        self::assertEquals($userId, $tokenRepository->findBackendUserIdByToken($responseData['token']),
-            'Token is valid for correct backend user');
+        self::assertEquals(
+            $userId,
+            $tokenRepository->findBackendUserIdByToken($responseData['token']),
+            'Token is valid for correct backend user'
+        );
     }
 
     public static function successfulAuthenticationRequestDataProvider(): array
@@ -151,12 +193,12 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
         return [
             'admin user' => [
                 base64_encode('admin:password'),
-                1
+                1,
             ],
             'editor user' => [
                 base64_encode('editor:password'),
-                2
-            ]
+                2,
+            ],
         ];
     }
 }

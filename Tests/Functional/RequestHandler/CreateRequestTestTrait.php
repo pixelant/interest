@@ -62,7 +62,8 @@ trait CreateRequestTestTrait
             'Database row for remote ID "' . $remoteId . '" exists'
         );
         self::assertEquals(
-            'Test Name ' . $remoteId, $databaseRow['title'],
+            'Test Name ' . $remoteId,
+            $databaseRow['title'],
             'Database row for remote ID "' . $remoteId . '" has correct title'
         );
     }
