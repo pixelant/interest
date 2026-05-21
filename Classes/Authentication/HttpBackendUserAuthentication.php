@@ -78,11 +78,6 @@ class HttpBackendUserAuthentication extends BackendUserAuthentication
 
         if (strtolower($scheme) !== 'basic') {
             return $this->processLoginData([], $request);
-
-            throw new InvalidArgumentException(
-                'Unknown authorization scheme "' . $scheme . '".',
-                $request
-            );
         }
 
         $authorizationData = base64_decode($authorizationData, true);
