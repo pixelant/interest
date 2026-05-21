@@ -18,7 +18,7 @@ trait CreateRequestTestTrait
         $request = (new InternalRequest('http://localhost/rest/pages/' . $remoteId))
             ->withMethod(self::REQUEST_METHOD)
             ->withHeader('Authorization', $authorizationValue)
-            ->withBody((new StreamFactory())->createStream('{"data":{"title":"Test Name ' . $remoteId . '","pid":"Dummy1234"}}'));
+            ->withBody((new StreamFactory())->createStream('{"data":{"title":"Test Name ' . $remoteId . '","pid":"Dummy1234Page"}}'));
 
         $response = $this->executeFrontendSubRequest($request);
 

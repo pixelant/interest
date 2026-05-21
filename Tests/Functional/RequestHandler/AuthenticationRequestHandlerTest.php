@@ -18,10 +18,8 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
     {
         parent::setUp();
 
-        $this->importCSVDataSet(__DIR__ . '/../Fixtures/BackendUser.csv');
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/BackendUsers.csv');
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/Records.csv');
-
-        $this->setUpBackendUser(1);
     }
 
     #[Test]
@@ -118,11 +116,12 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
     }
 
     #[Test]
-    public function successfulAuthenticationRequest(): void
+    #[DataProvider('successfulAuthenticationRequestDataProvider')]
+    public function successfulAuthenticationRequest(string $encodedUsernameAndPassword, int $userId): void
     {
         $request = (new InternalRequest('http://localhost/rest/authenticate'))
             ->withMethod('POST')
-            ->withHeader('Authorization', 'basic ' . base64_encode('admin:password'));
+            ->withHeader('Authorization', 'basic ' . $encodedUsernameAndPassword);
 
         $response = $this->executeFrontendSubRequest($request);
 
@@ -143,7 +142,21 @@ class AuthenticationRequestHandlerTest extends FunctionalTestCase
 
         $tokenRepository = new TokenRepository();
 
-        self::assertEquals(1, $tokenRepository->findBackendUserIdByToken($responseData['token']),
+        self::assertEquals($userId, $tokenRepository->findBackendUserIdByToken($responseData['token']),
             'Token is valid for correct backend user');
+    }
+
+    public static function successfulAuthenticationRequestDataProvider(): array
+    {
+        return [
+            'admin user' => [
+                base64_encode('admin:password'),
+                1
+            ],
+            'editor user' => [
+                base64_encode('editor:password'),
+                2
+            ]
+        ];
     }
 }

@@ -24,7 +24,7 @@ abstract class AbstractRecordOperationFunctionalTestCase extends FunctionalTestC
     {
         parent::setUp();
 
-        $this->importCSVDataSet(__DIR__ . '/../../Fixtures/BackendUser.csv');
+        $this->importCSVDataSet(__DIR__ . '/../../Fixtures/BackendUsers.csv');
 
         $this->importCSVDataSet(__DIR__ . '/../../Fixtures/Records.csv');
 
