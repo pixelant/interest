@@ -6,6 +6,10 @@
 Command Line API
 ================
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. _implementing-cli-authentication:
 
 Authentication

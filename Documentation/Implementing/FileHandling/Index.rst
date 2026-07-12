@@ -6,6 +6,10 @@
 File Handling
 =============
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. note::
 
    File handling is managed in the EventHandler class :php:`\FriendsOfTYPO3\Interest\DataHandling\Operation\Event\Handler\PersistFileDataEventHandler`.

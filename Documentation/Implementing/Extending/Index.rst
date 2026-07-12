@@ -8,6 +8,10 @@ Changing and Extending
 
 If you need additional functionality or the existing functionality of the extension isn't quite what you need, this section tells you how to change the behavior of the Interest extension. It also tells you how to extend the functionality, as well as a bit about the extension's inner workings.
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. _extending-events:
 
 PSR-14 Events

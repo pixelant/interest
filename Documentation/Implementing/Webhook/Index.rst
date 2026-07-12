@@ -11,6 +11,10 @@ TYPO3 v12 adds the possibility to receive webhooks and react to them with
 installed, the Interest extension can use a webhook as a wrapper for a REST
 request.
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. _reaction-differences:
 
 Differences between a webhook and REST request
@@ -66,7 +70,7 @@ in the console, using our placeholders as payload:
 Request data
 ============
 
-Your payload data should always contain at least contain the key `method`.
+Your payload data should always contain at least the key `method`.
 
 .. _reaction-request-method:
 
