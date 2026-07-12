@@ -6,6 +6,10 @@
 REST API
 ========
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. _implementing-rest-basic:
 
 Basic request URL
@@ -46,36 +50,74 @@ They can also be supplied in the query string:
 Authentication
 ==============
 
+..  versionadded:: 10.2
+    Since version 4.1, requests can be made with `basic` or `basic`
+    authentication. Previously, `basic` authentication was only available when
+    retrieving a `bearer` token through the `authenticate` endpoint.
+
+.. _implementing-rest-authentication-security-performance:
+
+Security and performance considerations
+---------------------------------------
+
+`basic` authentication is *not as secure* and less performant than bearer
+authentication. Because it requires you to encode and transmit your backend
+username and password with every request, it offers inferior security.
+
+`bearer` authentication is a token-based system where you first retrieve a
+temporary token and then use only this token for subsequent requests.
+
 .. _implementing-rest-authentication-basic:
 
-Scheme: basic
--------------
+Scheme: `basic`
+---------------
 
-Initial authentication is done using the `basic` HTTP authentication schema,
-where a Base64-encoded string is submitted to the server. The string is a TYPO3
-backend username and the corresponding password, separated by a colon: `:`.
+.. _implementing-rest-authentication-basic-generating:
+
+Generating your authentication string
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `basic` HTTP authentication schema, uses a Base64-encoded string consisting
+of a backend username and the corresponding password, separated by a colon: `:`.
 
 Given the username "testuser" and password "test1234", the concatenated string
 will be "testuser:test1234" and the Base64-encoded version:
 "dGVzdHVzZXI6dGVzdDEyMzQ=".
 
+You can base64-encode a string by using built-in terminal commands:
+
+..  code-block:: bash
+
+    # Will output: dGVzdHVzZXI6dGVzdDEyMzQ=
+    echo -n "testuser:test1234" | base64
+
+..  warning::
+    Using online tools for encoding your password is not advisable!
+
+.. _implementing-rest-authentication-basic-using:
+
+Using `basic` authentication in a request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Authentication is done using the `Authorization` HTTP header.
+
 .. code-block:: bash
 
    curl -XPOST \
         -H 'Authorization: basic dGVzdHVzZXI6dGVzdDEyMzQ=' \
-        -v 'https://example.org/rest/authenticate'
+        -v 'https://example.org/rest/pages/testPage' \
+        -d '{"data":{"title":"Test Name","pid":"siteRootPage"}}'
 
-.. note::
-
-   `authenticate` is a special endpoint used only for basic authentication
-   requests.
-
-This request will return a JSON response body including a token that can be
-used on subsequent requests:
+The request will return a JSON response body:
 
 .. code-block:: json
 
-   {"success":true,"token":"f3c0946fb05aae4ad50897e9060ab4e8"}
+   {"success":true, ...}
+
+.. _implementing-rest-authentication-basic-apache:
+
+Fixing Apache and the authorization HTTP header
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using Apache there is a need to add the following to .htaccess
 
@@ -90,9 +132,39 @@ When using Apache there is a need to add the following to .htaccess
 Scheme: bearer (OAuth)
 ----------------------
 
-For any other request, you must use `bearer` HTTP authentication scheme,
-supplying an authentication token, such as the one supplied by the `basic`
-authentication request mentioned above:
+.. _implementing-rest-authentication-bearer-token:
+
+Retrieving an authentication token
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you use the `bearer` HTTP authentication scheme, you must first retrieve
+an authentication token through the `authenticate` endpoint
+using :ref:`\`basic\` authentication <implementing-rest-authentication-basic>`.
+
+.. code-block:: bash
+
+   curl -XPOST \
+        -H 'Authorization: basic dGVzdHVzZXI6dGVzdDEyMzQ=' \
+        -v 'https://example.org/rest/authenticate'
+
+.. note::
+   `authenticate` is a special endpoint used when retrieving a token. For
+   obvious reasons, it only supports `basic` authentication.
+
+This request will return a JSON response body including a token that can be
+used on subsequent requests:
+
+.. code-block:: json
+
+   {"success":true,"token":"f3c0946fb05aae4ad50897e9060ab4e8"}
+
+.. _implementing-rest-authentication-bearer-authentication:
+
+Authenticating a request with a bearer token
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You supply the `bearer` token using the `Authorization` HTTP header in your
+request:
 
 .. code-block:: bash
 
@@ -253,5 +325,5 @@ Optional HTTP Headers
    :Type: Boolean
 
    Disable updating the reference index during the request. This has a positive
-performance impact. You can (and should) reindex the reference index manually
-afterwards.
+   performance impact. You can (and should) reindex the reference index manually
+   afterwards.
