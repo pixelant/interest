@@ -14,6 +14,7 @@ Implementing
    Cli/Index
    Rest/Index
    Webhook/Index
+   DataArray/Index
    FileHandling/Index
    Extending/Index
 
