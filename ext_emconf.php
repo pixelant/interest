@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 // phpcs:ignoreFile
 $EM_CONF['interest'] = [
     'title' => 'Integration REST API',
