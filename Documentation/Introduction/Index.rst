@@ -6,6 +6,10 @@
 Introduction
 ============
 
+..  contents::
+    :local:
+    :depth: 2
+
 .. _why-call-it-interest:
 
 Why is it called Interest?
@@ -23,20 +27,27 @@ What does it do?
 A CLI and REST frontend to TYPO3's DataHandler
 ----------------------------------------------
 
-This is an import extension that provides CLI and REST endpoints for creating,
-updating, and deleting records in TYPO3. It uses TYPO3's DataHandler API, so
-data is inserted as if you submitted a form in the Backend. This means changes
-are visible in the record history, and you can even revert to previous versions.
+This is an import extension that provides CLI, REST, and
+`Reaction <https://docs.typo3.org/permalink/typo3-cms-reactions:start>`_
+endpoints for creating, updating, and deleting records in TYPO3. It uses TYPO3's
+DataHandler API, so data is inserted as if you submitted a form in the Backend.
+This means changes are visible in the record history, and you can even revert to
+previous versions.
 
 .. _what-it-does-permissions:
 
 Backend user permissions
 ------------------------
 
-REST calls authenticate as a backend user. That user's permissions are the
+**REST** calls authenticate as a backend user. That user's permissions are the
 permissions of the Interest extension. This means the REST calls can only
 create the records the backend user has permission to do. The extension uses
 TYPO3's own backend permission checking functionality.
+
+**CLI** calls are authenticated as the default `_cli_` backend user.
+
+**Reactions** are authenticated as the user configured in the *Impersonate User*
+field.
 
 .. _what-it-does-remote-ids:
 
@@ -66,8 +77,8 @@ parts of the path as a remote ID and common reference point.
 
 .. _what-it-does-track-relations-and-defer:
 
-Send data in any order: Relation tracking and insert deferral
--------------------------------------------------------------
+Relation tracking and insert deferral — send data in any order
+--------------------------------------------------------------
 
 Import data often out of order. You have to insert the parent page before you
 insert the children.
@@ -130,8 +141,6 @@ to maintain a data import with few changes:
 * **Disable reference indexing.** Updating the reference index is time consuming
   when you are writing a lot of data. You can disable it during import and
   and update the index afterwards.
-* For TYPO3 v9, the CLI module also **disables registering of Extbase commands**
-  to greatly improve performance.
 
 .. _what-it-does-not-do:
 
